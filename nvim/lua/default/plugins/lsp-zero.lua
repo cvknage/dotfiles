@@ -41,7 +41,8 @@ return {
                     ['<C-f>'] = cmp_action.luasnip_jump_forward(),
                     ['<C-b>'] = cmp_action.luasnip_jump_backward(),
                     ['<Tab>'] = cmp.mapping.select_next_item(),
-                    ['<S-Tab>'] = cmp.mapping.select_prev_item(),                })
+                    ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+                })
             })
         end
     },
@@ -78,10 +79,13 @@ return {
                 vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
             end)
 
+            -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
+            require("neodev").setup({
+                library = { plugins = { "nvim-dap-ui" }, types = true },
+            })
+
             require('mason-lspconfig').setup({
-                ensure_installed = {
-                    'lua_ls'
-                },
+                ensure_installed = {},
                 handlers = {
                     lsp_zero.default_setup,
                     lua_ls = function()

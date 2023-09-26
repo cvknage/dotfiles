@@ -1,5 +1,5 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
--- pvim.fn.stdpath("data") .. "/lazy/lazy.nvim"rint("Lazy install dir: " .. lazypath)
+-- print("Lazy install dir: " .. lazypath)
 
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
