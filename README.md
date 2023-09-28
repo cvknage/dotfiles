@@ -8,6 +8,12 @@ This configuration uses [ripgrep](https://github.com/BurntSushi/ripgrep) when se
 ``` console
 sudo port install ripgrep
 ```
+And [fd](https://github.com/sharkdp/fd) to find files.
+
+**[MacPorts](https://ports.macports.org/port/fd/)**
+``` console
+sudo port install fd
+```
 
 ## Install
 
