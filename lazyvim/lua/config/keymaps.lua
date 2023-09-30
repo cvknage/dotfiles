@@ -6,11 +6,11 @@ vim.keymap.set("n", "J", "mzJ`z") -- J cursor position stay in place
 vim.keymap.set("n", "<C-u>", "<C-u>zz") -- half page up cursor position stay in place
 vim.keymap.set("n", "<C-d>", "<C-d>zz") -- half page down cursor position stay in place
 
-vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Yank to +y" }) -- yank to +y aka. sytem clipboard
-vim.keymap.set("n", "<leader>yy", [["+Y]], { desc = "Yank line to +y" }) -- yank line to +y aka. sytem clipboard
-vim.keymap.set("n", "<leader>Y", [["+y$]], { desc = "Yank rest of line to +y" }) -- Yank rest of line to +y aka. sytem clipboard
+vim.keymap.set({ "n", "v" }, "<C-y>", [["+y]], { desc = "Yank to +y" }) -- yank to +y aka. sytem clipboard
+vim.keymap.set("n", "<C-y><C-y>", [["+Y]], { desc = "Yank line to +y" }) -- yank line to +y aka. sytem clipboard
+vim.keymap.set("n", "<C-S-Y>", [["+y$]], { desc = "Yank rest of line to +y" }) -- Yank rest of line to +y aka. sytem clipboard
 
-vim.keymap.set("x", "<leader>p", [["_dP]], { desc = "Paste over without copy" }) -- paste over without picking up what was under
-vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete selection without copy" }) -- delete selection without picking up what was under
+vim.keymap.set("x", "<C-p>", [["_dP]], { desc = "Paste over without yank" }) -- paste over without picking up what was under
+vim.keymap.set({ "n", "v" }, "<C-d>", [["_d]], { desc = "Delete selection without yank" }) -- delete selection without picking up what was under
 
-vim.keymap.set("n", "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap marked word" }) -- swap/replace marked word
+vim.keymap.set("n", "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
