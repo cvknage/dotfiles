@@ -13,6 +13,10 @@ local function map(mode, lhs, rhs, opts)
   vim.keymap.set(mode, lhs, rhs, options)
 end
 
+-- lazygit - from LazyVim Default
+vim.keymap.del("n", "<leader>gg")
+vim.keymap.del("n", "<leader>gG")
+
 map("n", "J", "mzJ`z") -- J cursor position stay in place
 map("n", "<C-u>", "<C-u>zz") -- half page up cursor position stay in place
 map("n", "<C-d>", "<C-d>zz") -- half page down cursor position stay in place
