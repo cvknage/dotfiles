@@ -29,3 +29,8 @@ map("x", "<C-p>", [["_dP]], { desc = "Paste over without yank" }) -- paste over 
 map({ "n", "v" }, "<C-d>", [["_d]], { desc = "Delete selection without yank" }) -- delete selection without picking up what was under
 
 map("n", "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
+
+map("n", "<F5>", require("dap").continue) -- debugger continue
+map("n", "<F10>", require("dap").step_over) -- debugger step over
+map("n", "<F11>", require("dap").step_into) -- debugger step into
+map("n", "<F12>", require("dap").step_out) -- debugger step out
