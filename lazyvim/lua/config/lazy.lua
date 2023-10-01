@@ -13,6 +13,7 @@ require("lazy").setup({
     -- import any extras modules here
     { import = "lazyvim.plugins.extras.dap.core" },
     { import = "lazyvim.plugins.extras.dap.nlua" },
+    { import = "lazyvim.plugins.extras.lang.omnisharp" },
     -- { import = "lazyvim.plugins.extras.lang.typescript" },
     -- { import = "lazyvim.plugins.extras.lang.json" },
     -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
