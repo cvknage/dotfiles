@@ -3,12 +3,16 @@ return {
     -- Disable CSharpier formatter for C#
     -- https://www.lazyvim.org/extras/lang/omnisharp
     "nvimtools/none-ls.nvim",
-    optional = true,
-    opts = nil,
-    -- opts = function(_, opts)
-    --   local nls = require("null-ls")
-    --   table.insert(opts.sources, nls.builtins.formatting.csharpier)
-    -- end,
+    opts = function(_, opts)
+      local csharpier_index
+      for index, value in ipairs(opts.sources) do
+        if value.name == "csharpier" then
+          csharpier_index = index
+          break
+        end
+      end
+      opts.sources[csharpier_index] = nil
+    end,
   },
   {
     -- Add netcoredbg debuggger for C#
