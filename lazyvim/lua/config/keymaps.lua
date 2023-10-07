@@ -27,12 +27,12 @@ map("n", "J", "mzJ`z") -- J cursor position stay in place
 map("n", "<C-u>", "<C-u>zz") -- half page up cursor position stay in place
 map("n", "<C-d>", "<C-d>zz") -- half page down cursor position stay in place
 
-map({ "n", "v" }, "<C-y>", [["+y]], { desc = "Yank to +y" }) -- yank to +y aka. sytem clipboard
-map("n", "<C-y><C-y>", [["+Y]], { desc = "Yank line to +y" }) -- yank line to +y aka. sytem clipboard
-map("n", "<C-S-Y>", [["+y$]], { desc = "Yank rest of line to +y" }) -- Yank rest of line to +y aka. sytem clipboard
+map({ "n", "v" }, "<A-y>", [["+y]], { desc = "Yank to +y" }) -- yank to +y aka. sytem clipboard
+map("n", "<A-y><A-y>", [["+Y]], { desc = "Yank line to +y" }) -- yank line to +y aka. sytem clipboard
+map("n", "<A-S-Y>", [["+y$]], { desc = "Yank rest of line to +y" }) -- Yank rest of line to +y aka. sytem clipboard
 
-map("x", "<C-p>", [["_dP]], { desc = "Paste over without yank" }) -- paste over without picking up what was under
-map({ "n", "v" }, "<C-d>", [["_d]], { desc = "Delete selection without yank" }) -- delete selection without picking up what was under
+map("x", "<A-p>", [["_dP]], { desc = "Paste over without yank" }) -- paste over without picking up what was under
+map({ "n", "v" }, "<A-d>", [["_d]], { desc = "Delete selection without yank" }) -- delete selection without picking up what was under
 
 map("n", "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
 
