@@ -1,32 +1,30 @@
-# neovim-config
+# [neovim-config](https://neovim.io/doc/user/lua.html)
+
+Configuration for [NeoVim](https://neovim.io) 
 
 ## Prequisites
 
-- [ripgrep](https://github.com/BurntSushi/ripgrep)
+Some of the plugins used require the following programs to function correctly:
 
-**[MacPorts](https://ports.macports.org/port/ripgrep/)**
-``` console
-sudo port install ripgrep
-```
+- [ripgrep](https://github.com/BurntSushi/ripgrep)  
+**[MacPorts](https://ports.macports.org/port/ripgrep/)**: `sudo port install ripgrep`  
+**[Homebrew](https://formulae.brew.sh/formula/ripgrep)**: `brew install ripgrep`  
+**[Apt](https://packages.debian.org/sid/ripgrep)**: `sudo apt install ripgrep`  
 
-- [fd](https://github.com/sharkdp/fd)
+- [fd](https://github.com/sharkdp/fd)  
+**[MacPorts](https://ports.macports.org/port/fd/)**: `sudo port install fd`  
+**[Homebrew](https://formulae.brew.sh/formula/fd)**: `brew install fd`  
+**[Apt](https://packages.debian.org/sid/fd-find)**: `sudo apt install fd-find`  
 
-**[MacPorts](https://ports.macports.org/port/fd/)**
-``` console
-sudo port install fd
-```
-
-- [sed](https://www.gnu.org/software/sed/)
-
-[MacPorts](https://ports.macports.org/port/gsed/)
-``` console
-sudo port install gsed
-```
+- [sed](https://www.gnu.org/software/sed/)  
+[MacPorts](https://ports.macports.org/port/gsed/): `sudo port install gsed`  
+**[Homebrew](https://formulae.brew.sh/formula/gnu-sed)**: `brew install gnu-sed`  
+**[Apt](https://packages.debian.org/sid/sed)**: `sudo apt install sed`  
 
 ## Install
 
-The install script will symlink the `nvim` directory to the one selected:
-``` console
+The install script will create a symlink from `$HOME/.config/nvim` to `./lazyvim`:
+``` 
 bash install.sh
 ```
 
