@@ -1,5 +1,16 @@
 return {
   {
+    -- Disable CSharpier formatter for C#
+    -- https://www.lazyvim.org/extras/lang/omnisharp
+    "stevearc/conform.nvim",
+    optional = true,
+    opts = {
+      formatters_by_ft = {
+        cs = { nil },
+      },
+    },
+  },
+  {
     -- Add netcoredbg debuggger for C#
     -- https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/plugins/lsp/init.lua
     "neovim/nvim-lspconfig",
