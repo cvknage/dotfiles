@@ -28,9 +28,37 @@ return {
             command = vim.fn.stdpath("data") .. "/mason/bin/netcoredbg",
             args = { "--interpreter=vscode" },
           }
+
+          -- https://github.com/Issafalcon/neotest-dotnet#debugging
+          require("dap").adapters.netcoredbg = {
+            type = "executable",
+            command = vim.fn.stdpath("data") .. "/mason/bin/netcoredbg",
+            args = { "--interpreter=vscode" },
+          }
+
           require("mason-nvim-dap").setup()
         end,
       },
+    },
+  },
+  {
+    "nvim-neotest/neotest",
+    dependencies = { "Issafalcon/neotest-dotnet" },
+    opts = {
+      -- Can be a list of adapters like what neotest expects,
+      -- or a list of adapter names,
+      -- or a table of adapter names, mapped to adapter configs.
+      -- The adapter will then be automatically loaded with the config.
+      adapters = {
+        -- https://github.com/Issafalcon/neotest-dotnet#usage
+        ["neotest-dotnet"] = {},
+      },
+      -- Example for loading neotest-go with a custom config
+      -- adapters = {
+      --   ["neotest-go"] = {
+      --     args = { "-tags=integration" },
+      --   },
+      -- },
     },
   },
 }
