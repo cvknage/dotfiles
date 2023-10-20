@@ -22,19 +22,17 @@ return {
           -- setup dap config by VsCode launch.json file
           -- require("dap.ext.vscode").load_launchjs()
 
-          -- https://github.com/mfussenegger/nvim-dap/wiki/Debug-Adapter-installation#dotnet
-          require("dap").adapters.coreclr = {
+          local netcoredbg = {
             type = "executable",
             command = vim.fn.stdpath("data") .. "/mason/bin/netcoredbg",
             args = { "--interpreter=vscode" },
           }
 
+          -- https://github.com/mfussenegger/nvim-dap/wiki/Debug-Adapter-installation#dotnet
+          require("dap").adapters.coreclr = netcoredbg
+
           -- https://github.com/Issafalcon/neotest-dotnet#debugging
-          require("dap").adapters.netcoredbg = {
-            type = "executable",
-            command = vim.fn.stdpath("data") .. "/mason/bin/netcoredbg",
-            args = { "--interpreter=vscode" },
-          }
+          require("dap").adapters.netcoredbg = netcoredbg
 
           require("mason-nvim-dap").setup()
         end,
