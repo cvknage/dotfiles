@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
-rm -rf ~/.config/nvim
-# ln -s "$(pwd)/custom" ~/.config/nvim
-ln -s "$(pwd)/lazyvim" ~/.config/nvim
+CONFIG_DIR="$HOME/.config/nvim"
+
+rm -rf $CONFIG_DIR
+# ln -s "$(pwd)/custom" $CONFIG_DIR
+ln -s "$(pwd)/lazyvim" $CONFIG_DIR
