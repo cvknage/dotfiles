@@ -1,3 +1,3 @@
-require("default.remap")
-require("default.set")
-require("default.lazy-config")
+require("default.config.keymaps")
+require("default.config.lazy")
+require("default.config.options")
