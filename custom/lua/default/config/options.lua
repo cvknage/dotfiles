@@ -1,9 +1,9 @@
 vim.opt.number = true -- Print line number
 vim.opt.relativenumber = true -- Relative line numbers
 
-vim.opt.tabstop = 4 -- Number of spaces tabs count for
-vim.opt.softtabstop = 4 -- Number of spaces tabs count for while performing editing operatons
-vim.opt.shiftwidth = 4 -- Size of an indent
+vim.opt.tabstop = 2 -- Number of spaces tabs count for
+vim.opt.softtabstop = 2 -- Number of spaces tabs count for while performing editing operatons
+vim.opt.shiftwidth = 2 -- Size of an indent
 vim.opt.expandtab = true -- Use spaces instead of tabs
 vim.opt.smartindent = true -- Insert indents automatically
 
