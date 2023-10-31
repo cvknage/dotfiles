@@ -26,6 +26,3 @@ vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50 -- Save swap file and trigger CursorHold
 
 vim.opt.colorcolumn = "120" -- Code length guide
-
-vim.opt.pumblend = 10 -- Popup blend
-vim.opt.winblend = 10 -- Window blend

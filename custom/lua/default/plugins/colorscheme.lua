@@ -4,7 +4,9 @@ return {
 	priority = 1000,
 	config = function(_, opts)
         require('catppuccin').setup(opts)
-		vim.cmd.colorscheme("catppuccin")
+        vim.cmd.colorscheme("catppuccin")
+        vim.opt.pumblend = 10 -- Enables pseudo-transparency for the |popup-menu|
+        vim.opt.winblend = 10 -- Enables pseudo-transparency for a floaring window
 	end,
 	opts = {
         flavour = "macchiato", -- latte, frappe, macchiato, mocha
