@@ -11,7 +11,7 @@ vim.keymap.set("n", "<A-S-Y>", [["+y$]], { desc = "Yank rest of line to +y" }) -
 vim.keymap.set("x", "<A-p>", [["_dP]], { desc = "Paste over without yank" }) -- paste over without picking up what was under
 vim.keymap.set({ "n", "v" }, "<A-d>", [["_d]], { desc = "Delete selection without yank" }) -- delete selection without picking up what was under
 
-vim.keymap.set("n", "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
+vim.keymap.set({"n", "v" }, "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
 
 vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Project volumes" }) -- Project Volumes: opens netrw
 -- vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>") -- switch project
