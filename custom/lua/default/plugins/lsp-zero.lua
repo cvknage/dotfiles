@@ -67,9 +67,8 @@ return {
       lsp_zero.extend_lspconfig()
 
       lsp_zero.on_attach(function(client, bufnr)
-        -- see :help lsp-zero-keybindings
-        -- to learn the available actions
-        lsp_zero.default_keymaps({ buffer = bufnr })
+        -- see :help lsp-zero-keybindings to learn the available actions
+        -- lsp_zero.default_keymaps({ buffer = bufnr })
 
         local opts = { buffer = bufnr, remap = false }
         vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", vim.tbl_extend("force", opts, { desc = "Lsp Info" }))
