@@ -28,7 +28,7 @@ return {
     { "<leader><space>", builtin("find_files"), desc = "Find files" },
 
     -- files
-    { "<leader>fc", builtin("config_files"), desc = "Find Config File" },
+    { "<leader>fc", builtin("find_files", { cwd = vim.fn.stdpath("config") }), desc = "Find Config File" },
     { "<leader>ff", builtin("find_files"), desc = "Find files" },
     { "<leader>fg", builtin("git_files"), desc = "Find files in Git" },
     { "<leader>fr", builtin("oldfiles"), desc = "Recent" },
