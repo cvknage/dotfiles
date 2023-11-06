@@ -5,20 +5,21 @@ return {
   config = function(_, opts)
     require('catppuccin').setup(opts)
     vim.cmd.colorscheme("catppuccin")
-    vim.opt.pumblend = 10     -- Enables pseudo-transparency for the |popup-menu|
-    vim.opt.winblend = 10     -- Enables pseudo-transparency for a floaring window
+    vim.opt.pumblend = 10 -- Enables pseudo-transparency for the |popup-menu|
+    vim.opt.winblend = 10 -- Enables pseudo-transparency for a floaring window
   end,
   opts = {
-    flavour = "macchiato",     -- latte, frappe, macchiato, mocha
-    background = {             -- :h background
+    flavour = "macchiato", -- latte, frappe, macchiato, mocha
+    background = {         -- :h background
       light = "frappe",
       dark = "mocha",
     },
-    transparent_background = true,     -- disables setting the background color
+    transparent_background = true, -- disables setting the background color
     custom_highlights = function(color)
       return {
-        NormalFloat = { bg = color.base },                        -- background for floaring windows like :Mason and :Lazy
-        TreesitterContextLineNumber = { bg = color.base }         -- background for treesitter context line numbers
+        NormalFloat = { bg = color.base },                 -- background for floaring windows like :Mason and :Lazy
+        TreesitterContextLineNumber = { bg = color.base }, -- background for treesitter context line numbers
+        Pmenu = { bg = color.base },                       -- background for Pmenu
       }
     end,
     integrations = {
@@ -45,6 +46,7 @@ return {
           background = true,
         },
       },
+      cmp = true,
       which_key = true
     },
   },
