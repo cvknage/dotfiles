@@ -101,7 +101,7 @@ return {
         end
 
         local options = function(opts)
-          return vim.tbl__extend("force", { buffer = bufnr, remap = false }, opts)
+          return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
         end
 
         vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
