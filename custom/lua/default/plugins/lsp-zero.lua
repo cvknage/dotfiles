@@ -94,24 +94,33 @@ return {
         -- see :help lsp-zero-keybindings to learn the available actions
         -- lsp_zero.default_keymaps({ buffer = bufnr })
 
-        local opts = { buffer = bufnr, remap = false }
-        vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", vim.tbl_extend("force", opts, { desc = "Lsp Info" }))
-        vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, vim.tbl_extend("force", opts, { desc = "Format" }))
-        vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename" }))
-        vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code Action" }))
-        vim.keymap.set("n", "<leader>cA", function() vim.lsp.buf.code_action({ context = { only = { "source", }, diagnostics = {}, }, }) end, vim.tbl_extend("force", opts, { desc = "Source Action" }))
-        -- vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, vim.tbl_extend("force", opts, { desc = "Goto Definition" }))
-        vim.keymap.set("n", "gd", function() require("telescope.builtin").lsp_definitions({ reuse_win = true }) end, vim.tbl_extend("force", opts, { desc = "Goto Definition" }))
-        -- vim.keymap.set("n", "gr", function() vim.lsp.buf.references() end, vim.tbl_extend("force", opts, { desc = "References" }))
-        vim.keymap.set("n", "gr", function() require("telescope.builtin").lsp_references({ reuse_win = true }) end, vim.tbl_extend("force", opts, { desc = "References" }))
-        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Goto Declaration" }))
-        -- vim.keymap.set("n", "gI", function() vim.lsp.buf.implementation() end, vim.tbl_extend("force", opts, { desc = "Goto Implementation" }))
-        vim.keymap.set("n", "gI", function() require("telescope.builtin").lsp_implementations({ reuse_win = true }) end, vim.tbl_extend("force", opts, { desc = "Goto Implementation" }))
-        -- vim.keymap.set("n", "gy", function() vim.lsp.buf.type_definition() end, vim.tbl_extend("force", opts, { desc = "Goto T[y]pe Definition" }))
-        vim.keymap.set("n", "gy", function() require("telescope.builtin").lsp_type_definitions({ reuse_win = true }) end, vim.tbl_extend("force", opts, { desc = "Goto T[y]pe Definition" }))
-        vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover" }))
-        vim.keymap.set("n", "gK", vim.lsp.buf.signature_help, vim.tbl_extend("force", opts, { desc = "Signature Help" }))
-        vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, vim.tbl_extend("force", opts, { desc = "Signature Help" }))
+        local telescope_builtin = function(builtin, opts)
+          return function()
+            require("telescope.builtin")[builtin](opts)
+          end
+        end
+
+        local options = function(opts)
+          return vim.tbl__extend("force", { buffer = bufnr, remap = false }, opts)
+        end
+
+        vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
+        vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, options({ desc = "Format" }))
+        vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, options({ desc = "Rename" }))
+        vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, options({ desc = "Code Action" }))
+        vim.keymap.set("n", "<leader>cA", function() vim.lsp.buf.code_action({ context = { only = { "source", }, diagnostics = {}, }, }) end, options({ desc = "Source Action" }))
+        -- vim.keymap.set("n", "gd", vim.lsp.buf.definition, options({ desc = "Goto Definition" }))
+        vim.keymap.set("n", "gd", telescope_builtin("lsp_definitions", { reuse_win = true }), options({ desc = "Goto Definition" }))
+        -- vim.keymap.set("n", "gr", vim.lsp.buf.references, options({ desc = "References" }))
+        vim.keymap.set("n", "gr", telescope_builtin("lsp_references", { reuse_win = true }), options({ desc = "References" }))
+        vim.keymap.set("n", "gD", vim.lsp.buf.declaration, options({ desc = "Goto Declaration" }))
+        -- vim.keymap.set("n", "gI", vim.lsp.buf.implementation, options({ desc = "Goto Implementation" }))
+        vim.keymap.set("n", "gI", telescope_builtin("lsp_implementations", { reuse_win = true }), options({ desc = "Goto Implementation" }))
+        -- vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, options({ desc = "Goto T[y]pe Definition" }))
+        vim.keymap.set("n", "gy", telescope_builtin("lsp_type_definitions", { reuse_win = true }), options({ desc = "Goto T[y]pe Definition" }))
+        vim.keymap.set("n", "K", vim.lsp.buf.hover, options({ desc = "Hover" }))
+        vim.keymap.set("n", "gK", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
+        vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
       end)
 
       -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
