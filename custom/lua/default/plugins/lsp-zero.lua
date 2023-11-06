@@ -20,9 +20,16 @@ return {
   -- Autocompletion
   {
     "hrsh7th/nvim-cmp",
+    version = false, -- latest release (as of Nov 4 2023) was v0.0.1 (on Aug 14 2022)
     event = "InsertEnter",
     dependencies = {
-      { "L3MON4D3/LuaSnip" },
+      {
+        "L3MON4D3/LuaSnip",
+        "hrsh7th/cmp-nvim-lsp",
+        "hrsh7th/cmp-buffer",
+        "hrsh7th/cmp-path",
+        "saadparwaiz1/cmp_luasnip",
+      },
     },
     config = function()
       -- Here is where you configure the autocompletion settings.
@@ -34,15 +41,32 @@ return {
       local cmp_action = lsp_zero.cmp_action()
 
       cmp.setup({
+        sources = cmp.config.sources({
+          { name = 'nvim_lsp' },
+          { name = 'luasnip' }, -- For luasnip users.
+          -- { name = 'vsnip' }, -- For vsnip users.
+          -- { name = 'ultisnips' }, -- For ultisnips users.
+          -- { name = 'snippy' }, -- For snippy users.
+          { name = "path" },
+        }, {
+          { name = 'buffer' },
+        }),
         formatting = lsp_zero.cmp_format(),
+        -- completion = { autocomplete = false },
         mapping = cmp.mapping.preset.insert({
           ["<C-Space>"] = cmp.mapping.complete(),
+          -- ["<Tab>"] = cmp_action.tab_complete(),
+          -- ["<Tab>"] = cmp.mapping.select_next_item(),
+          ["<Tab>"] = cmp_action.luasnip_supertab(),
+          -- ["<S-Tab>"] = cmp_action.select_prev_or_fallback(),
+          -- ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+          ["<S-Tab>"] = cmp_action.luasnip_shift_supertab(),
+          ["<ESC>"] = cmp.mapping.abort(),
+          ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
           ["<C-u>"] = cmp.mapping.scroll_docs(-4),
           ["<C-d>"] = cmp.mapping.scroll_docs(4),
-          ["<C-f>"] = cmp_action.luasnip_jump_forward(),
-          ["<C-b>"] = cmp_action.luasnip_jump_backward(),
-          ["<Tab>"] = cmp.mapping.select_next_item(),
-          ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+          -- ["<C-f>"] = cmp_action.luasnip_jump_forward(),
+          -- ["<C-b>"] = cmp_action.luasnip_jump_backward(),
         }),
       })
     end,
