@@ -95,19 +95,20 @@ return {
       local lsp_zero = require("lsp-zero")
       lsp_zero.extend_lspconfig()
 
-      local telescope_builtin = function(builtin, opts)
-        return function()
-          require("telescope.builtin")[builtin](opts)
-        end
-      end
-
-      local options = function(opts)
-        return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
-      end
-
+      ---@diagnostic disable-next-line: unused-local
       lsp_zero.on_attach(function(client, bufnr)
         -- see :help lsp-zero-keybindings to learn the available actions
         -- lsp_zero.default_keymaps({ buffer = bufnr })
+
+        local telescope_builtin = function(builtin, opts)
+          return function()
+            require("telescope.builtin")[builtin](opts)
+          end
+        end
+
+        local options = function(opts)
+          return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
+        end
 
         vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
         vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, options({ desc = "Format" }))
@@ -179,9 +180,11 @@ return {
               -- Only run analyzers against open files when 'enableRoslynAnalyzers' is
               -- true
               analyze_open_documents_only = false,
-            }
 
-            vim.keymap.set("n", "gd", function () require('omnisharp_extended').telescope_lsp_definitions() end, options({ desc = "Goto Definition" }))
+              on_attach = function(_, bufnr)
+                vim.keymap.set("n", "gd", function() require('omnisharp_extended').telescope_lsp_definitions() end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
+              end,
+            }
 
             require("lspconfig").omnisharp.setup(omnisharp_opts)
           end
