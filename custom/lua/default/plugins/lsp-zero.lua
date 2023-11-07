@@ -27,9 +27,9 @@ return {
     dependencies = {
       {
         "L3MON4D3/LuaSnip",
-        "hrsh7th/cmp-nvim-lsp",
-        "hrsh7th/cmp-buffer",
         "hrsh7th/cmp-path",
+        "hrsh7th/cmp-buffer",
+        "hrsh7th/cmp-nvim-lsp",
         "saadparwaiz1/cmp_luasnip",
       },
     },
@@ -44,14 +44,11 @@ return {
 
       cmp.setup({
         sources = cmp.config.sources({
-          { name = 'nvim_lsp' },
-          { name = 'luasnip' }, -- For luasnip users.
-          -- { name = 'vsnip' }, -- For vsnip users.
-          -- { name = 'ultisnips' }, -- For ultisnips users.
-          -- { name = 'snippy' }, -- For snippy users.
-          { name = "path" },
+          { name = "path" },     -- cmp-path
+          { name = 'nvim_lsp' }, -- cmp-nvim-lsp
+          { name = 'luasnip' },  -- cmp_luasnip
         }, {
-          { name = 'buffer' },
+          { name = 'buffer' },   -- cmp-buffer
         }),
         formatting = lsp_zero.cmp_format(),
         -- completion = { autocomplete = false },
@@ -82,29 +79,35 @@ return {
     dependencies = {
       { "hrsh7th/cmp-nvim-lsp" },
       { "williamboman/mason-lspconfig.nvim" },
+      { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
       {
         "folke/neodev.nvim",
         opts = {}
       },
     },
     config = function()
+      -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
+      require("neodev").setup({
+        library = { plugins = { "nvim-dap-ui" }, types = true },
+      })
+
       -- This is where all the LSP shenanigans will live
       local lsp_zero = require("lsp-zero")
       lsp_zero.extend_lspconfig()
 
+      local telescope_builtin = function(builtin, opts)
+        return function()
+          require("telescope.builtin")[builtin](opts)
+        end
+      end
+
+      local options = function(opts)
+        return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
+      end
+
       lsp_zero.on_attach(function(client, bufnr)
         -- see :help lsp-zero-keybindings to learn the available actions
         -- lsp_zero.default_keymaps({ buffer = bufnr })
-
-        local telescope_builtin = function(builtin, opts)
-          return function()
-            require("telescope.builtin")[builtin](opts)
-          end
-        end
-
-        local options = function(opts)
-          return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
-        end
 
         vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
         vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, options({ desc = "Format" }))
@@ -125,13 +128,8 @@ return {
         vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
       end)
 
-      -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
-      require("neodev").setup({
-        library = { plugins = { "nvim-dap-ui" }, types = true },
-      })
-
       require("mason-lspconfig").setup({
-        ensure_installed = { "lua_ls", "tsserver" },
+        ensure_installed = { "lua_ls", "tsserver", "omnisharp" },
         handlers = {
           lsp_zero.default_setup,
           lua_ls = function()
@@ -139,6 +137,54 @@ return {
             local lua_opts = lsp_zero.nvim_lua_ls()
             require("lspconfig").lua_ls.setup(lua_opts)
           end,
+          omnisharp = function()
+            local omnisharp_opts = {
+              -- Extended textDocument/definition handler that handles assembly/decompilation
+              -- loading for $metadata$ documents.
+              handlers = {
+                ["textDocument/definition"] = require('omnisharp_extended').handler,
+              },
+
+              -- Enables support for reading code style, naming convention and analyzer
+              -- settings from .editorconfig.
+              enable_editorconfig_support = true,
+
+              -- If true, MSBuild project system will only load projects for files that
+              -- were opened in the editor. This setting is useful for big C# codebases
+              -- and allows for faster initialization of code navigation features only
+              -- for projects that are relevant to code that is being edited. With this
+              -- setting enabled OmniSharp may load fewer projects and may thus display
+              -- incomplete reference lists for symbols.
+              enable_ms_build_load_projects_on_demand = false,
+
+              -- Enables support for roslyn analyzers, code fixes and rulesets.
+              enable_roslyn_analyzers = true,
+
+              -- Specifies whether 'using' directives should be grouped and sorted during
+              -- document formatting.
+              organize_imports_on_format = true,
+
+              -- Enables support for showing unimported types and unimported extension
+              -- methods in completion lists. When committed, the appropriate using
+              -- directive will be added at the top of the current file. This option can
+              -- have a negative impact on initial completion responsiveness,
+              -- particularly for the first few completion sessions after opening a
+              -- solution.
+              enable_import_completion = true,
+
+              -- Specifies whether to include preview versions of the .NET SDK when
+              -- determining which version to use for project loading.
+              sdk_include_prereleases = true,
+
+              -- Only run analyzers against open files when 'enableRoslynAnalyzers' is
+              -- true
+              analyze_open_documents_only = false,
+            }
+
+            vim.keymap.set("n", "gd", function () require('omnisharp_extended').telescope_lsp_definitions() end, options({ desc = "Goto Definition" }))
+
+            require("lspconfig").omnisharp.setup(omnisharp_opts)
+          end
         },
       })
 
