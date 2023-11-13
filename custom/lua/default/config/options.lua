@@ -6,8 +6,12 @@ vim.opt.softtabstop = 2 -- Number of spaces tabs count for while performing edit
 vim.opt.shiftwidth = 2 -- Size of an indent
 vim.opt.expandtab = true -- Use spaces instead of tabs
 vim.opt.smartindent = true -- Insert indents automatically
+vim.opt.list = true -- Show some invisible characters like tabs
 
 vim.opt.wrap = false -- Disable line wrap
+vim.opt.cursorline = true -- Enable highlighting of the current line
+
+vim.opt.confirm = true -- Confirm to save changes before exiting modified buffer
 
 vim.opt.swapfile = false -- Disable swap file - use undotree
 vim.opt.backup = false -- Disable backup files - use undotree
@@ -16,6 +20,8 @@ vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir" -- Undo dir for undotree
 
 vim.opt.hlsearch = true -- Enable search highlight
 vim.opt.incsearch = true -- Enable incremental search
+vim.opt.ignorecase = true -- Ignore case
+vim.opt.smartcase = true -- Don't ignore case with capitals
 
 vim.opt.termguicolors = true -- True color support
 
