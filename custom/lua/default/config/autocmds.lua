@@ -5,3 +5,11 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+
+-- https://github.com/jaeheonji/catppuccin-nvim#usage-with-set-background
+vim.api.nvim_create_autocmd("OptionSet", {
+  pattern = "background",
+  callback = function()
+    vim.cmd("Catppuccin " .. (vim.v.option_new == "light" and "frappe" or "mocha"))
+  end,
+})

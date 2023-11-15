@@ -9,17 +9,31 @@ return {
     vim.opt.winblend = 10 -- Enables pseudo-transparency for a floaring window
   end,
   opts = {
-    flavour = "macchiato", -- latte, frappe, macchiato, mocha
-    background = {         -- :h background
-      light = "frappe",
-      dark = "mocha",
-    },
+    flavour = "macchiato",         -- latte, frappe, macchiato, mocha
     transparent_background = true, -- disables setting the background color
-    custom_highlights = function(color)
+    custom_highlights = function(colors)
+      -- STYLE GUIDE: https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md
+      -- DEFAULT SETTINGS: https://github.com/catppuccin/nvim/blob/main/lua/catppuccin/groups/editor.lua
+      -- local U = require("catppuccin.utils.colors")                              -- utility functions
       return {
-        NormalFloat = { bg = color.base },                 -- background for floaring windows like :Mason and :Lazy
-        TreesitterContextLineNumber = { bg = color.base }, -- background for treesitter context line numbers
-        Pmenu = { bg = color.base },                       -- background for Pmenu
+        NormalFloat = { bg = colors.base },                                     -- floaring windows like :Mason and :Lazy
+        Pmenu = { bg = colors.base },                                           -- Pmenu
+        Comment = { fg = colors.overlay1 },                                     -- code comments
+        Visual = { bg = colors.surface2 },                                      -- visual mode selection
+        VisualNOS = { bg = colors.surface2 },                                   -- visual mode selection when vim is "Not Owning the Selection".
+        LineNr = { fg = colors.pink },                                          -- line numbers
+        CursorLineNr = { fg = colors.rosewater },                               -- line number on cursor line
+        TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.base }, -- treesitter context line numbers
+        -- CursorLine = { bg = color.base },                                       -- crusor line
+        --[[
+        -- https://github.com/catppuccin/nvim/discussions/448#discussioncomment-5560230
+        CursorLine = {
+          bg = U.vary_color(
+            { latte = U.lighten(colors.mantle, 0.70, colors.base) },
+            U.darken(colors.surface0, 0.64, colors.base)
+          ),
+        },
+        --]]
       }
     end,
     integrations = {
@@ -47,7 +61,11 @@ return {
         },
       },
       cmp = true,
-      which_key = true
+      which_key = true,
+      illuminate = {
+        enabled = true,
+        lsp = false
+      },
     },
   },
 }
