@@ -14,7 +14,7 @@ return {
       {
         "ms-jpq/coq_nvim",
         branch = "coq",
-        init = function ()
+        init = function()
           vim.g.coq_settings = {
             ["auto_start"] = "shut-up",
             -- ["keymap.jump_to_mark"] = "<c-n>",
@@ -38,6 +38,39 @@ return {
       { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
     },
     config = function()
+      vim.api.nvim_create_autocmd('LspAttach', {
+        desc = 'LSP actions',
+        callback = function(event)
+          local telescope_builtin = function(builtin, opts)
+            return function()
+              require("telescope.builtin")[builtin](opts)
+            end
+          end
+
+          local options = function(opts)
+            return vim.tbl_extend("force", { buffer = event.bufnr, remap = false }, opts)
+          end
+
+          vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
+          vim.keymap.set("n", "<leader>cf", vim.lsp.buf.format, options({ desc = "Format" }))
+          vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, options({ desc = "Rename" }))
+          vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, options({ desc = "Code Action" }))
+          vim.keymap.set("n", "<leader>cA", function() vim.lsp.buf.code_action({ context = { only = { "source", }, diagnostics = {}, }, }) end, options({ desc = "Source Action" }))
+          -- vim.keymap.set("n", "gd", vim.lsp.buf.definition, options({ desc = "Goto Definition" }))
+          vim.keymap.set("n", "gd", telescope_builtin("lsp_definitions", { reuse_win = true }), options({ desc = "Goto Definition" }))
+          -- vim.keymap.set("n", "gr", vim.lsp.buf.references, options({ desc = "References" }))
+          vim.keymap.set("n", "gr", telescope_builtin("lsp_references", { reuse_win = true }), options({ desc = "References" }))
+          vim.keymap.set("n", "gD", vim.lsp.buf.declaration, options({ desc = "Goto Declaration" }))
+          -- vim.keymap.set("n", "gI", vim.lsp.buf.implementation, options({ desc = "Goto Implementation" }))
+          vim.keymap.set("n", "gI", telescope_builtin("lsp_implementations", { reuse_win = true }), options({ desc = "Goto Implementation" }))
+          -- vim.keymap.set("n", "gy", vim.lsp.buf.type_definition, options({ desc = "Goto T[y]pe Definition" }))
+          vim.keymap.set("n", "gy", telescope_builtin("lsp_type_definitions", { reuse_win = true }), options({ desc = "Goto T[y]pe Definition" }))
+          vim.keymap.set("n", "K", vim.lsp.buf.hover, options({ desc = "Hover" }))
+          vim.keymap.set("n", "gK", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
+          vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
+        end
+      })
+
       require("mason-lspconfig").setup({
         ensure_installed = { "lua_ls", "tsserver", "omnisharp" },
         handlers = {
@@ -45,7 +78,7 @@ return {
             local lua_opts = {
               on_init = function(client)
                 local path = client.workspace_folders[1].name
-                if not vim.loop.fs_stat(path..'/.luarc.json') and not vim.loop.fs_stat(path..'/.luarc.jsonc') then
+                if not vim.loop.fs_stat(path .. '/.luarc.json') and not vim.loop.fs_stat(path .. '/.luarc.jsonc') then
                   client.config.settings = vim.tbl_deep_extend('force', client.config.settings, {
                     Lua = {
                       runtime = {
@@ -73,9 +106,9 @@ return {
               end
             }
             require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lua_opts))
-            end,
+          end,
           tsserver = function()
-            local tsserver_opts = { }
+            local tsserver_opts = {}
             require("lspconfig").tsserver.setup(require("coq").lsp_ensure_capabilities(tsserver_opts))
           end,
           omnisharp = function()
