@@ -1,4 +1,4 @@
-do return {} end
+-- do return {} end -- (un)comment to disable/enable coq.nvim LSP config
 
 return {
   {
@@ -14,25 +14,49 @@ return {
       {
         "ms-jpq/coq_nvim",
         branch = "coq",
+        build = ":COQdeps",
         init = function()
+          -- https://github.com/ms-jpq/coq_nvim/tree/coq/docs
           vim.g.coq_settings = {
-            ["auto_start"] = "shut-up",
-            -- ["keymap.jump_to_mark"] = "<c-n>",
-            -- ["keymap.bigger_preview"] = "<c-b>",
-            -- ["clients.buffers.enabled"] = false,
-            -- ["clients.snippets.enabled"] = false,
-            -- ["clients.tmux.enabled"] = false,
-            -- ["clients.tree_sitter.enabled"] = false,
+            auto_start = "shut-up",
+            keymap = {
+              jump_to_mark = "<c-cr>",
+              bigger_preview = "",
+            },
+            display = {
+              preview = {
+                border = {
+                  -- To make it look like Neovim builtin hover window, use:
+                  { "",  "NormalFloat" },
+                  { "",  "NormalFloat" },
+                  { "",  "NormalFloat" },
+                  { " ", "NormalFloat" },
+                  { "",  "NormalFloat" },
+                  { "",  "NormalFloat" },
+                  { "",  "NormalFloat" },
+                  { " ", "NormalFloat" }
+                },
+              }
+            },
+          }
+        end
+      },
+      {
+        "ms-jpq/coq.thirdparty",
+        branch = "3p",
+        config = function(_)
+          require("coq_3p") {
+            --[[
+            -- nLUA config works, but LSP completion is better when manually configured
+            { src = "nvimlua", short_name = "nLUA", conf_only = false },
+            --]]
+            { src = "bc", short_name = "MATH", precision = 6 },
           }
         end
       },
       {
         "ms-jpq/coq.artifacts",
         branch = "artifacts",
-      },
-      {
-        "ms-jpq/coq.thirdparty",
-        branch = "3p",
       },
       { "williamboman/mason-lspconfig.nvim" },
       { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
@@ -96,7 +120,10 @@ return {
                         }
                         -- or pull in all of 'runtimepath'. NOTE: this is a lot slower
                         -- library = vim.api.nvim_get_runtime_file("", true)
-                      }
+                      },
+                      telemetry = {
+                        enable = false,
+                      },
                     }
                   })
 
@@ -105,10 +132,12 @@ return {
                 return true
               end
             }
+
             require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lua_opts))
           end,
           tsserver = function()
             local tsserver_opts = {}
+
             require("lspconfig").tsserver.setup(require("coq").lsp_ensure_capabilities(tsserver_opts))
           end,
           omnisharp = function()

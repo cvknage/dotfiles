@@ -1,3 +1,5 @@
+do return {} end -- (un)comment to disable/enable lsp-zero.nvim LSP config
+
 -- template from: https://github.com/VonHeikemen/lsp-zero.nvim/blob/v3.x/doc/md/guides/lazy-loading-with-lazy-nvim.md --> Expand automatic setup of LSP servers
 return {
   {
