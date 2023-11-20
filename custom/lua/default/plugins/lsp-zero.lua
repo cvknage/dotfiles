@@ -60,22 +60,17 @@ return {
         }, {
           { name = 'buffer' },   -- cmp-buffer
         }),
-        formatting = lsp_zero.cmp_format(),
-        -- completion = { autocomplete = false },
+        formatting = vim.tbl_extend("force", lsp_zero.cmp_format(), { fields = { 'abbr', 'kind', 'menu' } }),
         mapping = cmp.mapping.preset.insert({
           ["<C-Space>"] = cmp.mapping.complete(),
-          -- ["<Tab>"] = cmp_action.tab_complete(),
-          -- ["<Tab>"] = cmp.mapping.select_next_item(),
-          ["<Tab>"] = cmp_action.luasnip_supertab(),
-          -- ["<S-Tab>"] = cmp_action.select_prev_or_fallback(),
-          -- ["<S-Tab>"] = cmp.mapping.select_prev_item(),
-          ["<S-Tab>"] = cmp_action.luasnip_shift_supertab(),
+          ["<Tab>"] = cmp.mapping.select_next_item(),
+          ["<S-Tab>"] = cmp.mapping.select_prev_item(),
           ["<ESC>"] = cmp.mapping.abort(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }), -- Accept currently selected item. Set `select` to `false` to only confirm explicitly selected items.
           ["<C-u>"] = cmp.mapping.scroll_docs(-4),
           ["<C-d>"] = cmp.mapping.scroll_docs(4),
-          -- ["<C-f>"] = cmp_action.luasnip_jump_forward(),
-          -- ["<C-b>"] = cmp_action.luasnip_jump_backward(),
+          ["<C-f>"] = cmp_action.luasnip_jump_forward(),
+          ["<C-b>"] = cmp_action.luasnip_jump_backward(),
         }),
       })
     end,
