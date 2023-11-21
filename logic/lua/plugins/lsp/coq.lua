@@ -55,7 +55,7 @@ return {
     { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
   },
   config = function()
-    local lsp_utils = require("default.plugins.lsp.utils")
+    local lsp_utils = require("plugins.lsp.utils")
 
     vim.api.nvim_create_autocmd('LspAttach', {
       desc = 'LSP actions',

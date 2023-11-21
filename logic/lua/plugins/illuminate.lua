@@ -13,7 +13,7 @@ return {
       providers = { "lsp" },
     },
   },
-  config = function (_, opts)
+  config = function(_, opts)
     require("illuminate").configure(opts)
   end
 }

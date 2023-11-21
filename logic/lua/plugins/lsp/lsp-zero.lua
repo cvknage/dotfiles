@@ -84,7 +84,7 @@ return {
       },
     },
     config = function()
-      local lsp_utils = require("default.plugins.lsp.utils")
+      local lsp_utils = require("plugins.lsp.utils")
 
       -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
       require("neodev").setup({

@@ -114,8 +114,7 @@ function M.lsp_options()
     analyze_open_documents_only = false,
 
     on_attach = function(_, bufnr)
-      vim.keymap.set("n", "gd", function() require('omnisharp_extended').telescope_lsp_definitions() end,
-        vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
+      vim.keymap.set("n", "gd", function() require('omnisharp_extended').telescope_lsp_definitions() end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
     end,
   }
 
