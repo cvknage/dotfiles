@@ -1,7 +1,7 @@
 -- https://github.com/RRethy/vim-illuminate
 return {
   "RRethy/vim-illuminate",
-  event = "VeryLazy",
+  event = { "BufReadPre", "BufNewFile" },
   opts = {
     -- large_file_cutoff: number of lines at which to use large_file_config
     -- The `under_cursor` option is disabled when this cutoff is hit
