@@ -18,7 +18,6 @@ require("lazy").setup({
     { import = "plugins" },
     -- { import = "plugins.lsp.lsp-zero" },
     { import = "plugins.lsp.coq" },
-    { import = "plugins.dap.dap" },
   },
   install = {
     colorscheme = { "catppuccin-macchiato" },
