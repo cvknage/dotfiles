@@ -48,7 +48,7 @@ return {
       end
     },
     { "ms-jpq/coq.artifacts", branch = "artifacts", },
-    { "williamboman/mason-lspconfig.nvim" },
+    { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim", } },
     { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
     { "folke/neodev.nvim", opts = {} },
   },

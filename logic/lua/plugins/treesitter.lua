@@ -1,6 +1,15 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    dependencies = {
+      {
+        "nvim-treesitter/nvim-treesitter-context",
+        opts = { mode = "cursor", max_lines = 5 },
+        keys = {
+          { "<leader>ut", function() require("treesitter-context").toggle() end, desc = "Toggle Treesitter Context", },
+        },
+      },
+    },
     build = function()
       require("nvim-treesitter.install").update({ with_sync = true })()
     end,
@@ -78,15 +87,5 @@ return {
     config = function(_, opts)
       require("nvim-treesitter.configs").setup(opts)
     end,
-  },
-
-  {
-    "nvim-treesitter/nvim-treesitter-context",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    event = "VeryLazy",
-    opts = { mode = "cursor", max_lines = 5 },
-    keys = {
-      { "<leader>ut", function() require("treesitter-context").toggle() end, desc = "Toggle Treesitter Context", },
-    },
   },
 }
