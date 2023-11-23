@@ -78,17 +78,19 @@ return {
       { "hrsh7th/cmp-nvim-lsp" },
       { "williamboman/mason-lspconfig.nvim" },
       { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
-      {
-        "folke/neodev.nvim",
-        opts = {}
-      },
+      { "folke/neodev.nvim", opts = {} },
     },
     config = function()
       local lsp_utils = require("plugins.lsp.utils")
 
       -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
       require("neodev").setup({
-        library = { plugins = { "nvim-dap-ui" }, types = true },
+        library = {
+          plugins = {
+            "nvim-dap-ui",
+          },
+          types = true
+        },
       })
 
       -- This is where all the LSP shenanigans will live
