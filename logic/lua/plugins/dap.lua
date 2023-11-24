@@ -5,8 +5,8 @@ return {
     {
       "rcarriga/nvim-dap-ui",
       keys = {
-        { "<leader>du", function() require("dapui").toggle({ }) end, desc = "Dap UI" },
-        { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = {"n", "v"} },
+        { "<leader>du", function() require("dapui").toggle({}) end, desc = "Dap UI" },
+        { "<leader>de", function() require("dapui").eval() end, desc = "Eval",  mode = { "n", "v" } },
       },
       opts = {},
       config = function(_, opts)
@@ -49,7 +49,7 @@ return {
                 command = "node",
                 args = {
                   require("mason-registry").get_package("js-debug-adapter"):get_install_path()
-                    .. "/js-debug/src/dapDebugServer.js",
+                  .. "/js-debug/src/dapDebugServer.js",
                   "${port}",
                 },
               },
@@ -73,6 +73,59 @@ return {
             config.filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
             require("mason-nvim-dap").default_setup(config)
           end,
+          coreclr = function(config)
+            -- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
+            vim.g.dotnet_build_project = function()
+              local default_path = vim.fn.getcwd() .. '/'
+              if vim.g['dotnet_last_proj_path'] ~= nil then
+                default_path = vim.g['dotnet_last_proj_path']
+              end
+              ---@diagnostic disable-next-line: redundant-parameter
+              local path = vim.fn.input('Path to your *proj file', default_path, 'file')
+              vim.g['dotnet_last_proj_path'] = path
+              local cmd = 'dotnet build -c Debug ' .. path .. ' > /dev/null'
+              print('')
+              print('Cmd to execute: ' .. cmd)
+              local f = os.execute(cmd)
+              if f == 0 then
+                print('\nBuild: ✔️ ')
+              else
+                print('\nBuild: ❌ (code: ' .. f .. ')')
+              end
+            end
+
+            vim.g.dotnet_get_dll_path = function()
+              local request = function()
+                ---@diagnostic disable-next-line: redundant-parameter
+                return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+              end
+
+              if vim.g['dotnet_last_dll_path'] == nil then
+                vim.g['dotnet_last_dll_path'] = request()
+              else
+                if vim.fn.confirm('Do you want to change the path to dll?\n' .. vim.g['dotnet_last_dll_path'], '&yes\n&no', 2) == 1 then
+                  vim.g['dotnet_last_dll_path'] = request()
+                end
+              end
+
+              return vim.g['dotnet_last_dll_path']
+            end
+
+            table.insert(config.configurations, 1, {
+              type = "coreclr",
+              name = "Launch netcoredbg",
+              request = "launch",
+              program = function()
+                if vim.fn.confirm('Should I recompile first?', '&yes\n&no', 2) == 1 then
+                  vim.g.dotnet_build_project()
+                end
+                return vim.g.dotnet_get_dll_path()
+              end,
+            })
+            config.configurations[2].name = "Launch dll"
+
+            require("mason-nvim-dap").default_setup(config)
+          end
         },
       },
       config = function(_, opts)
@@ -132,7 +185,7 @@ return {
     { "<F5>", function() require("dap").continue() end, desc = "Contine" },
     { "<F10>", function() require("dap").step_over() end, desc = "Step Over" },
     { "<F11>", function() require("dap").step_into() end, desc = "Step Into" },
-    { "<F12>", function() require("dap").step_out() end,  desc = "Step Out" },
+    { "<F12>", function() require("dap").step_out() end, desc = "Step Out" },
     { "<leader>dB", function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end, desc = "Breakpoint Condition" },
     { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
     { "<leader>dc", function() require("dap").continue() end, desc = "Continue" },
