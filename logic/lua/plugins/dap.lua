@@ -71,15 +71,20 @@ return {
               }
             }
             config.filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
-            require('mason-nvim-dap').default_setup(config)
-          end,
-          coreclr = function(config)
-            -- https://github.com/Issafalcon/neotest-dotnet#debugging
-            config.adapters.netcoredbg = config.adapters.coreclr
-            require('mason-nvim-dap').default_setup(config)
+            require("mason-nvim-dap").default_setup(config)
           end,
         },
       },
+      config = function(_, opts)
+        require("mason-nvim-dap").setup(opts)
+
+        -- https://github.com/Issafalcon/neotest-dotnet#debugging
+        require("dap").adapters.netcoredbg = {
+          type = "executable",
+          command = require("mason-registry").get_package("netcoredbg"):get_install_path() .. "/netcoredbg",
+          args = { "--interpreter=vscode" }
+        }
+      end,
     },
     {
       "jbyuki/one-small-step-for-vimkind",
