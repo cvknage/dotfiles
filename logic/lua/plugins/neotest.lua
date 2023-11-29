@@ -4,33 +4,19 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "nvim-lua/plenary.nvim",
-      "antoinemadec/FixCursorHold.nvim",
-      "Issafalcon/neotest-dotnet"
+      -- "antoinemadec/FixCursorHold.nvim", -- should no longer be needed
     },
     opts = {
       status = { virtual_text = true },
+      adapters = {},
     },
     config = function(_, opts)
-      opts.adapters = {
-        require("neotest-dotnet")({
-          -- Extra arguments for nvim-dap configuration
-          -- See https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for values
-          dap = {
-            -- When true debug only user-written code. To debug standard library or anything outside of "cwd" use false. Default is true.
-            justMyCode = true
-          },
+      if type(opts.lang_opts) == "table" then
+        for _, opt in pairs(opts.lang_opts) do
+          table.insert(opts.adapters, opt.test_adapter)
+        end
+      end
 
-          -- Provide any additional "dotnet test" CLI commands here. These will be applied to ALL test runs performed via neotest. These need to be a table of strings, ideally with one key-value pair per item.
-          dotnet_additional_args = {
-            "--verbosity detailed"
-          },
-
-          -- Tell neotest-dotnet to use either solution (requires .sln file) or project (requires .csproj or .fsproj file) as project root
-          -- Note: If neovim is opened from the solution root, using the 'project' setting may sometimes find all nested projects, however,
-          --       to locate all test projects in the solution more reliably (if a .sln file is present) then 'solution' is better.
-          discovery_root = "project" -- Default
-        })
-      }
       require("neotest").setup(opts)
     end,
     keys = {

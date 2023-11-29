@@ -34,7 +34,7 @@ return {
       },
       cmd = { "DapInstall", "DapUninstall" },
       opts = {
-        ensure_installed = { "js", "coreclr" },
+        ensure_installed = { "js" },
         handlers = {
           function(config)
             require('mason-nvim-dap').default_setup(config)
@@ -73,70 +73,22 @@ return {
             config.filetypes = { "typescript", "javascript", "typescriptreact", "javascriptreact" }
             require("mason-nvim-dap").default_setup(config)
           end,
-          coreclr = function(config)
-            -- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
-            vim.g.dotnet_build_project = function()
-              local default_path = vim.fn.getcwd() .. '/'
-              if vim.g['dotnet_last_proj_path'] ~= nil then
-                default_path = vim.g['dotnet_last_proj_path']
-              end
-              ---@diagnostic disable-next-line: redundant-parameter
-              local path = vim.fn.input('Path to your *proj file', default_path, 'file')
-              vim.g['dotnet_last_proj_path'] = path
-              local cmd = 'dotnet build -c Debug ' .. path .. ' > /dev/null'
-              print('')
-              print('Cmd to execute: ' .. cmd)
-              local f = os.execute(cmd)
-              if f == 0 then
-                print('\nBuild: ✔️ ')
-              else
-                print('\nBuild: ❌ (code: ' .. f .. ')')
-              end
-            end
-
-            vim.g.dotnet_get_dll_path = function()
-              local request = function()
-                ---@diagnostic disable-next-line: redundant-parameter
-                return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
-              end
-
-              if vim.g['dotnet_last_dll_path'] == nil then
-                vim.g['dotnet_last_dll_path'] = request()
-              else
-                if vim.fn.confirm('Do you want to change the path to dll?\n' .. vim.g['dotnet_last_dll_path'], '&yes\n&no', 2) == 1 then
-                  vim.g['dotnet_last_dll_path'] = request()
-                end
-              end
-
-              return vim.g['dotnet_last_dll_path']
-            end
-
-            table.insert(config.configurations, 1, {
-              type = "coreclr",
-              name = "Launch netcoredbg",
-              request = "launch",
-              program = function()
-                if vim.fn.confirm('Should I recompile first?', '&yes\n&no', 2) == 1 then
-                  vim.g.dotnet_build_project()
-                end
-                return vim.g.dotnet_get_dll_path()
-              end,
-            })
-            config.configurations[2].name = "Launch dll"
-
-            require("mason-nvim-dap").default_setup(config)
-          end
         },
       },
       config = function(_, opts)
-        require("mason-nvim-dap").setup(opts)
+        if type(opts.lang_opts) == "table" then
+          for _, opt in pairs(opts.lang_opts) do
+            table.insert(opts.ensure_installed, opt.ensure_installed)
+            opts.handlers[opt.ensure_installed] = function(config)
+              require("mason-nvim-dap").default_setup(opt.dap_options(config))
+            end
+            if type(opt.test_dap) == "table" then
+              require("dap").adapters[opt.test_dap.adapter] = opt.test_dap.config
+            end
+          end
+        end
 
-        -- https://github.com/Issafalcon/neotest-dotnet#debugging
-        require("dap").adapters.netcoredbg = {
-          type = "executable",
-          command = require("mason-registry").get_package("netcoredbg"):get_install_path() .. "/netcoredbg",
-          args = { "--interpreter=vscode" }
-        }
+        require("mason-nvim-dap").setup(opts)
       end,
     },
     {

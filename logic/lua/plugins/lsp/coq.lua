@@ -49,10 +49,9 @@ return {
     },
     { "ms-jpq/coq.artifacts", branch = "artifacts", },
     { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim", } },
-    { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
     { "folke/neodev.nvim", opts = {} },
   },
-  config = function()
+  config = function(_, opts)
     local lsp_utils = require("plugins.lsp.utils")
 
     -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
@@ -73,7 +72,7 @@ return {
       end
     })
 
-    require("mason-lspconfig").setup({
+    local config = {
       ensure_installed = lsp_utils.ensure_installed(),
       handlers = {
         function(server_name)
@@ -84,11 +83,19 @@ return {
           require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().neodev))
           -- require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().lua_ls))
         end,
-        omnisharp = function()
-          require("lspconfig").omnisharp.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().omnisharp))
-        end
       },
-    })
+    }
+
+    if type(opts.lang_opts) == "table" then
+      for _, opt in pairs(opts.lang_opts) do
+        table.insert(config.ensure_installed, opt.ensure_installed)
+        config.handlers[opt.ensure_installed] = function()
+          require("lspconfig")[opt.ensure_installed].setup(require("coq").lsp_ensure_capabilities(opt.lsp_options))
+        end
+      end
+    end
+
+    require("mason-lspconfig").setup(config)
 
     vim.diagnostic.config({
       virtual_text = true,
