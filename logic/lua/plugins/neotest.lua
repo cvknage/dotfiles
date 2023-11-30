@@ -4,7 +4,6 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
       "nvim-lua/plenary.nvim",
-      -- "antoinemadec/FixCursorHold.nvim", -- should no longer be needed
     },
     opts = {
       status = { virtual_text = true },
