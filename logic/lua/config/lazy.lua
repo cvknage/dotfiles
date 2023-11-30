@@ -17,6 +17,7 @@ require("lazy").setup({
   spec = {
     { import = "plugins" },
     { import = "plugins.lang.omnisharp" },
+    -- { import = "plugins.lang.csharp_ls" },
     -- { import = "plugins.lsp.lsp-zero" },
     { import = "plugins.lsp.coq" },
   },
