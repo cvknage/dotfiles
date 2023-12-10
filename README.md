@@ -23,7 +23,7 @@ Some of the plugins used require the following programs to function correctly:
 
 ## Install
 
-The install script will create a symlink from `$HOME/.config/nvim` to `./lazyvim`:
+The install script will create a symlink from `$HOME/.config/nvim` to `./logic`:
 ``` 
 bash install.sh
 ```
