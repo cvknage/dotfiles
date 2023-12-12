@@ -63,6 +63,14 @@ vim.keymap.set("n", "<leader>ww", "<C-W>p", { desc = "Other window", remap = tru
 vim.keymap.set("n", "<leader>wd", "<C-W>c", { desc = "Delete window", remap = true })
 vim.keymap.set("n", "<leader>w-", "<C-W>s", { desc = "Split window below", remap = true })
 vim.keymap.set("n", "<leader>w|", "<C-W>v", { desc = "Split window right", remap = true })
+vim.keymap.set("n", "<leader>wt", "<C-W>T", { desc = "Break window out to seperate tab", remap = true })
+vim.keymap.set("n", "<leader>wo", "<C-W>o", { desc = "Close [o]ther windows", remap = true })
+vim.keymap.set("n", "<leader>wh", "<C-W>h", { desc = "Go to left window", remap = true })
+vim.keymap.set("n", "<leader>wj", "<C-W>j", { desc = "Go to lower window", remap = true })
+vim.keymap.set("n", "<leader>wk", "<C-W>k", { desc = "Go to upper window", remap = true })
+vim.keymap.set("n", "<leader>wl", "<C-W>l", { desc = "Go to right window", remap = true })
+vim.keymap.set("n", "<leader>wm", "<C-W>|<C-W>_", { desc = "Maximize window", remap = true })
+vim.keymap.set("n", "<leader>we", "<C-W>=", { desc = "Equal height and width", remap = true })
 
 -- Move to window using the <ctrl> hjkl keys
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Go to left window", remap = true })
