@@ -2,13 +2,15 @@ local utils = require("plugins.lang.dotnet-utils")
 
 local M = {}
 
+M.treesitter = {
+  "nvim-treesitter/nvim-treesitter",
+  opts = function(_, opts)
+    table.insert(opts.ensure_installed, "c_sharp")
+  end,
+}
+
 M.omnisharp = {
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      table.insert(opts.ensure_installed, "c_sharp")
-    end,
-  },
+  M.treesitter,
   { "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
   {
     "neovim/nvim-lspconfig",
@@ -111,8 +113,8 @@ M.omnisharp = {
   },
 }
 
-if vim.fn.system({ "which", "dotnet" }) ~= "" then
+if vim.fn.system({ "command", "-v", "dotnet" }) ~= "" then
   return M.omnisharp
 end
 
-return {}
+return M.treesitter

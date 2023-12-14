@@ -2,13 +2,15 @@ local utils = require("plugins.lang.dotnet-utils")
 
 local M = {}
 
+M.treesitter = {
+  "nvim-treesitter/nvim-treesitter",
+  opts = function(_, opts)
+    table.insert(opts.ensure_installed, "c_sharp")
+  end,
+}
+
 M.csharp_ls = {
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      table.insert(opts.ensure_installed, "c_sharp")
-    end,
-  },
+  M.treesitter,
   { "Decodetalkers/csharpls-extended-lsp.nvim", lazy = true },
   {
     "neovim/nvim-lspconfig",
@@ -74,8 +76,8 @@ M.csharp_ls = {
   },
 }
 
-if vim.fn.system({ "which", "dotnet" }) ~= "" then
+if vim.fn.system({ "command", "-v", "dotnet" }) ~= "" then
   return M.csharp_ls
 end
 
-return {}
+return M.treesitter
