@@ -113,7 +113,7 @@ M.omnisharp = {
   },
 }
 
-if vim.fn.system({ "command", "-v", "dotnet" }) ~= "" then
+if vim.fn.executable("dotnet") == 1 then
   return M.omnisharp
 end
 

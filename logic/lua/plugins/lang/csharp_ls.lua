@@ -76,7 +76,7 @@ M.csharp_ls = {
   },
 }
 
-if vim.fn.system({ "command", "-v", "dotnet" }) ~= "" then
+if vim.fn.executable("dotnet") == 1 then
   return M.csharp_ls
 end
 

@@ -10,7 +10,7 @@ M.navigator = {
   },
 }
 
-if vim.fn.system({ "command", "-v", "tmux" }) ~= "" then
+if vim.fn.executable("tmux") == 1 then
   return M.navigator
 end
 
