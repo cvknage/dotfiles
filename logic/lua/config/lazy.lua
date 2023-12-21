@@ -16,10 +16,22 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
   spec = {
     { import = "plugins" },
-    { import = "plugins.lang.omnisharp" },
-    -- { import = "plugins.lang.csharp_ls" },
+
+    -- LSPs
     -- { import = "plugins.lsp.lsp-zero" },
     { import = "plugins.lsp.coq" },
+
+    -- Languages
+    { import = "plugins.lang.omnisharp" },
+    -- { import = "plugins.lang.csharp_ls" },
+
+    -- AI Code Completion
+    -- { import = "plugins.ai.codeium" },
+    -- { import = "plugins.ai.llm" },
+    { import = "plugins.ai.tabby" },
+
+    -- AI - Prompts
+    { import = "plugins.ai.gen" },
   },
   install = {
     colorscheme = { "catppuccin-macchiato" },

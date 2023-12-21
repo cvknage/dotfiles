@@ -3,6 +3,7 @@
   "coq.artifacts": { "branch": "artifacts", "commit": "469c27eb84a91fe2721b6c0af57703ffa1e785e9" },
   "coq.thirdparty": { "branch": "3p", "commit": "f110ee91f1b2b897ab0026da347396756953ca41" },
   "coq_nvim": { "branch": "coq", "commit": "d4a58fa7ab20c928f88e416b3fcf6ada965bf314" },
+  "gen.nvim": { "branch": "main", "commit": "132c1de8d0320d7aa46a467e27f31acc1808bc13" },
   "lazy.nvim": { "branch": "main", "commit": "96584866b9c5e998cbae300594d0ccfd0c464627" },
   "mason-lspconfig.nvim": { "branch": "main", "commit": "9453e3d6cd2ca45d96e20f343e8f1b927364b630" },
   "mason-nvim-dap.nvim": { "branch": "main", "commit": "5b4db7c0d6873436b42bcda0ba7cd4efa9206745" },
@@ -21,6 +22,7 @@
   "telescope.nvim": { "branch": "master", "commit": "6213322ab56eb27356fdc09a5078e41e3ea7f3bc" },
   "undotree": { "branch": "master", "commit": "36ff7abb6b60980338344982ad4cdf03f7961ecd" },
   "vim-illuminate": { "branch": "master", "commit": "3bd2ab64b5d63b29e05691e624927e5ebbf0fb86" },
+  "vim-tabby": { "branch": "main", "commit": "ba271385aaf97e6f30ebddbb6f00085db13727b8" },
   "vim-tmux-navigator": { "branch": "master", "commit": "7db70e08ea03b3e4d91f63713d76134512e28d7e" },
   "which-key.nvim": { "branch": "main", "commit": "4433e5ec9a507e5097571ed55c02ea9658fb268a" }
 }
