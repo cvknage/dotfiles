@@ -22,8 +22,8 @@ require("lazy").setup({
     { import = "plugins.lsp.coq" },
 
     -- Languages
-    { import = "plugins.lang.omnisharp" },
-    -- { import = "plugins.lang.csharp_ls" },
+    -- { import = "plugins.lang.omnisharp" },
+    { import = "plugins.lang.csharp_ls" },
 
     -- AI Code Completion
     -- { import = "plugins.ai.codeium" },
