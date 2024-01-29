@@ -22,10 +22,11 @@ M.csharp_ls = {
           -- loading for $metadata$ documents.
           handlers = {
             ["textDocument/definition"] = require("csharpls_extended").handler,
+            ["textDocument/typeDefinition"] = require('csharpls_extended').handler,
           },
 
           on_attach = function(_, bufnr)
-            vim.keymap.set("n", "gd", function() require('csharp_ls_extended').telescope_lsp_definitions() end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
+            vim.keymap.set("n", "gd", function() require('csharpls_extended').lsp_definitions() end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
           end,
         }
       }
