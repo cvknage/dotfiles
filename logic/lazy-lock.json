@@ -19,7 +19,7 @@
   "one-small-step-for-vimkind": { "branch": "main", "commit": "aaee281bdaa3141d9d0cdb3dec468532da61124f" },
   "plenary.nvim": { "branch": "master", "commit": "663246936325062427597964d81d30eaa42ab1e4" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "6c921ca12321edaa773e324ef64ea301a1d0da62" },
-  "telescope.nvim": { "branch": "master", "commit": "f336f8cfab38a82f9f00df380d28f0c2a572f862" },
+  "telescope.nvim": { "branch": "master", "commit": "e54fbf4ab2b64640b639b75c006c23b4bc51c86f" },
   "undotree": { "branch": "master", "commit": "d9c8b4ef872e078e8c4080812e5a3ed56d151c00" },
   "vim-illuminate": { "branch": "master", "commit": "97c1265ff0b67064b6cfdc15bafc50202a537ae2" },
   "vim-tabby": { "branch": "main", "commit": "213191e34b473c53366a18820a1444c3b1cfdb63" },

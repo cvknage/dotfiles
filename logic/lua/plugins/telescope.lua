@@ -64,6 +64,7 @@ return {
     local actions = require("telescope.actions")
     return {
       defaults = {
+        winblend = 0,
         layout_config = {
           horizontal = {
             width = 0.95,
