@@ -126,6 +126,20 @@ return {
         end
       end
 
+      if type(opts.rouge) == "table" then
+        for _, opt in pairs(opts.rouge) do
+          local capabilities = vim.tbl_deep_extend(
+            "force",
+            vim.lsp.protocol.make_client_capabilities(),
+            require('cmp_nvim_lsp').default_capabilities()
+          )
+          local on_attach = function(client, bufnr)
+            lsp_utils.keymaps({ buf = bufnr })
+          end
+          opt.setup(capabilities, on_attach)
+        end
+      end
+
       require("mason-lspconfig").setup(config)
 
       vim.diagnostic.config({

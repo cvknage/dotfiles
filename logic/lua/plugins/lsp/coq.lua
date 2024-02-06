@@ -95,6 +95,16 @@ return {
       end
     end
 
+    if type(opts.rouge) == "table" then
+      for _, opt in pairs(opts.rouge) do
+        local capabilities = require("coq").lsp_ensure_capabilities(vim.lsp.protocol.make_client_capabilities())
+        local on_attach = function(client, bufnr)
+          lsp_utils.keymaps({ buf = bufnr })
+        end
+        opt.setup(capabilities, on_attach)
+      end
+    end
+
     require("mason-lspconfig").setup(config)
 
     vim.diagnostic.config({
