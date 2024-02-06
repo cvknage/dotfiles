@@ -13,7 +13,18 @@ M.roslyn = {
   M.treesitter,
   {
     "jmederosalvarado/roslyn.nvim",
-    build = ":CSInstallRoslyn"
+    --build = ":CSInstallRoslyn" -- (06.02.2024): The CSInstallRoslyn command is buggy: https://github.com/jmederosalvarado/roslyn.nvim/issues/18#issuecomment-1864605065
+    build = function()
+      local request_url = ""
+      if vim.loop.os_uname().sysname == "Darwin" then
+        request_url = "https://github.com/jmederosalvarado/roslyn.nvim/releases/download/4.9.0-3.23604.10/roslyn-4.9.0-3.23604.10-osx-arm64.tar.gz"
+      else
+        request_url = "https://github.com/jmederosalvarado/roslyn.nvim/releases/download/4.9.0-3.23604.10/roslyn-4.9.0-3.23604.10-linux-x64.tar.gz"
+      end
+
+      pcall(io.popen, "rm -rf ~/.local/share/nvim/roslyn && mkdir -p ~/.local/share/nvim/roslyn")
+      pcall(io.popen, "curl -s -o ~/.local/share/nvim/roslyn.tar.gz -L " .. request_url .. "&& tar zxf ~/.local/share/nvim/roslyn.tar.gz -C ~/.local/share/nvim/roslyn")
+    end
   },
   {
     "neovim/nvim-lspconfig",
