@@ -36,4 +36,10 @@ require("lazy").setup({
   install = {
     colorscheme = { "catppuccin-macchiato" },
   },
+  dev = {
+    path = "~/Code",
+    patterns = { "cvknage" },
+    fallback = true,
+  },
 })
+
