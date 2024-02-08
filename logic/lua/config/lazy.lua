@@ -18,8 +18,8 @@ require("lazy").setup({
     { import = "plugins" },
 
     -- LSPs
-    -- { import = "plugins.lsp.lsp-zero" },
-    { import = "plugins.lsp.coq" },
+    { import = "plugins.lsp.lsp-zero" },
+    -- { import = "plugins.lsp.coq" },
 
     -- Languages
     -- { import = "plugins.lang.omnisharp" },
