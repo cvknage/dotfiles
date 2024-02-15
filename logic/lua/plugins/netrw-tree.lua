@@ -7,7 +7,8 @@ return {
     lazy = false,
     keys = {
       { "<leader>pv", "<cmd>Explore<cr>",  desc = "Project Volumes" },
-      { "<leader>pe", "<cmd>Lexplore<cr>", desc = "Project Extrueplorer" },
+      { "<leader>pt", "<cmd>Lexplore<cr>", desc = "Project Tree" },
+      { "<leader>pe", "<cmd>ToggleVexplore<cr>", desc = "Project Explorer" },
     },
   }
 }
