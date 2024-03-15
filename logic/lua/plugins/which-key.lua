@@ -22,6 +22,8 @@ return {
       ["<leader>d"] = { name = "+dap" },
       ["<leader>f"] = { name = "+file/find" },
       ["<leader>g"] = { name = "+git" },
+      ["<leader>gh"] = { name = "+hunks", ["<esc>"] = "which_key_ignore" },
+      ["<leader>gt"] = { name = "+toggle", ["<esc>"] = "which_key_ignore" },
       ["<leader>p"] = { name = "+project" },
       -- ["<leader>q"] = { name = "+quit/session" },
       ["<leader>s"] = { name = "+search" },
