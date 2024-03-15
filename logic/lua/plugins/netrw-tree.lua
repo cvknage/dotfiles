@@ -5,6 +5,7 @@ return {
       'nvim-tree/nvim-web-devicons' -- optional
     },
     lazy = false,
+    opts = { },
     keys = {
       { "<leader>pv", "<cmd>Explore<cr>",  desc = "Project Volumes" },
       { "<leader>pt", "<cmd>Lexplore<cr>", desc = "Project Tree" },
