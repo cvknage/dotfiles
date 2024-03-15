@@ -16,6 +16,12 @@ return {
             bigger_preview = "",
             manual_complete_insertion_only = true,
           },
+          --[[
+          limits = {
+            completion_auto_timeout = 1.0, -- default: 0.088
+            completion_manual_timeout = 1.0 -- default: 0.66
+          },
+          ]]--
           display = {
             preview = {
               border = {
