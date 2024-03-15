@@ -29,10 +29,10 @@ require("lazy").setup({
     -- AI Code Completion
     -- { import = "plugins.ai.codeium" },
     -- { import = "plugins.ai.llm" },
-    { import = "plugins.ai.tabby" },
+    -- { import = "plugins.ai.tabby" },
 
     -- AI - Prompts
-    { import = "plugins.ai.gen" },
+    -- { import = "plugins.ai.gen" },
   },
   install = {
     colorscheme = { "catppuccin-macchiato" },
