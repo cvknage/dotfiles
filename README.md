@@ -17,9 +17,21 @@ Some of the plugins used require the following programs to function correctly:
 **[Apt](https://packages.debian.org/sid/fd-find)**: `sudo apt install fd-find`  
 
 - [sed](https://www.gnu.org/software/sed/)  
-[MacPorts](https://ports.macports.org/port/gsed/): `sudo port install gsed`  
+**[MacPorts](https://ports.macports.org/port/gsed/)**: `sudo port install gsed`  
 **[Homebrew](https://formulae.brew.sh/formula/gnu-sed)**: `brew install gnu-sed`  
 **[Apt](https://packages.debian.org/sid/sed)**: `sudo apt install sed`  
+
+### Optional
+
+- [fzf](https://github.com/junegunn/fzf)  
+**[MacPorts]()**: `sudo port install fzf`
+**[Homebrew]()**: `brew install fzf`
+**[Apt]()**: `sudo apt install fzf`
+
+- [jq](https://jqlang.github.io/jq/)  
+**[MacPorts]()**: `sudo port install jq`
+**[Homebrew]()**: `brew install jq`
+**[Apt]()**: `sudo apt install jq`
 
 ## Install
 
