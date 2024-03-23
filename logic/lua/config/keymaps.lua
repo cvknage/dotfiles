@@ -18,6 +18,12 @@ vim.keymap.set("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line Diag
 -- vim.keymap.set("n", "<leader>pe", vim.cmd.Lex, { desc = "Project explorer" }) -- Project Explorer: opens netrw
 -- vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>") -- switch project - https://github.com/edr3x/tmux-sessionizer
 
+-- JSON (requires jq)
+if vim.fn.executable("jq") == 1 then
+  vim.keymap.set("n", "<leader>jf", "<cmd>%! jq<cr>", { desc = "Format (%! jq)" })
+  vim.keymap.set("n", "<leader>jc", "<cmd>%! jq -c<cr>", { desc = "Compact (%! jq -c)" })
+end
+
 vim.keymap.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and clear hlsearch" }) -- Clear search with <esc>
 
 -- move lines
