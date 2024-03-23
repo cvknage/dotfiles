@@ -24,14 +24,14 @@ Some of the plugins used require the following programs to function correctly:
 ### Optional
 
 - [fzf](https://github.com/junegunn/fzf)  
-**[MacPorts]()**: `sudo port install fzf`
-**[Homebrew]()**: `brew install fzf`
-**[Apt]()**: `sudo apt install fzf`
+**[MacPorts]()**: `sudo port install fzf`  
+**[Homebrew]()**: `brew install fzf`  
+**[Apt]()**: `sudo apt install fzf`  
 
 - [jq](https://jqlang.github.io/jq/)  
-**[MacPorts]()**: `sudo port install jq`
-**[Homebrew]()**: `brew install jq`
-**[Apt]()**: `sudo apt install jq`
+**[MacPorts]()**: `sudo port install jq`  
+**[Homebrew]()**: `brew install jq`  
+**[Apt]()**: `sudo apt install jq`  
 
 ## Install
 
