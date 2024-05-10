@@ -2,8 +2,10 @@ return {
   {
     "nvim-neotest/neotest",
     dependencies = {
-      "nvim-treesitter/nvim-treesitter",
+      "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      "antoinemadec/FixCursorHold.nvim", -- The repo claims it is no longer needed but it is still recommended (see: https://github.com/antoinemadec/FixCursorHold.nvim/issues/13)
     },
     opts = {
       status = { virtual_text = true },
