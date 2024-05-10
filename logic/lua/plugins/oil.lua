@@ -19,6 +19,7 @@ return {
         ["<C-d>"] = "actions.preview_scroll_down",
         ["<C-u>"] = "actions.preview_scroll_up",
         ["<C-c>"] = "actions.close",
+        ["<A-r>"] = "actions.refresh",
         ["-"] = "actions.parent",
         ["h"] = "actions.parent",
         ["_"] = "actions.open_cwd",
