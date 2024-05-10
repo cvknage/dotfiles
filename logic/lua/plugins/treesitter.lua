@@ -13,7 +13,6 @@ return {
     build = function()
       require("nvim-treesitter.install").update({ with_sync = true })()
     end,
-    event = { "VeryLazy" },
     cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
     keys = {
       { "<C-space>", desc = "Increment selection" },
