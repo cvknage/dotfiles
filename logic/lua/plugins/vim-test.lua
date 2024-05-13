@@ -9,5 +9,8 @@ return {
     { "<leader>tT", ":TestSuite<CR>",   desc = "Run Suite" },
     { "<leader>tl", ":TestLast<CR>",    desc = "Run Last" },
     { "<leader>tg", ":TestVisit<CR>",   desc = "Go To Last" },
-  }
+  },
+  config = function(_, _)
+    vim.cmd("let test#strategy = 'vimux'")
+  end
 }
