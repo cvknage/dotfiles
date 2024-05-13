@@ -29,6 +29,7 @@ return {
       -- ["<leader>q"] = { name = "+quit/session" },
       ["<leader>s"] = { name = "+search" },
       ["<leader>t"] = { name = "+test" },
+      ["<leader>tn"] = { name = "+neotest", ["<esc>"] = "which_key_ignore" },
       ["<leader>u"] = { name = "+ui" },
       ["<leader>w"] = { name = "+windows" },
       ["<leader>x"] = { name = "+diagnostics/quickfix" },
