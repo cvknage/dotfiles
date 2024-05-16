@@ -7,9 +7,18 @@ return {
       "nvim-treesitter/nvim-treesitter",
       "antoinemadec/FixCursorHold.nvim", -- The repo claims it is no longer needed but it is still recommended (see: https://github.com/antoinemadec/FixCursorHold.nvim/issues/13)
     },
+    ---@type neotest.Config
     opts = {
-      status = { virtual_text = true },
+      ---@type neotest.Adapter[]
       adapters = {},
+      ---@type neotest.Config.discovery
+      discovery = {
+        concurrent = 1,
+        enabled = true
+      },
+      status = {
+        virtual_text = true
+      },
     },
     config = function(_, opts)
       if type(opts.lang_opts) == "table" then
