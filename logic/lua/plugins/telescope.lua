@@ -34,9 +34,9 @@ return {
     { "<leader>fr", builtin("oldfiles"), desc = "Recent" },
 
     -- git
-    { "<leader>gc", builtin("git_commits"), desc = "commits" },
-    { "<leader>gb", builtin("git_branches"), desc = "branches" },
-    { "<leader>gs", builtin("git_status"), desc = "status" },
+    { "<leader>gl", builtin("git_commits", { prompt_title = "Git Logs" }), desc = "Logs" },
+    { "<leader>gb", builtin("git_branches"), desc = "Branches" },
+    { "<leader>gs", builtin("git_status"), desc = "Status" },
 
     -- search
     { "<leader>sa", builtin("autocommands"), desc = "Auto Commands" },
