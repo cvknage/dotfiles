@@ -31,7 +31,8 @@ return {
     { "<leader>fc", builtin("find_files", { cwd = vim.fn.stdpath("config") }), desc = "Find Config File" },
     { "<leader>ff", builtin("find_files"), desc = "Find files" },
     { "<leader>fg", builtin("git_files"), desc = "Find files in Git" },
-    { "<leader>fr", builtin("oldfiles"), desc = "Recent" },
+    { "<leader>fr", builtin("oldfiles", { cwd = vim.uv.cwd() }), desc = "Recent (cwd)" },
+    { "<leader>fR", builtin("oldfiles"), desc = "Recent" },
 
     -- git
     { "<leader>gl", builtin("git_commits", { prompt_title = "Git Logs" }), desc = "Logs" },
