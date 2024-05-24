@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 
-CONFIG_DIR="$HOME/.config/nvim"
+for dir in ./*/
+do
+  install_file="install.sh"
+  if [ -f "$dir/$install_file" ]; then
+    cd "$dir"
+    bash "$install_file"
+    cd ..
+  fi
+done
 
-rm -rf $CONFIG_DIR
-ln -s "$(pwd)/logic" $CONFIG_DIR
