@@ -5,7 +5,7 @@ Configuration for [tmux](https://github.com/tmux/tmux/wiki)
 ## Install
 
 The install script will create a symlink from `$HOME/.tmux.conf` to `./tmux.conf`
-``` 
+``` bash
 bash install.sh
 ```
 
