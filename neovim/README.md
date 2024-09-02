@@ -7,7 +7,7 @@ Configuration for [NeoVim](https://neovim.io)
 Some of the plugins used require the following programs to function correctly:
 
 - [luarocks](https://github.com/luarocks/luarocks)  
-**[MacPorts]()**: `sudo port lua-luarocks`  
+**[MacPorts]()**: `sudo port install lua-luarocks`  
 **[Homebrew]()**: `brew install luarocks`  
 **[Apt]()**: `sudo apt install luarocks`  
 
