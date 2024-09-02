@@ -4,7 +4,7 @@ CONFIG_DIR="$HOME/.config/gitui"
 INSTALL_DIR="$(pwd)/config/"
 THEME_REPO="https://github.com/catppuccin/gitui.git"
 THEME_CLONE_DIR="$(pwd)/theme/"
-THEME_FILES_DIR="$THEME_CLONE_DIR/theme/"
+THEME_FILES_DIR="$THEME_CLONE_DIR/themes/"
 
 rm -rf $CONFIG_DIR
 rm -rf $INSTALL_DIR

@@ -17,20 +17,20 @@ gitui_theme() {
   "Linux")
     # gdbus call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Settings.Read org.freedesktop.appearance color-scheme
     if [[ $(gsettings get org.gnome.desktop.interface color-scheme) =~ "dark" ]]; then
-      gitui -t mocha.ron
+      gitui -t catppuccin-mocha.ron
     else
-      gitui -t frappe.ron
+      gitui -t catppuccin-frappe.ron
     fi
     ;;
   "Darwin")
     if [[ "$(osascript -l JavaScript -e "Application('System Events').appearancePreferences.darkMode.get()")" == "true" ]]; then
-      gitui -t mocha.ron
+      gitui -t catppuccin-mocha.ron
     else
-      gitui -t frappe.ron
+      gitui -t catppuccin-frappe.ron
     fi
     ;;
   *)
-    gitui -t macchiato.ron
+    gitui -t catppuccin-macchiato.ron
     ;;
   esac
 }
