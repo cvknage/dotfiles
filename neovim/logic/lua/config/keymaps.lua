@@ -5,7 +5,7 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up" }) -- half page 
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Half page down" }) -- half page down cursor position stay in place
 
 vim.keymap.set({ "n", "v" }, "<A-y>", [["+y]], { desc = "Yank to +y" }) -- yank to +y aka. sytem clipboard
-vim.keymap.set("n", "<A-y><A-y>", [["+Y]], { desc = "Yank line to +y" }) -- yank line to +y aka. sytem clipboard
+vim.keymap.set("n", "<A-y>y", [["+Y]], { desc = "Yank line to +y" }) -- yank line to +y aka. sytem clipboard
 vim.keymap.set("n", "<A-S-Y>", [["+y$]], { desc = "Yank rest of line to +y" }) -- Yank rest of line to +y aka. sytem clipboard
 
 vim.keymap.set("x", "<A-p>", [["_dP]], { desc = "Paste over without yank" }) -- paste over without picking up what was under
@@ -14,7 +14,6 @@ vim.keymap.set({ "n", "v" }, "<A-d>", [["_d]], { desc = "Delete selection withou
 vim.keymap.set({"n", "v" }, "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
 vim.keymap.set("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line Diagnostics" }) -- display line diagnostic
 
--- vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Project volumes" }) -- Project Volumes: opens netrw
 -- vim.keymap.set("n", "<leader>pe", vim.cmd.Lex, { desc = "Project explorer" }) -- Project Explorer: opens netrw
 -- vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>") -- switch project - https://github.com/edr3x/tmux-sessionizer
 
@@ -23,6 +22,12 @@ if vim.fn.executable("jq") == 1 then
   vim.keymap.set("n", "<leader>jf", "<cmd>%! jq<cr>", { desc = "Format (%! jq)" })
   vim.keymap.set("n", "<leader>jc", "<cmd>%! jq -c<cr>", { desc = "Compact (%! jq -c)" })
 end
+
+-- Encoding
+vim.keymap.set("n", "<leader>eb", "<cmd>. ! tr -d '\\n' | base64<cr>", { desc = "Encode base64" })
+vim.keymap.set("n", "<leader>edb", "<cmd>. ! base64 -d<cr>", { desc = "Decode base64" })
+
+-- vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Project volumes" }) -- Project Volumes: opens netrw
 
 vim.keymap.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and clear hlsearch" }) -- Clear search with <esc>
 

@@ -6,6 +6,11 @@ Configuration for [NeoVim](https://neovim.io)
 
 Some of the plugins used require the following programs to function correctly:
 
+- [luarocks](https://github.com/luarocks/luarocks)  
+**[MacPorts]()**: `sudo port lua-luarocks`  
+**[Homebrew]()**: `brew install luarocks`  
+**[Apt]()**: `sudo apt install luarocks`  
+
 - [ripgrep](https://github.com/BurntSushi/ripgrep)  
 **[MacPorts](https://ports.macports.org/port/ripgrep/)**: `sudo port install ripgrep`  
 **[Homebrew](https://formulae.brew.sh/formula/ripgrep)**: `brew install ripgrep`  

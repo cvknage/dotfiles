@@ -13,7 +13,7 @@ return {
       adapters = {},
       ---@type neotest.Config.discovery
       discovery = {
-        concurrent = 1,
+        concurrent = 0,
         enabled = true
       },
       status = {
