@@ -2,5 +2,8 @@
 .DS_Store
 .AppleDouble
 
+# Windows
+Thumbs.db
+
 # Vim Sessions
 Session.vim
