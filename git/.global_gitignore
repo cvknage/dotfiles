@@ -1,5 +1,6 @@
 # macOS
 .DS_Store
+.AppleDouble
 
 # Vim Sessions
 Session.vim
