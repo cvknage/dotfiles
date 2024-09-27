@@ -1,1 +1,5 @@
+# macOS
+.DS_Store
+
+# Vim Sessions
 Session.vim
