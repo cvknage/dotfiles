@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+# load .rc file on login
+if [ -n "$BASH_VERSION" ]; then
+    # include .bashrc if it exists
+    if [ -f "$HOME/.bashrc" ]; then
+      . "$HOME/.bashrc"
+    fi
+elif [ -n "$ZSH_VERSION" ]; then
+    # include .zshrc if it exists
+    if [ -f "$HOME/.zshrc" ]; then
+      . "$HOME/.zshrc"
+    fi
+fi
+
+# use zoxide to improve the cd command
+if command -v zoxide > /dev/null; then
+  if [ -n "$BASH_VERSION" ]; then
+    eval "$(zoxide init --cmd cd bash)"
+  elif [ -n "$ZSH_VERSION" ]; then
+    eval "$(zoxide init --cmd cd zsh)"
+  fi
+fi
+
+# set default system editor to nvim
+export EDITOR='nvim'
+export VISUAL='nvim'
+
+# alias vim to run nvim
+alias vim=nvim
+
+# launch gitui themed
+function gitui_theme() {
+  OS="$(uname)"
+  case $OS in
+  "Linux")
+    # gdbus call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Settings.Read org.freedesktop.appearance color-scheme
+: <<'END'
+    if [[ $(gsettings get org.gnome.desktop.interface color-scheme) =~ "dark" ]]; then
+      gitui -t catppuccin-mocha.ron
+    else
+      gitui -t catppuccin-frappe.ron
+    fi
+END
+    gitui -t catppuccin-macchiato.ron
+    ;;
+  "Darwin")
+    if [[ "$(osascript -l JavaScript -e "Application('System Events').appearancePreferences.darkMode.get()")" == "true" ]]; then
+      gitui -t catppuccin-mocha.ron
+    else
+      gitui -t catppuccin-frappe.ron
+    fi
+    ;;
+  *)
+    gitui -t catppuccin-macchiato.ron
+    ;;
+  esac
+}
+alias gitui="gitui_theme"
+
+# shortcut for cloning in to a bare repo
+function git-worktree-clone() {
+  for arg
+  do
+    if [ "$arg" = --single-branch ]
+    then
+      SingleBranch=1
+    elif [ -z ${Repository+x} ]
+    then
+      Repository="$arg"
+    elif [ -z ${Directory+x} ]
+    then
+      Directory="$arg"
+    else
+      echo 'Usage: [--single-branch] <repository> [<directory>]'
+      exit 1
+    fi
+  done
+
+  if [ -z ${Repository+x} ]
+  then
+    echo 'Usage: [--single-branch] <repository> [<directory>]'
+    exit 1
+  fi
+
+  if [ -z ${Directory+x} ]
+  then
+    Directory="$(basename "${Repository}" .git)"
+  fi
+
+
+  DirectoryExists="$(test -d "${Directory}"; echo $?)"
+
+  if [ "$SingleBranch" = 1 ]
+  then
+    git clone --single-branch --bare "${Repository}" "${Directory}/.git"
+  else
+    git clone --bare "${Repository}" "${Directory}/.git"
+  fi
+
+  if [ $? -ne 0 ]
+  then
+    if [ ${DirectoryExists} -ne 0 ]
+    then
+      rmdir "${Directory}"
+    fi
+    exit 1
+  fi
+
+
+  pushd "${Directory}" >/dev/null
+
+  DefaultBranch="$(git rev-parse --abbrev-ref HEAD)"
+
+  if [ "$SingleBranch" = 1 ]
+  then
+    git config --add remote.origin.fetch "+refs/heads/${DefaultBranch}:refs/remotes/origin/${DefaultBranch}"
+  else
+    git config --add remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+  fi
+
+  git worktree add "${DefaultBranch}"
+
+  popd >/dev/null
+}
+export -f git-worktree-clone
+
