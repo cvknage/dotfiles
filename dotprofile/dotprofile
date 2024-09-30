@@ -30,7 +30,7 @@ export VISUAL='nvim'
 alias vim=nvim
 
 # launch gitui themed
-function gitui_theme() {
+function gitui_themed() {
   OS="$(uname)"
   case $OS in
   "Linux")
@@ -56,7 +56,7 @@ END
     ;;
   esac
 }
-alias gitui="gitui_theme"
+alias gitui="gitui_themed"
 
 # shortcut for cloning in to a bare repo
 function git-worktree-clone() {
@@ -123,5 +123,5 @@ function git-worktree-clone() {
 
   popd >/dev/null
 }
-export -f git-worktree-clone
+alias gwtc="git-worktree-clone"
 
