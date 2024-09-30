@@ -12,7 +12,7 @@ fi
 if [ -n "$file" ]; then
   source_file="DOTPROFILE_FILE=${DOTPROFILE_FILE}"
   comment_message='# load custom .(z)profile'
-  comment_warning='(keep comment_message for scripted removal)'
+  comment_warning='(keep comment for scripted removal)'
   start_comment="${comment_message} - START - ${comment_warning}"
   load_dotrc='
 if [ -f "$DOTPROFILE_FILE" ]; then
