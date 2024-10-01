@@ -7,9 +7,9 @@ Configuration for [NeoVim](https://neovim.io)
 Some of the plugins used require the following programs to function correctly:
 
 - [luarocks](https://github.com/luarocks/luarocks)  
-**[MacPorts]()**: `sudo port install lua-luarocks`  
-**[Homebrew]()**: `brew install luarocks`  
-**[Apt]()**: `sudo apt install luarocks`  
+**[MacPorts](https://ports.macports.org/port/lua-luarocks/)**: `sudo port install lua-luarocks`  
+**[Homebrew](https://formulae.brew.sh/formula/luarocks)**: `brew install luarocks`  
+**[Apt](https://packages.debian.org/sid/luarocks)**: `sudo apt install luarocks`  
 
 - [ripgrep](https://github.com/BurntSushi/ripgrep)  
 **[MacPorts](https://ports.macports.org/port/ripgrep/)**: `sudo port install ripgrep`  
@@ -29,14 +29,14 @@ Some of the plugins used require the following programs to function correctly:
 ### Optional
 
 - [fzf](https://github.com/junegunn/fzf)  
-**[MacPorts]()**: `sudo port install fzf`  
-**[Homebrew]()**: `brew install fzf`  
-**[Apt]()**: `sudo apt install fzf`  
+**[MacPorts](https://ports.macports.org/port/fzf/)**: `sudo port install fzf`  
+**[Homebrew](https://formulae.brew.sh/formula/fzf)**: `brew install fzf`  
+**[Apt](https://packages.debian.org/sid/fzf)**: `sudo apt install fzf`  
 
 - [jq](https://jqlang.github.io/jq/)  
-**[MacPorts]()**: `sudo port install jq`  
-**[Homebrew]()**: `brew install jq`  
-**[Apt]()**: `sudo apt install jq`  
+**[MacPorts](https://ports.macports.org/port/jq/)**: `sudo port install jq`  
+**[Homebrew](https://formulae.brew.sh/formula/jq)**: `brew install jq`  
+**[Apt](https://packages.debian.org/sid/jq)**: `sudo apt install jq`  
 
 ## Install
 
