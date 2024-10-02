@@ -14,13 +14,30 @@ M.roslyn = {
   {
     "seblj/roslyn.nvim", -- An updated fork of jmederosalvarado/roslyn.nvim: https://github.com/jmederosalvarado/roslyn.nvim/issues/39
     dependencies = { "williamboman/mason.nvim" },
-    build = function()
-      require("mason-lspconfig.install").install("roslyn")
-    end,
-    ft = "cs",
-    opts = {
-      -- configurations: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
-    }
+    build = ":MasonInstall roslyn",
+    ft = "cs"
+  },
+  {
+    "neovim/nvim-lspconfig",
+    opts = function(_, opts)
+      local roslyn = {
+        setup = function(capabilities, on_attach)
+          require("roslyn").setup({
+            -- configurations: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
+            config = {
+              capabilities = capabilities,
+              on_attach = on_attach,
+            }
+          })
+        end
+      }
+
+      if type(opts.rouge) == "table" then
+        table.insert(opts.rouge, roslyn)
+      else
+        opts.rouge = { roslyn }
+      end
+    end
   },
   {
     "nvim-neotest/neotest",
