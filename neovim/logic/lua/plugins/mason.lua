@@ -9,5 +9,13 @@ return {
     "MasonUninstallAll",
     "MasonLog",
   },
-  config = true,
+  config = function(_, _)
+    require('mason').setup({
+        registries = {
+            'github:mason-org/mason-registry',
+            'github:syndim/mason-registry'
+        },
+    })
+  end
+  ,
 }
