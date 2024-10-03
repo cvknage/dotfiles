@@ -1,7 +1,7 @@
 local M = {}
 
 function M.ensure_installed()
-  return { "lua_ls", "tsserver" }
+  return { "lua_ls", "ts_ls" }
 end
 
 function M.keymaps(event)
