@@ -1,16 +1,13 @@
--- template from: https://github.com/VonHeikemen/lsp-zero.nvim/blob/v3.x/doc/md/guides/lazy-loading-with-lazy-nvim.md --> Expand automatic setup of LSP servers
+-- template from: https://lsp-zero.netlify.app/docs/guide/lazy-loading-with-lazy-nvim.html --> Expand automatic setup of LSP servers
 return {
   {
     "VonHeikemen/lsp-zero.nvim",
-    branch = "v3.x",
+    branch = "v4.x",
     lazy = true,
     config = false,
     init = function()
-      -- Disable automatic setup, we are doing it manually
-      vim.g.lsp_zero_extend_cmp = 0
-      vim.g.lsp_zero_extend_lspconfig = 0
-
-      vim.g.lsp_zero_ui_float_border = "none" -- Disable border floaring windows
+      -- Disable border floaring windows
+      vim.g.lsp_zero_ui_float_border = "none"
     end,
   },
 
@@ -37,11 +34,7 @@ return {
       },
     },
     config = function()
-      -- Here is where you configure the autocompletion settings.
       local lsp_zero = require("lsp-zero")
-      lsp_zero.extend_cmp()
-
-      -- And you can configure cmp even more, if you want to.
       local cmp = require("cmp")
       local cmp_action = lsp_zero.cmp_action()
 
@@ -93,17 +86,20 @@ return {
         },
       })
 
-      -- This is where all the LSP shenanigans will live
       local lsp_zero = require("lsp-zero")
-      lsp_zero.extend_lspconfig()
 
+      -- lsp_attach is where you enable features that only work
+      -- if there is a language server active in the file
       ---@diagnostic disable-next-line: unused-local
-      lsp_zero.on_attach(function(client, bufnr)
-        -- see :help lsp-zero-keybindings to learn the available actions
-        -- lsp_zero.default_keymaps({ buffer = bufnr })
-
+      local lsp_attach = function(client, bufnr)
         lsp_utils.keymaps({ buf = bufnr })
-      end)
+      end
+
+      lsp_zero.extend_lspconfig({
+        sign_text = true,
+        lsp_attach = lsp_attach,
+        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+      })
 
       local config = {
         ensure_installed = lsp_utils.ensure_installed(),
@@ -133,6 +129,7 @@ return {
             vim.lsp.protocol.make_client_capabilities(),
             require('cmp_nvim_lsp').default_capabilities()
           )
+          ---@diagnostic disable-next-line: unused-local
           local on_attach = function(client, bufnr)
             lsp_utils.keymaps({ buf = bufnr })
           end
