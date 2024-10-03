@@ -4,10 +4,11 @@ return {
     dependencies = {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
-      "nvim-treesitter/nvim-treesitter",
       "antoinemadec/FixCursorHold.nvim", -- The repo claims it is no longer needed but it is still recommended (see: https://github.com/antoinemadec/FixCursorHold.nvim/issues/13)
+      "nvim-treesitter/nvim-treesitter",
     },
     ---@type neotest.Config
+    ---@diagnostic disable-next-line: missing-fields
     opts = {
       ---@type neotest.Adapter[]
       adapters = {},
@@ -16,9 +17,11 @@ return {
         concurrent = 0,
         enabled = true
       },
+      ---@diagnostic disable-next-line: missing-fields
       status = {
         virtual_text = true
       },
+      log_level = vim.log.levels.ERROR -- logs can be found at: ~/.local/state/nvim/neotest.log
     },
     config = function(_, opts)
       if type(opts.lang_opts) == "table" then
@@ -34,7 +37,6 @@ return {
       { "<leader>tnT", function() require("neotest").run.run(vim.loop.cwd()) end, desc = "Run All Test Files" },
       { "<leader>tnr", function() require("neotest").run.run() end, desc = "Run Nearest" },
       { "<leader>tns", function() require("neotest").summary.toggle() end, desc = "Toggle Summary" },
-      ---@diagnostic disable-next-line: missing-fields
       { "<leader>tno", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Show Output" },
       { "<leader>tnO", function() require("neotest").output_panel.toggle() end, desc = "Toggle Output Panel" },
       { "<leader>tnS", function() require("neotest").run.stop() end, desc = "Stop" },

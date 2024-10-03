@@ -12,5 +12,6 @@ return {
   },
   config = function(_, _)
     vim.cmd("let test#strategy = 'vimux'")
+    vim.cmd("let test#enabled_runners = ['csharp#dotnettest']")
   end
 }
