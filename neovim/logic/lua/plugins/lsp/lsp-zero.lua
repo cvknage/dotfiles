@@ -46,6 +46,12 @@ return {
         }, {
           { name = 'buffer' },   -- cmp-buffer
         }),
+        snippet = {
+          expand = function(args) -- REQUIRED - you must specify a snippet engine
+            require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
+            -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
+          end,
+        },
         formatting = vim.tbl_extend("force", lsp_zero.cmp_format(), { fields = { 'abbr', 'kind', 'menu' } }),
         mapping = cmp.mapping.preset.insert({
           ["<C-Space>"] = cmp.mapping.complete(),
