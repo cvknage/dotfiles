@@ -28,7 +28,6 @@ return {
         { "<leader>p",     group = "project" },
         { "<leader>s",     group = "search" },
         { "<leader>t",     group = "test" },
-        { "<leader>tn",    group = "neotest" },
         { "<leader>u",     group = "ui" },
         { "<leader>w",     group = "windows" },
         { "<leader>x",     group = "diagnostics/quickfix" },
