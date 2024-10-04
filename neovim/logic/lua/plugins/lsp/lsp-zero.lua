@@ -44,8 +44,8 @@ return {
           { name = 'nvim_lsp' }, -- cmp-nvim-lsp
           { name = 'luasnip' },  -- cmp_luasnip
           {
-            name = "lazydev",
-            group_index = 0, -- set group index to 0 to skip loading LuaLS completions
+            name = "lazydev",    -- lazydev
+            group_index = 0,     -- set group index to 0 to skip loading LuaLS completions
           },
         }, {
           { name = 'buffer' }, -- cmp-buffer
