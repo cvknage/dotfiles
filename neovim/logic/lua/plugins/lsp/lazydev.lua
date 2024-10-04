@@ -9,28 +9,16 @@ return {
         -- Load luvit types when the `vim.uv` word is found
         { path = "luvit-meta/library", words = { "vim%.uv" } },
       },
+      integrations = {
+        -- add the cmp source for completion of:
+        -- `require "modname"`
+        -- `---@module "modname"`
+        cmp = pcall(require, 'cmp'),
+        -- add the coq source for completion of:
+        -- `require "modname"`
+        -- `---@module "modname"`
+        coq = pcall(require, 'coq_nvim'),
+      },
     },
-    config = function(_, opts)
-      local has_cmp = pcall(require, 'cmp')
-      local has_coq = pcall(require, 'coq_nvim')
-      local local_opts = {
-        integrations = {
-          -- add the cmp source for completion of:
-          -- `require "modname"`
-          -- `---@module "modname"`
-          cmp = has_cmp,
-          -- add the coq source for completion of:
-          -- `require "modname"`
-          -- `---@module "modname"`
-          coq = has_coq,
-        },
-      }
-      local options = vim.tbl_deep_extend(
-        "force",
-        opts,
-        local_opts
-      )
-      require('lazydev').setup(options)
-    end,
   },
 }
