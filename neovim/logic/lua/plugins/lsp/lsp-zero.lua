@@ -45,8 +45,8 @@ return {
           { name = 'nvim_lsp' }, -- cmp-nvim-lsp
           { name = 'luasnip' },  -- cmp_luasnip
           {
-            name = "lazydev", -- lazydev completion source for require statements and module annotations
-            group_index = 0,  -- set group index to 0 to skip loading LuaLS completions
+            name = "lazydev",    -- lazydev completion source for require statements and module annotations
+            group_index = 0,     -- set group index to 0 to skip loading LuaLS completions
           },
         }, {
           { name = 'buffer' }, -- cmp-buffer
@@ -57,7 +57,7 @@ return {
             -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
           end,
         },
-        formatting = vim.tbl_extend("force", lsp_zero.cmp_format(), { fields = { 'abbr', 'kind', 'menu' } }),
+        formatting = vim.tbl_extend("force", lsp_zero.cmp_format({ datails = true }), { fields = { 'abbr', 'kind', 'menu' } }),
         mapping = cmp.mapping.preset.insert({
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<Tab>"] = cmp.mapping.select_next_item(),
