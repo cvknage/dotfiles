@@ -2,7 +2,7 @@ return {
   {
     "folke/lazydev.nvim",
     dependencies = { "Bilal2453/luvit-meta", lazy = true }, -- optional `vim.uv` typings
-    ft = "lua", -- only load on lua files
+    ft = "lua",
     opts = {
       library = {
         -- See the configuration section for more details
@@ -15,7 +15,13 @@ return {
       local has_coq = pcall(require, 'coq_nvim')
       local local_opts = {
         integrations = {
+          -- add the cmp source for completion of:
+          -- `require "modname"`
+          -- `---@module "modname"`
           cmp = has_cmp,
+          -- add the coq source for completion of:
+          -- `require "modname"`
+          -- `---@module "modname"`
           coq = has_coq,
         },
       }
