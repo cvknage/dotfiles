@@ -55,21 +55,9 @@ return {
     },
     { "ms-jpq/coq.artifacts", branch = "artifacts", },
     { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim", } },
-    { "folke/neodev.nvim", opts = {} },
   },
   config = function(_, opts)
     local lsp_utils = require("plugins.lsp.utils")
-
-    -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
-    require("neodev").setup({
-      library = {
-        plugins = {
-          "nvim-dap-ui",
-          "neotest"
-        },
-        types = true
-      },
-    })
 
     vim.api.nvim_create_autocmd('LspAttach', {
       desc = 'LSP actions',
@@ -86,8 +74,7 @@ return {
             .make_client_capabilities()))
         end,
         lua_ls = function()
-          require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().neodev))
-          -- require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().lua_ls))
+          require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().lua_ls))
         end,
       },
     }

@@ -43,11 +43,15 @@ return {
           { name = "path" },     -- cmp-path
           { name = 'nvim_lsp' }, -- cmp-nvim-lsp
           { name = 'luasnip' },  -- cmp_luasnip
+          {
+            name = "lazydev",
+            group_index = 0, -- set group index to 0 to skip loading LuaLS completions
+          },
         }, {
-          { name = 'buffer' },   -- cmp-buffer
+          { name = 'buffer' }, -- cmp-buffer
         }),
         snippet = {
-          expand = function(args) -- REQUIRED - you must specify a snippet engine
+          expand = function(args)                    -- REQUIRED - you must specify a snippet engine
             require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
             -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
           end,
@@ -76,22 +80,9 @@ return {
     dependencies = {
       { "hrsh7th/cmp-nvim-lsp" },
       { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim", } },
-      { "folke/neodev.nvim", opts = {} },
     },
     config = function(_, opts)
       local lsp_utils = require("plugins.lsp.utils")
-
-      -- IMPORTANT: make sure to setup neodev BEFORE lspconfig
-      require("neodev").setup({
-        library = {
-          plugins = {
-            "nvim-dap-ui",
-            "neotest"
-          },
-          types = true
-        },
-      })
-
       local lsp_zero = require("lsp-zero")
 
       -- lsp_attach is where you enable features that only work

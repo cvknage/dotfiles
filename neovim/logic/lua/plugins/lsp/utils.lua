@@ -71,17 +71,6 @@ function M.lsp_options()
     end
   }
 
-  options.neodev = {
-    -- https://github.com/folke/neodev.nvim#-setup
-    settings = {
-      Lua = {
-        completion = {
-          callSnippet = "Replace"
-        }
-      }
-    }
-  }
-
   return options
 end
 
