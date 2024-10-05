@@ -17,7 +17,7 @@ return {
         -- add the coq source for completion of:
         -- `require "modname"`
         -- `---@module "modname"`
-        coq = pcall(require, 'coq_nvim'),
+        coq = pcall(require, 'coq'),
       },
     },
   },
