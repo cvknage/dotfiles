@@ -1,70 +1,59 @@
 local utils = require("plugins.lang.dotnet-utils")
 
-local M = {}
-
-M.treesitter = {
-  "nvim-treesitter/nvim-treesitter",
-  opts = function(_, opts)
-    table.insert(opts.ensure_installed, "c_sharp")
-  end,
-}
-
-M.roslyn = {
-  M.treesitter,
+return {
   {
-    "seblj/roslyn.nvim", -- An updated fork of jmederosalvarado/roslyn.nvim: https://github.com/jmederosalvarado/roslyn.nvim/issues/39
-    dependencies = { "williamboman/mason.nvim" },
-    build = ":MasonInstall roslyn",
-    ft = "cs"
+    "nvim-treesitter/nvim-treesitter",
+    opts = { ensure_installed = { "c_sharp" } }
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = function(_, opts)
-      local roslyn = {
-        setup = function(capabilities, on_attach)
-          require("roslyn").setup({
-            -- configurations: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
-            config = {
-              capabilities = capabilities,
-              on_attach = on_attach,
-            }
-          })
+    {
+      "seblj/roslyn.nvim", -- An updated fork of jmederosalvarado/roslyn.nvim: https://github.com/jmederosalvarado/roslyn.nvim/issues/39
+      dependencies = { "williamboman/mason.nvim" },
+      build = ":MasonInstall roslyn",
+      enabled = utils.has_dotnet,
+      ft = "cs",
+      opts = function(_, opts)
+        local lsp_utils = require("plugins.lsp.utils")
+
+        local capabilities
+        local on_attach
+        if pcall(require, 'cmp_nvim_lsp') then
+          capabilities = vim.tbl_deep_extend(
+            "force",
+            vim.lsp.protocol.make_client_capabilities(),
+            require('cmp_nvim_lsp').default_capabilities()
+          )
+          on_attach = function(client, bufnr)
+            lsp_utils.keymaps({ buf = bufnr })
+          end
+        elseif pcall(require, 'coq') then
+          capabilities = require("coq").lsp_ensure_capabilities()
+          on_attach = function(client, bufnr)
+            lsp_utils.keymaps({ buf = bufnr })
+          end
+        else
+          return {}
         end
-      }
 
-      if type(opts.rouge) == "table" then
-        table.insert(opts.rouge, roslyn)
-      else
-        opts.rouge = { roslyn }
+        -- configurations: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
+        return {
+          config = {
+            capabilities = capabilities,
+            on_attach = on_attach,
+          }
+        }
       end
-    end
-  },
-  {
-    "nvim-neotest/neotest",
-    dependencies = { "Issafalcon/neotest-dotnet" },
-    opts = function(_, opts)
-      local dotnet = {
-        test_adapter = utils.test_adapter()
-      }
-
-      if type(opts.lang_opts) == "table" then
-        table.insert(opts.lang_opts, dotnet)
-      else
-        opts.lang_opts = { dotnet }
-      end
-    end
-  },
-  {
-    "mfussenegger/nvim-dap",
-    dependencies = {
-      {
-        "jay-babu/mason-nvim-dap.nvim",
-        dependencies = { "williamboman/mason.nvim", },
-        opts = function(_, opts)
+    },
+    {
+      "nvim-neotest/neotest",
+      dependencies = {
+        "Issafalcon/neotest-dotnet",
+        enabled = utils.has_dotnet,
+      },
+      opts = function(_, opts)
+        if utils.has_dotnet then
           local dotnet = {
-            ensure_installed = utils.debug_adapter().ensure_installed,
-            dap_options = utils.debug_adapter().dap_options,
-            test_dap = utils.debug_adapter().test_dap
+            test_adapter = utils.test_adapter()
           }
 
           if type(opts.lang_opts) == "table" then
@@ -73,13 +62,31 @@ M.roslyn = {
             opts.lang_opts = { dotnet }
           end
         end
+      end
+    },
+    {
+      "mfussenegger/nvim-dap",
+      dependencies = {
+        {
+          "jay-babu/mason-nvim-dap.nvim",
+          dependencies = { "williamboman/mason.nvim", },
+          opts = function(_, opts)
+            if utils.has_dotnet then
+              local dotnet = {
+                ensure_installed = utils.debug_adapter().ensure_installed,
+                dap_options = utils.debug_adapter().dap_options,
+                test_dap = utils.debug_adapter().test_dap
+              }
+
+              if type(opts.lang_opts) == "table" then
+                table.insert(opts.lang_opts, dotnet)
+              else
+                opts.lang_opts = { dotnet }
+              end
+            end
+          end
+        },
       },
     },
-  },
+  }
 }
-
-if vim.fn.executable("dotnet") == 1 then
-  return M.roslyn
-end
-
-return M.treesitter

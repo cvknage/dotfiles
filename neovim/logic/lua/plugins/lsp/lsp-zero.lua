@@ -93,10 +93,16 @@ return {
         lsp_utils.keymaps({ buf = bufnr })
       end
 
+      local capabilities = vim.tbl_deep_extend(
+        "force",
+        vim.lsp.protocol.make_client_capabilities(),
+        require('cmp_nvim_lsp').default_capabilities()
+      )
+
       lsp_zero.extend_lspconfig({
         sign_text = true,
         lsp_attach = lsp_attach,
-        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+        capabilities = capabilities
       })
 
       local config = {
@@ -122,11 +128,6 @@ return {
 
       if type(opts.rouge) == "table" then
         for _, opt in pairs(opts.rouge) do
-          local capabilities = vim.tbl_deep_extend(
-            "force",
-            vim.lsp.protocol.make_client_capabilities(),
-            require('cmp_nvim_lsp').default_capabilities()
-          )
           ---@diagnostic disable-next-line: unused-local
           local on_attach = function(client, bufnr)
             lsp_utils.keymaps({ buf = bufnr })

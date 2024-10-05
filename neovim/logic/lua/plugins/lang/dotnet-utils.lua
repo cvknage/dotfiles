@@ -1,5 +1,8 @@
 local M = {}
 
+-- has dotnet installed
+M.has_dotnet = vim.fn.executable("dotnet") == 1
+
 M.test_adapter = function()
   return require("neotest-dotnet")({
     -- Extra arguments for nvim-dap configuration
