@@ -55,6 +55,7 @@ return {
     },
     { "ms-jpq/coq.artifacts", branch = "artifacts", },
     { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim", } },
+    require("plugins.lsp.lazydev")
   },
   config = function(_, opts)
     local lsp_utils = require("plugins.lsp.utils")

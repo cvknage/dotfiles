@@ -32,7 +32,7 @@ return {
         "hrsh7th/cmp-nvim-lsp",
         "saadparwaiz1/cmp_luasnip",
       },
-      "folke/lazydev.nvim",
+      require("plugins.lsp.lazydev")
     },
     config = function()
       local lsp_zero = require("lsp-zero")
