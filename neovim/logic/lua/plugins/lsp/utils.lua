@@ -4,7 +4,7 @@ function M.ensure_installed()
   return { "lua_ls", "ts_ls" }
 end
 
-function M.keymaps(event)
+function M.keymaps(bufnr)
   local telescope_builtin = function(builtin, opts)
     return function()
       require("telescope.builtin")[builtin](opts)
@@ -12,7 +12,7 @@ function M.keymaps(event)
   end
 
   local options = function(opts)
-    return vim.tbl_extend("force", { buffer = event.buf, remap = false }, opts)
+    return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
   end
 
   vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
@@ -33,6 +33,16 @@ function M.keymaps(event)
   vim.keymap.set("n", "K", vim.lsp.buf.hover, options({ desc = "Hover" }))
   vim.keymap.set("n", "gK", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
   vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
+end
+
+function M.auto_refresh_code_lens(bufnr)
+  -- :h vim.lsp.codelens.refresh()
+  vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+    buffer = bufnr,
+    callback = function(ev)
+      vim.lsp.codelens.refresh({ bufnr = ev.buf })
+    end,
+  })
 end
 
 function M.lsp_options()

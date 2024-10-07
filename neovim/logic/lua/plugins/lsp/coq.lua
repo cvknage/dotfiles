@@ -62,8 +62,9 @@ return {
 
     vim.api.nvim_create_autocmd('LspAttach', {
       desc = 'LSP actions',
-      callback = function(event)
-        lsp_utils.keymaps(event)
+      callback = function(ev)
+        lsp_utils.keymaps(ev.buf)
+        lsp_utils.auto_refresh_code_lens(ev.buf)
       end
     })
 
@@ -93,7 +94,7 @@ return {
       for _, opt in pairs(opts.rouge) do
         local capabilities = require("coq").lsp_ensure_capabilities(vim.lsp.protocol.make_client_capabilities())
         local on_attach = function(client, bufnr)
-          lsp_utils.keymaps({ buf = bufnr })
+          lsp_utils.keymaps(bufnr)
         end
         opt.setup(capabilities, on_attach)
       end

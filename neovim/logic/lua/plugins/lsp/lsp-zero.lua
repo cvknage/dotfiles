@@ -90,7 +90,8 @@ return {
       -- if there is a language server active in the file
       ---@diagnostic disable-next-line: unused-local
       local lsp_attach = function(client, bufnr)
-        lsp_utils.keymaps({ buf = bufnr })
+        lsp_utils.keymaps(bufnr)
+        lsp_utils.auto_refresh_code_lens(bufnr)
       end
 
       local capabilities = vim.tbl_deep_extend(
@@ -111,8 +112,11 @@ return {
           lsp_zero.default_setup,
           lua_ls = function()
             -- (Optional) Configure lua language server for neovim
-            local lua_opts = lsp_zero.nvim_lua_ls()
-            require("lspconfig").lua_ls.setup(lua_opts)
+            require('lspconfig').lua_ls.setup({
+              on_init = function(client)
+                lsp_zero.nvim_lua_settings(client, {})
+              end,
+            })
           end,
         },
       }
@@ -130,7 +134,7 @@ return {
         for _, opt in pairs(opts.rouge) do
           ---@diagnostic disable-next-line: unused-local
           local on_attach = function(client, bufnr)
-            lsp_utils.keymaps({ buf = bufnr })
+            lsp_utils.keymaps(bufnr)
           end
           opt.setup(capabilities, on_attach)
         end

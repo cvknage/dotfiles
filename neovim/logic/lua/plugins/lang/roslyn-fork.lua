@@ -24,12 +24,14 @@ return {
             require('cmp_nvim_lsp').default_capabilities()
           )
           on_attach = function(client, bufnr)
-            lsp_utils.keymaps({ buf = bufnr })
+            lsp_utils.keymaps(bufnr)
+            lsp_utils.auto_refresh_code_lens(bufnr)
           end
         elseif pcall(require, 'coq') then
           capabilities = require("coq").lsp_ensure_capabilities()
           on_attach = function(client, bufnr)
-            lsp_utils.keymaps({ buf = bufnr })
+            lsp_utils.keymaps(bufnr)
+            lsp_utils.auto_refresh_code_lens(bufnr)
           end
         else
           return {}
