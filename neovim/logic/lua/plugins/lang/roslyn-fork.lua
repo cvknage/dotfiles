@@ -78,7 +78,7 @@ return {
               },
               ["csharp|code_lens"] = {
                 dotnet_enable_references_code_lens = true,
-                dotnet_enable_tests_code_lens = true,
+                dotnet_enable_tests_code_lens = false,
               },
               ["csharp|completion"] = {
                 dotnet_provide_regex_completions = true,
