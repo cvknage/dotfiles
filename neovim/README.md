@@ -1,6 +1,11 @@
-# [neovim-config](https://neovim.io/doc/user/lua.html)
+# `nvim`
 
-Configuration for [NeoVim](https://neovim.io) 
+Configuration for [neovim](https://neovim.io) 
+
+-- [neovim Lua-guide](https://neovim.io/doc/user/lua-guide.html)  
+-- [neovim Lua](https://neovim.io/doc/user/lua.html)  
+-- [Learn Neovim](https://ofirgall.github.io/learn-nvim/)  
+-- [Learn Vimscript the Hard Way](https://learnvimscriptthehardway.stevelosh.com)  
 
 ## Prequisites
 

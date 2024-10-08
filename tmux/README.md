@@ -1,6 +1,8 @@
-# [tmux-config](https://github.com/tmux/tmux/wiki/Getting-Started)
+# `tmux`
 
 Configuration for [tmux](https://github.com/tmux/tmux/wiki)
+
+-- [Getting Started](https://github.com/tmux/tmux/wiki/Getting-Started)  
 
 ## Install
 

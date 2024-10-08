@@ -1,6 +1,6 @@
 # `.(z)profile`
 
-Configuration for `bash` and `zsh`
+Configuration for [`zsh`](https://www.zsh.org) and [`bash`](https://www.gnu.org/software/bash/)
 
 ## Install
 
