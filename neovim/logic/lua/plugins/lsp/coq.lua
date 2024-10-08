@@ -64,7 +64,8 @@ return {
       desc = 'LSP actions',
       callback = function(ev)
         lsp_utils.keymaps(ev.buf)
-        lsp_utils.auto_refresh_code_lens(ev.buf)
+        lsp_utils.inlay_hints(ev.buf)
+        lsp_utils.code_lens(ev.buf)
       end
     })
 

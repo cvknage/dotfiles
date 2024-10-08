@@ -91,7 +91,8 @@ return {
       ---@diagnostic disable-next-line: unused-local
       local lsp_attach = function(client, bufnr)
         lsp_utils.keymaps(bufnr)
-        lsp_utils.auto_refresh_code_lens(bufnr)
+        lsp_utils.inlay_hints(bufnr)
+        lsp_utils.code_lens(bufnr)
       end
 
       local capabilities = vim.tbl_deep_extend(
