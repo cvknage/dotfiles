@@ -34,7 +34,6 @@ require("lazy").setup({
     -- Languages
     -- { import = "plugins.lang.omnisharp" },
     -- { import = "plugins.lang.csharp_ls" },
-    -- { import = "plugins.lang.roslyn" },
     { import = "plugins.lang.roslyn-fork" },
 
     -- AI Code Completion
