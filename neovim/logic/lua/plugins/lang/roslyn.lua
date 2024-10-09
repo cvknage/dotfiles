@@ -13,8 +13,6 @@ return {
       enabled = utils.has_dotnet,
       ft = "cs",
       opts = function(_, opts)
-        local lsp_utils = require("plugins.lsp.utils")
-
         local capabilities
         if pcall(require, 'cmp_nvim_lsp') then
           capabilities = vim.tbl_deep_extend(
@@ -32,11 +30,15 @@ return {
           -- config: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
           config = {
             capabilities = capabilities,
+            --[[
+            -- on_attach is handled by "lsp-zero" or "coq"
             on_attach = function(client, bufnr)
+              local lsp_utils = require("plugins.lsp.utils")
               lsp_utils.keymaps(client, bufnr)
               lsp_utils.inlay_hints(client, bufnr)
               lsp_utils.code_lens(client, bufnr)
             end,
+            ]]
             handlers = {
               -- https://neovim.io/doc/user/lsp.html
               -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
