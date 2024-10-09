@@ -16,34 +16,42 @@ return {
         local lsp_utils = require("plugins.lsp.utils")
 
         local capabilities
-        local on_attach
         if pcall(require, 'cmp_nvim_lsp') then
           capabilities = vim.tbl_deep_extend(
             "force",
             vim.lsp.protocol.make_client_capabilities(),
             require('cmp_nvim_lsp').default_capabilities()
           )
-          on_attach = function(client, bufnr)
-            lsp_utils.keymaps(bufnr)
-            lsp_utils.inlay_hints(bufnr)
-            lsp_utils.code_lens(bufnr)
-          end
         elseif pcall(require, 'coq') then
           capabilities = require("coq").lsp_ensure_capabilities()
-          on_attach = function(client, bufnr)
-            lsp_utils.keymaps(bufnr)
-            lsp_utils.inlay_hints(bufnr)
-            lsp_utils.code_lens(bufnr)
-          end
         else
-          return {}
+          capabilities = vim.lsp.make_client_capabilities()
         end
 
-        -- configurations: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
         return {
+          -- config: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
           config = {
             capabilities = capabilities,
-            on_attach = on_attach,
+            on_attach = function(client, bufnr)
+              lsp_utils.keymaps(client, bufnr)
+              lsp_utils.inlay_hints(client, bufnr)
+              lsp_utils.code_lens(client, bufnr)
+            end,
+            handlers = {
+              -- https://neovim.io/doc/user/lsp.html
+              -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
+              ["workspace/inlayHint/refresh"] = function(_, _, ctx)
+                local client = vim.lsp.get_client_by_id(ctx.client_id)
+                if client.supports_method("textDocument/inlayHint") then
+                  local buffers = vim.lsp.get_buffers_by_client_id(ctx.client_id)
+                  for _, buf in ipairs(buffers) do
+                    vim.lsp.inlay_hint.enable(vim.lsp.inlay_hint.is_enabled({ bufnr = buf }), { bufnr = buf })
+                    vim.lsp.util._refresh("textDocument/inlayHint", { bufnr = buf })
+                  end
+                end
+                return vim.NIL
+              end,
+            },
             settings = {
               --[[
                 Server name would be in format {languageName}|{grouping}.{name} or {grouping}.{name} if this option can be applied to multiple languages.

@@ -63,9 +63,12 @@ return {
     vim.api.nvim_create_autocmd('LspAttach', {
       desc = 'LSP actions',
       callback = function(ev)
-        lsp_utils.keymaps(ev.buf)
-        lsp_utils.inlay_hints(ev.buf)
-        lsp_utils.code_lens(ev.buf)
+        local clients = vim.lsp.get_clients({ buffer = ev.bug })
+        for _, client in pairs(clients) do
+          lsp_utils.keymaps(client, ev.buf)
+          lsp_utils.inlay_hints(client, ev.buf)
+          lsp_utils.code_lens(client, ev.buf)
+        end
       end
     })
 

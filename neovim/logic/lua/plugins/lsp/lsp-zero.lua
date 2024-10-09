@@ -90,9 +90,9 @@ return {
       -- if there is a language server active in the file
       ---@diagnostic disable-next-line: unused-local
       local lsp_attach = function(client, bufnr)
-        lsp_utils.keymaps(bufnr)
-        lsp_utils.inlay_hints(bufnr)
-        lsp_utils.code_lens(bufnr)
+        lsp_utils.keymaps(client, bufnr)
+        lsp_utils.inlay_hints(client, bufnr)
+        lsp_utils.code_lens(client, bufnr)
       end
 
       local capabilities = vim.tbl_deep_extend(
