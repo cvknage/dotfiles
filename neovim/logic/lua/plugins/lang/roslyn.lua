@@ -30,15 +30,14 @@ return {
           -- config: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
           config = {
             capabilities = capabilities,
-            --[[
-            -- on_attach is handled by "lsp-zero" or "coq"
             on_attach = function(client, bufnr)
-              local lsp_utils = require("plugins.lsp.utils")
-              lsp_utils.keymaps(client, bufnr)
-              lsp_utils.inlay_hints(client, bufnr)
-              lsp_utils.code_lens(client, bufnr)
+              if not pcall(require, 'lsp-zero') and not pcall(require, 'coq') then
+                local lsp_utils = require("plugins.lsp.utils")
+                lsp_utils.keymaps(client, bufnr)
+                lsp_utils.inlay_hints(client, bufnr)
+                lsp_utils.code_lens(client, bufnr)
+              end
             end,
-            ]]
             handlers = {
               -- https://neovim.io/doc/user/lsp.html
               -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
