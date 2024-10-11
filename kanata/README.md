@@ -2,7 +2,7 @@
 
 
 ``` bash
-git colne https://github.com/jtroo/kanata.git
+git clone https://github.com/jtroo/kanata.git
 ```
 
 Go to release page for [Kanata](https://github.com/jtroo/kanata/releases) and find the latest version
@@ -35,6 +35,9 @@ On Linux and macOS, this may not work without `sudo`, see below
 ``` bash
 kanata --cfg ~/.config/kanata/kanata.kbd
 ```
+
+For Linux
+https://github.com/jtroo/kanata/blob/main/docs/setup-linux.md
 
 ## Launch on Startup
 

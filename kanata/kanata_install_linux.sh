@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# https://github.com/jtroo/kanata/blob/main/docs/setup-linux.md
+
+# Variables
+KANATA_PATH="$HOME/.cargo/bin/kanata"
+KANATA_CFG_PATH="$HOME/.config/kanata/kanata.kbd"
+RULES_FILE="/etc/udev/rules.d/99-input.rules"
+SERVICE_FILE="$HOME/.config/systemd/user/kanata.service"
+
+# If the uinput group does not exist, create a new group
+sudo groupadd uinput
+
+# Add your user to the input and the uinput group
+sudo usermod -aG input $USER
+sudo usermod -aG uinput $USER
+
+# Make sure the uinput device file has the right permissions.
+cat <<EOF | sudo tee "$RULES_FILE" > /dev/null
+KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
+EOF
+
+sudo udevadm control --reload-rules && sudo udevadm trigger
+
+# Make sure the uinput drivers are loaded
+sudo modprobe uinput
+
+# Create and enable a systemd daemon service
+mkdir -p ~/.config/systemd/user
+touch "$SERVICE_FILE"
+
+cat <<EOF | sudo tee "$SERVICE_FILE" > /dev/null
+[Unit]
+Description=Kanata keyboard remapper
+Documentation=https://github.com/jtroo/kanata
+
+[Service]
+Environment=PATH=%h/.cargo/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin
+Environment=DISPLAY=:0
+Type=simple
+ExecStart=/usr/bin/sh -c 'exec ${KANATA_PATH} --cfg ${KANATA_CFG_PATH}'
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user daemon-reload
+systemctl --user enable kanata.service
+systemctl --user start kanata.service
