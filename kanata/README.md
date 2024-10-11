@@ -15,7 +15,7 @@ bash install.sh
 
 The scripted install will install Kanata with Cargo and set it up as system daemon
 
-Go to release page for [Kanata](https://github.com/jtroo/kanata/releases) and find the latest version  
+Go to the release page for [Kanata](https://github.com/jtroo/kanata/releases) and find the latest version  
 Update the `./kanata_variables.sh` file with the details for the latest version
 
 Then install it with:
@@ -27,7 +27,7 @@ bash ./kanata_install.sh
 
 Following the manual installation; you will install Kanata and install it as a system daemon
 
-Go to release page for [Kanata](https://github.com/jtroo/kanata/releases) and find the latest version
+Go to the release page for [Kanata](https://github.com/jtroo/kanata/releases) and find the latest version
 
 ``` bash
 git clone https://github.com/jtroo/kanata.git
