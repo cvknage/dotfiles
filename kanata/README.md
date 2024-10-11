@@ -61,6 +61,7 @@ Setup host system to be ready for Kanata:
   Allow Kanata in macOS's TCC (Transparency, Consent and Control)  
   Under: Settings > Privacy and Security > Input Monitoring  
   Add the Kanata binary (from `~/.cargo/bin/kanata`) to allow it to run as a launch daemon  
+  <img width="827" alt="TCC" src="https://github.com/user-attachments/assets/5e5628a0-2216-4002-b320-56bf25205781">
 
   Create a sudoers file entry for kanata
   ``` bash
