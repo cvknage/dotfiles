@@ -35,7 +35,7 @@ Documentation=https://github.com/jtroo/kanata
 Environment=PATH=%h/.cargo/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin
 Environment=DISPLAY=:0
 Type=simple
-ExecStart=/usr/bin/sh -c 'exec ${KANATA_PATH} --cfg ${KANATA_CFG_PATH}'
+ExecStart=/usr/bin/sh -c 'exec ${KANATA_BIN_PATH} --cfg ${KANATA_CONFIG_PATH}'
 Restart=no
 
 [Install]

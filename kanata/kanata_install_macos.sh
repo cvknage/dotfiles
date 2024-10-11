@@ -10,7 +10,7 @@ PLIST_FILE="/Library/LaunchDaemons/com.jtroo.kanata.plist"
 
 # Download Karabiner Driver
 mkdir -p "${MACOS_DROVER_FOLDER}"
-curl -o "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}" "$KANATA_MACOS_KARABINER_DRIVER_PATH" &> /dev/null
+curl -o "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}" "$KANATA_MACOS_KARABINER_DRIVER_URI" &> /dev/null
 
 # Install Karabiner Driver
 open "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}"
@@ -28,7 +28,7 @@ echo "Under: Settings > Privacy and Security > Input Monitoring"
 echo "Add the Kanata binary (from \"~/.cargo/bin/kanata\") to allow it to run as a launch daemon"
 
 # Create a sudoers file entry for kanata
-echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
+echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
 
 # Create a plist file for the LaunchDaemon
 cat <<EOF | sudo tee "$PLIST_FILE" > /dev/null
@@ -41,9 +41,9 @@ cat <<EOF | sudo tee "$PLIST_FILE" > /dev/null
 
     <key>ProgramArguments</key>
     <array>
-        <string>$KANATA_PATH</string>
+        <string>$KANATA_BIN_PATH</string>
         <string>-c</string>
-        <string>$KANATA_CFG_PATH</string>
+        <string>$KANATA_CONFIG_PATH</string>
         <string>-n</string>
     </array>
 
