@@ -23,7 +23,7 @@ Then install it with:
 bash ./kanata_install.sh
 ```
 
-#### Manuan Install
+### Manuan Install
 
 Following the manual installation; you will install Kanata and install it as a system daemon
 
