@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-# https://github.com/jtroo/kanata/blob/main/docs/setup-linux.md
-
 # Variables
-KANATA_PATH="$HOME/.cargo/bin/kanata"
-KANATA_CFG_PATH="$HOME/.config/kanata/kanata.kbd"
 RULES_FILE="/etc/udev/rules.d/99-input.rules"
 SERVICE_FILE="$HOME/.config/systemd/user/kanata.service"
+. ./kanata_variables.sh
 
 # If the uinput group does not exist, create a new group
 sudo groupadd uinput
