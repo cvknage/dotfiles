@@ -6,18 +6,33 @@
 
 (platform (macos)
   (defalias 
+    sqropn RA-Digit8
+    sqrclo RA-Digit9
     dollar (switch
       ((or lsft rsft)) (unshift IntlBackslash) break
       () Digit4 break
     )
+    tick-bq _
   )
 )
 
 (platform (linux)
   (defalias 
+    sqropn (switch
+      ((or lsft rsft)) (unshift ralt Digit7) break
+      () RA-Digit8 break
+    )
+    sqrclo (switch
+      ((or lsft rsft)) (unshift ralt Digit0) break
+      () Digit9 break
+    )
     dollar (switch
       ((or lsft rsft)) (unshift ralt Digit4) break
       () Digit4 break
+    )
+    tick-bq (switch
+      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
+      () (macro S-Equal S-Equal) break
     )
   )
 )
@@ -34,8 +49,6 @@
   danish (layer-switch danish)
   tabmod (tap-hold 200 200 tab (layer-while-held fn))
   escctrl (tap-hold 200 200 esc lctl)
-  sqropn RA-Digit8
-  sqrclo RA-Digit9
   semcol (switch
     ((or lsft rsft)) S-Period break
     () S-Comma break
@@ -44,14 +57,14 @@
     ((or lsft rsft)) S-Digit2 break
     () Backslash break
   )
-  tick (switch
+  tick-intl (switch
     ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
     () (macro S-Equal S-Equal) break
   )
 )
 
 (deflayer programmer
-  @tick @tick @dollar
+  @tick-intl @tick-bq @dollar
   @tabmod r p @sqropn @sqrclo
   @escctrl d @semcol @quote
   _ lsft
