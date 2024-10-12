@@ -1,5 +1,4 @@
 ;; vim: set filetype=lisp :
-;; Caps to escape/control configuration for Kanata
 
 ;; Function keys on masOS can sometimes be an issue, add them in if needed
 ;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
@@ -52,9 +51,9 @@
 )
 
 (deflayer fn
-  _ _
-  _ lrld @programmer _ _
-  @escctrl @danish _ _
-  _ _
+  XX XX
+  XX lrld @programmer XX XX
+  @escctrl @danish XX XX
+  XX XX
 )
 
