@@ -26,6 +26,8 @@ echo ""
 echo "Allow Kanata in macOS's TCC (Transparency, Consent and Control)"
 echo "Under: Settings > Privacy and Security > Input Monitoring"
 echo "Add the Kanata binary (from \"~/.cargo/bin/kanata\") to allow it to run as a launch daemon"
+echo ""
+echo ""
 
 # Create a sudoers file entry for kanata
 echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
@@ -64,9 +66,3 @@ EOF
 
 # Load the daemon
 sudo launchctl load -w "$PLIST_FILE" 2> /dev/null
-
-# Announce Reboot
-echo ""
-echo "Finally Reboot macOS"
-echo ""
-echo ""

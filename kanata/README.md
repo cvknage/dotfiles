@@ -105,7 +105,6 @@ Setup host system to be ready for Kanata:
   ``` bash
   sudo launchctl load -w "$PLIST_FILE"
   ```
-  Then Reboot macOS
 
   ```
   How do I use `launchctl` again?
