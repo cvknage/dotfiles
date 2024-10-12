@@ -4,8 +4,25 @@
 ;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
 ;;  brdn  brup  _    _    _    _   prev  pp  next  mute  vold  volu
 
+(deflocalkeys-linux
+  § 41
+  $ 5
+)
+
+(deflocalkeys-macos
+  § 164
+  $ 164
+)
+
+(deftemplate doll (version)
+  ;; (if-equal $version 5 (unshift ralt $))
+  (if-equal $version 5 l)
+  ;; (if-equal $version 164 (unshift $))
+  (if-equal $version 164 m)
+)
+
 (defsrc
-  IntlBackslash Digit4
+  § Digit4
   tab r p BracketLeft BracketRight
   caps d Semicolon Quote
   lsft rsft
@@ -31,7 +48,9 @@
     () (macro S-Equal S-Equal) break
   )
   dollar (switch
-    ((or lsft rsft)) (unshift IntlBackslash) break
+    ;;((or lsft rsft)) (unshift $) break
+    ;;((or lsft rsft)) (unshift ralt $) break
+    ((or lsft rsft)) ((template-expand doll $)) break
     () Digit4 break
   )
 )
@@ -44,7 +63,7 @@
 )
 
 (deflayer danish
-  IntlBackslash Digit4
+  § Digit4
   @tabmod r p BracketLeft BracketRight
   @escctrl d Semicolon Quote
   lsft rsft
