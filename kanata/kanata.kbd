@@ -4,25 +4,26 @@
 ;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
 ;;  brdn  brup  _    _    _    _   prev  pp  next  mute  vold  volu
 
-(deflocalkeys-linux
-  § 41
-  $ 5
+(platform (macos)
+  (defalias 
+    dollar (switch
+      ((or lsft rsft)) (unshift IntlBackslash) break
+      () Digit4 break
+    )
+  )
 )
 
-(deflocalkeys-macos
-  § 164
-  $ 164
-)
-
-(deftemplate doll (version)
-  ;; (if-equal $version 5 (unshift ralt $))
-  (if-equal $version 5 l)
-  ;; (if-equal $version 164 (unshift $))
-  (if-equal $version 164 m)
+(platform (linux)
+  (defalias 
+    dollar (switch
+      ((or lsft rsft)) (unshift ralt Digit4) break
+      () Digit4 break
+    )
+  )
 )
 
 (defsrc
-  § Digit4
+  IntlBackslash Backquote Digit4
   tab r p BracketLeft BracketRight
   caps d Semicolon Quote
   lsft rsft
@@ -47,30 +48,24 @@
     ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
     () (macro S-Equal S-Equal) break
   )
-  dollar (switch
-    ;;((or lsft rsft)) (unshift $) break
-    ;;((or lsft rsft)) (unshift ralt $) break
-    ((or lsft rsft)) ((template-expand doll $)) break
-    () Digit4 break
-  )
 )
 
 (deflayer programmer
-  @tick @dollar
+  @tick @tick @dollar
   @tabmod r p @sqropn @sqrclo
   @escctrl d @semcol @quote
   _ lsft
 )
 
 (deflayer danish
-  § Digit4
+  IntlBackslash Backquote Digit4
   @tabmod r p BracketLeft BracketRight
   @escctrl d Semicolon Quote
   lsft rsft
 )
 
 (deflayer fn
-  XX XX
+  XX XX XX
   XX lrld @programmer XX XX
   @escctrl @danish XX XX
   XX XX
