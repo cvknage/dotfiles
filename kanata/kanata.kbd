@@ -12,6 +12,10 @@
       ((or lsft rsft)) (unshift IntlBackslash) break
       () Digit4 break
     )
+    tick-intl (switch
+      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
+      () (macro S-Equal S-Equal) break
+    )
     tick-bq _
   )
 )
@@ -24,12 +28,13 @@
     )
     sqrclo (switch
       ((or lsft rsft)) (unshift ralt Digit0) break
-      () Digit9 break
+      () RA-Digit9 break
     )
     dollar (switch
       ((or lsft rsft)) (unshift ralt Digit4) break
       () Digit4 break
     )
+    tick-intl _
     tick-bq (switch
       ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
       () (macro S-Equal S-Equal) break
@@ -56,10 +61,6 @@
   quote (switch
     ((or lsft rsft)) S-Digit2 break
     () Backslash break
-  )
-  tick-intl (switch
-    ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
-    () (macro S-Equal S-Equal) break
   )
 )
 
