@@ -1,23 +1,60 @@
 ;; vim: set filetype=lisp :
 ;; Caps to escape/control configuration for Kanata
 
-;; Function keys on masOS can sometimes be an issue, comment them in if needed
+;; Function keys on masOS can sometimes be an issue, add them in if needed
+;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
+;;  brdn  brup  _    _    _    _   prev  pp  next  mute  vold  volu
 
 (defsrc
-;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
-  caps
+  IntlBackslash Digit4
+  tab r p BracketLeft BracketRight
+  caps d Semicolon Quote
+  lsft rsft
 )
 
 (defalias
-  escctrl (tap-hold 100 100 esc lctl)
+  programmer (layer-switch programmer)
+  danish (layer-switch danish)
+  tabmod (tap-hold 200 200 tab (layer-while-held fn))
+  escctrl (tap-hold 200 200 esc lctl)
+  sqropn RA-Digit8
+  sqrclo RA-Digit9
+  semcol (switch
+    ((or lsft rsft)) S-Period break
+    () S-Comma break
+  )
+  quote (switch
+    ((or lsft rsft)) S-Digit2 break
+    () Backslash break
+  )
+  tick (switch
+    ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
+    () (macro S-Equal S-Equal) break
+  )
+  dollar (switch
+    ((or lsft rsft)) (unshift IntlBackslash) break
+    () Digit4 break
+  )
 )
 
-(deflayer base
-;;  brdn  brup  _    _    _    _   prev  pp  next  mute  vold  volu
-  @escctrl
+(deflayer programmer
+  @tick @dollar
+  @tabmod r p @sqropn @sqrclo
+  @escctrl d @semcol @quote
+  _ lsft
+)
+
+(deflayer danish
+  IntlBackslash Digit4
+  @tabmod r p BracketLeft BracketRight
+  @escctrl d Semicolon Quote
+  lsft rsft
 )
 
 (deflayer fn
-;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
-  @escctrl
+  _ _
+  _ lrld @programmer _ _
+  @escctrl @danish _ _
+  _ _
 )
+
