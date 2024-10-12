@@ -43,10 +43,10 @@
 )
 
 (defsrc
-  IntlBackslash Backquote Digit4
+  IntlBackslash Digit4
   tab r p BracketLeft BracketRight
   caps d Semicolon Quote
-  lsft rsft
+  lsft Backquote rsft
 )
 
 (defalias
@@ -65,23 +65,23 @@
 )
 
 (deflayer programmer
-  @tick-intl @tick-bq @dollar
+  @tick-intl @dollar
   @tabmod r p @sqropn @sqrclo
   @escctrl d @semcol @quote
-  _ lsft
+  lsft @tick-bq lsft
 )
 
 (deflayer danish
-  IntlBackslash Backquote Digit4
+  IntlBackslash Digit4
   @tabmod r p BracketLeft BracketRight
   @escctrl d Semicolon Quote
-  lsft rsft
+  lsft Backquote rsft
 )
 
 (deflayer fn
-  XX XX XX
-  XX lrld @programmer XX XX
-  @escctrl @danish XX XX
   XX XX
+  XX lrld @programmer XX XX
+  XX @danish XX XX
+  XX XX XX
 )
 
