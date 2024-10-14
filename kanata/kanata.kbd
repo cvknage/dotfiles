@@ -84,8 +84,7 @@
 (deflayer fn
   XX XX
   lrld @programmer XX XX
-  XX @danish XX XX
+  XX @default XX XX
   XX XX XX
   XX
 )
-
