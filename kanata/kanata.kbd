@@ -44,15 +44,16 @@
 
 (defsrc
   IntlBackslash Digit4
-  tab r p BracketLeft BracketRight
+  r p BracketLeft BracketRight
   caps d Semicolon Quote
   lsft Backquote rsft
+  ControlLeft
 )
 
 (defalias
   programmer (layer-switch programmer)
-  danish (layer-switch danish)
-  tabmod (tap-hold 200 200 tab (layer-while-held fn))
+  default (layer-switch default)
+  ctrlmod (layer-while-held fn)
   escctrl (tap-hold 200 200 esc lctl)
   semcol (switch
     ((or lsft rsft)) S-Period break
@@ -66,22 +67,25 @@
 
 (deflayer programmer
   @tick-intl @dollar
-  @tabmod r p @sqropn @sqrclo
+  r p @sqropn @sqrclo
   @escctrl d @semcol @quote
   lsft @tick-bq lsft
+  @ctrlmod
 )
 
-(deflayer danish
+(deflayer default
   IntlBackslash Digit4
-  @tabmod r p BracketLeft BracketRight
+  r p BracketLeft BracketRight
   @escctrl d Semicolon Quote
   lsft Backquote rsft
+  @ctrlmod
 )
 
 (deflayer fn
   XX XX
-  XX lrld @programmer XX XX
+  lrld @programmer XX XX
   XX @danish XX XX
   XX XX XX
+  XX
 )
 
