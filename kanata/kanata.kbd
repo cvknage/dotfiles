@@ -37,6 +37,18 @@
       ((or lsft rsft)) (unshift IntlBackslash) break
       () Digit4 break
     )
+    at (switch
+      ((or lsft rsft)) (unshift ralt Backslash) break
+      () Digit2 break
+    )
+    comma (switch
+      ((or lsft rsft)) (unshift Backquote) break
+      () Comma break
+    )
+    period (switch
+      ((or lsft rsft)) Backquote break
+      () Period break
+    )
     intlbs @tildtick
     backq _
   )
@@ -56,24 +68,36 @@
       ((or lsft rsft)) (unshift ralt Digit4) break
       () Digit4 break
     )
+    at (switch
+      ((or lsft rsft)) (unshift ralt Digit2) break
+      () Digit2 break
+    )
+    comma (switch
+      ((or lsft rsft)) (unshift IntlBackslash) break
+      () Comma break
+    )
+    period (switch
+      ((or lsft rsft)) IntlBackslash break
+      () Period break
+    )
     intlbs _
     backq @tildtick
   )
 )
 
 (defsrc
-  IntlBackslash Digit4
+  IntlBackslash Digit2 Digit4
   BracketLeft BracketRight
   caps Semicolon Quote
-  lsft Backquote rsft
+  lsft Backquote Comma Period rsft
   ControlLeft
 )
 
 (deflayer programmer
-  @intlbs @dollar
+  @intlbs @at @dollar
   @brackl @brackr
   @escctrl @semcol @quote
-  lsft @backq lsft
+  lsft @backq @comma @period lsft
   @ctrlmod
 )
 
