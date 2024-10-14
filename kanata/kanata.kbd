@@ -87,10 +87,6 @@
   d @default
 
   lsft lsft BracketLeft BracketLeft Semicolon Semicolon Quote Quote ;; Quick Access æÆ øØ åÅ
-
-  h (movemouse-left 2 1) j (movemouse-down 2 1) k (movemouse-up 2 1) l (movemouse-right 2 1)
-  n mltp m mrtp
-
   ___ XX
 )
 
