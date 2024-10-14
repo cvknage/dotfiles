@@ -85,7 +85,6 @@
 (deflayermap (control)
   r lrld p @programmer
   d @default
-
   lsft lsft BracketLeft BracketLeft Semicolon Semicolon Quote Quote ;; Quick Access æÆ øØ åÅ
   ___ XX
 )
