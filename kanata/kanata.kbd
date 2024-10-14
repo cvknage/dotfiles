@@ -4,56 +4,14 @@
 ;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
 ;;  brdn  brup  _    _    _    _   prev  pp  next  mute  vold  volu
 
-(platform (macos)
-  (defalias 
-    sqropn RA-Digit8
-    sqrclo RA-Digit9
-    dollar (switch
-      ((or lsft rsft)) (unshift IntlBackslash) break
-      () Digit4 break
-    )
-    tick-intl (switch
-      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
-      () (macro S-Equal S-Equal) break
-    )
-    tick-bq _
-  )
-)
-
-(platform (linux)
-  (defalias 
-    sqropn (switch
-      ((or lsft rsft)) (unshift ralt Digit7) break
-      () RA-Digit8 break
-    )
-    sqrclo (switch
-      ((or lsft rsft)) (unshift ralt Digit0) break
-      () RA-Digit9 break
-    )
-    dollar (switch
-      ((or lsft rsft)) (unshift ralt Digit4) break
-      () Digit4 break
-    )
-    tick-intl _
-    tick-bq (switch
-      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
-      () (macro S-Equal S-Equal) break
-    )
-  )
-)
-
-(defsrc
-  IntlBackslash Digit4
-  r p BracketLeft BracketRight
-  caps d Semicolon Quote
-  lsft Backquote rsft
-  ControlLeft
+(defcfg
+  process-unmapped-keys yes
 )
 
 (defalias
-  programmer (layer-switch programmer)
   default (layer-switch default)
-  ctrlmod (layer-while-held fn)
+  programmer (layer-switch programmer)
+  ctrlmod (layer-while-held control)
   escctrl (tap-hold 200 200 esc lctl)
   semcol (switch
     ((or lsft rsft)) S-Period break
@@ -65,26 +23,68 @@
   )
 )
 
-(deflayer programmer
-  @tick-intl @dollar
-  r p @sqropn @sqrclo
-  @escctrl d @semcol @quote
-  lsft @tick-bq lsft
-  @ctrlmod
+(platform (macos)
+  (defalias 
+    brackl RA-Digit8
+    brackr RA-Digit9
+    dollar (switch
+      ((or lsft rsft)) (unshift IntlBackslash) break
+      () Digit4 break
+    )
+    intlbs (switch
+      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
+      () (macro S-Equal S-Equal) break
+    )
+    backq _
+  )
 )
 
-(deflayer default
+(platform (linux)
+  (defalias 
+    brackl (switch
+      ((or lsft rsft)) (unshift ralt Digit7) break
+      () RA-Digit8 break
+    )
+    brackr (switch
+      ((or lsft rsft)) (unshift ralt Digit0) break
+      () RA-Digit9 break
+    )
+    dollar (switch
+      ((or lsft rsft)) (unshift ralt Digit4) break
+      () Digit4 break
+    )
+    intlbs _
+    backq (switch
+      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
+      () (macro S-Equal S-Equal) break
+    )
+  )
+)
+
+(defsrc
   IntlBackslash Digit4
-  r p BracketLeft BracketRight
-  @escctrl d Semicolon Quote
+  BracketLeft BracketRight
+  caps Semicolon Quote
   lsft Backquote rsft
+  ControlLeft
+)
+
+(deflayer programmer
+  @intlbs @dollar
+  @brackl @brackr
+  @escctrl @semcol @quote
+  lsft @backq lsft
   @ctrlmod
 )
 
-(deflayer fn
-  XX XX
-  lrld @programmer XX XX
-  XX @default XX XX
-  XX XX XX
-  XX
+(deflayermap (default)
+  caps @escctrl
+  ControlLeft @ctrlmod
 )
+
+(deflayermap (control)
+  r lrld p @programmer
+  d @default
+  ___ XX
+)
+
