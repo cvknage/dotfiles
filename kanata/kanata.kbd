@@ -13,12 +13,12 @@
   programmer (layer-switch programmer)
   ctrlmod (layer-while-held control)
   escctrl (tap-hold 200 200 esc lctl)
+  btick (macro S-Equal S-Equal)
+  tilde (macro (unshift ralt BracketRight) (unshift ralt BracketRight))
   semcol (switch
     ((or lsft rsft)) S-Period break
     () S-Comma break
   )
-  btick (macro S-Equal S-Equal)
-  tilde (macro (unshift ralt BracketRight) (unshift ralt BracketRight))
   tildtick (switch
     ((or lsft rsft)) @tilde break
     () @btick break
@@ -26,6 +26,34 @@
   quote (switch
     ((or lsft rsft)) S-Digit2 break
     () Backslash break
+  )
+  slash (switch
+    ((or lsft rsft)) Minus break
+    () S-Digit7 break
+  )
+  hat (switch
+    ((or lsft rsft)) BracketRight break
+    () Digit6 break
+  )
+  amp (switch
+    ((or lsft rsft)) Digit6 break
+    () Digit7 break
+  )
+  mult (switch
+    ((or lsft rsft)) Backslash break
+    () Digit8 break
+  )
+  parl (switch
+    ((or lsft rsft)) Digit8 break
+    () Digit9 break
+  )
+  parr (switch
+    ((or lsft rsft)) Digit9 break
+    () Digit0 break
+  )
+  eqplu (switch
+    ((or lsft rsft)) (unshift Minus) break
+    () S-Digit0 break
   )
 )
 
@@ -49,8 +77,12 @@
       ((or lsft rsft)) Backquote break
       () Period break
     )
+    bslash (switch
+      ((or lsft rsft)) (unshift ralt i) break
+      () S-RA-Digit7 break
+    )
     intlbs @tildtick
-    backq _
+    backq @bslash
   )
 )
 
@@ -80,24 +112,28 @@
       ((or lsft rsft)) IntlBackslash break
       () Period break
     )
-    intlbs _
+    bslash (switch
+      ((or lsft rsft)) (unshift ralt Equal) break
+      () RA-IntlBackslash break
+    )
+    intlbs @bslash
     backq @tildtick
   )
 )
 
 (defsrc
-  IntlBackslash Digit2 Digit4
+  IntlBackslash Digit2 Digit4 Digit6 Digit7 Digit8 Digit9 Digit0 Minus Equal
   BracketLeft BracketRight
-  caps Semicolon Quote
-  lsft Backquote Comma Period rsft
+  caps Semicolon Quote Backslash
+  lsft Backquote Comma Period Slash rsft
   ControlLeft
 )
 
 (deflayer programmer
-  @intlbs @at @dollar
+  @intlbs @at @dollar @hat @amp @mult @parl @parr Slash @eqplu
   @brackl @brackr
-  @escctrl @semcol @quote
-  lsft @backq @comma @period lsft
+  @escctrl @semcol @quote @backq
+  lsft @backq @comma @period @slash lsft
   @ctrlmod
 )
 
