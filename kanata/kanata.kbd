@@ -17,6 +17,8 @@
     ((or lsft rsft)) S-Period break
     () S-Comma break
   )
+  btick (macro S-Equal S-Equal)
+  tilde (macro (unshift ralt BracketRight) (unshift ralt BracketRight))
   quote (switch
     ((or lsft rsft)) S-Digit2 break
     () Backslash break
@@ -32,8 +34,8 @@
       () Digit4 break
     )
     intlbs (switch
-      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
-      () (macro S-Equal S-Equal) break
+      ((or lsft rsft)) @tilde break
+      () @btick break
     )
     backq _
   )
@@ -55,8 +57,8 @@
     )
     intlbs _
     backq (switch
-      ((or lsft rsft)) (macro (unshift ralt BracketRight) (unshift ralt BracketRight)) break
-      () (macro S-Equal S-Equal) break
+      ((or lsft rsft)) @tilde break
+      () @btick break
     )
   )
 )
