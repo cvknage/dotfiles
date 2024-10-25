@@ -37,6 +37,14 @@ M.debug_adapter = function()
     dap_options = function(config)
       table.insert(config.configurations, 1, {
         type = "coreclr",
+        name = "Attach netcoredbg",
+        request = "attach",
+        processId = function ()
+          return require('dap.utils').pick_process({ filter="dotnet run" })
+        end
+      })
+      table.insert(config.configurations, 2, {
+        type = "coreclr",
         name = "Launch netcoredbg",
         request = "launch",
         program = function()
@@ -46,7 +54,7 @@ M.debug_adapter = function()
           return M.dotnet_get_dll_path()
         end,
       })
-      config.configurations[2].name = "Launch dll"
+      config.configurations[3].name = "Launch dll"
 
       return config
     end,
