@@ -132,7 +132,7 @@
 (deflayer programmer
   @intlbs @at @dollar @hat @amp @mult @parl @parr Slash @eqplu
   @brackl @brackr
-  @escctrl @semcol @quote @backq
+  @escctrl @semcol @quote @bslash
   lsft @backq @comma @period @slash lsft
   @ctrlmod
 )
