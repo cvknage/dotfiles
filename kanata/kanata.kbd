@@ -11,17 +11,30 @@
   ;; )
 )
 
+(defvar
+  tap-time 150
+  hold-time 200
+)
+
 (defalias
   default (layer-switch default)
   programmer (layer-switch programmer)
   ctrlmod (layer-while-held control)
-  escctrl (tap-hold 200 200 esc lctl)
-  btick (macro S-Equal S-Equal)
-  tilde (macro (unshift ralt BracketRight) (unshift ralt BracketRight))
-  semcol (switch
+  a (tap-hold $tap-time $hold-time a lmet)
+  s (tap-hold $tap-time $hold-time s lalt)
+  d (tap-hold $tap-time $hold-time d lsft)
+  f (tap-hold $tap-time $hold-time f lctl)
+  j (tap-hold $tap-time $hold-time j rctl)
+  k (tap-hold $tap-time $hold-time k rsft)
+  l (tap-hold $tap-time $hold-time l ralt)
+  semicol (switch
     ((or lsft rsft)) S-Period break
     () S-Comma break
   )
+  semcol (tap-hold $tap-time $hold-time @semicol rmet)
+  escctrl (tap-hold $tap-time $hold-time esc lctl)
+  btick (macro S-Equal S-Equal)
+  tilde (macro (unshift ralt BracketRight) (unshift ralt BracketRight))
   tildtick (switch
     ((or lsft rsft)) @tilde break
     () @btick break
@@ -127,7 +140,7 @@
 (defsrc
   IntlBackslash Digit2 Digit4 Digit6 Digit7 Digit8 Digit9 Digit0 Minus Equal
   BracketLeft BracketRight
-  caps Semicolon Quote Backslash
+  caps a s d f j k l Semicolon Quote Backslash
   lsft Backquote Comma Period Slash rsft
   ControlLeft
 )
@@ -135,7 +148,7 @@
 (deflayer programmer
   @intlbs @at @dollar @hat @amp @mult @parl @parr Slash @eqplu
   @brackl @brackr
-  @escctrl @semcol @quote @bslash
+  @escctrl @a @s @d @f @j @k @l @semcol @quote @bslash
   lsft @backq @comma @period @slash lsft
   @ctrlmod
 )
