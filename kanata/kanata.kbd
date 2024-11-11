@@ -29,13 +29,13 @@
   f (tap-hold $tap-time $hold-time f lctl)
   j (tap-hold $tap-time $hold-time j rctl)
   k (tap-hold $tap-time $hold-time k rsft)
-  l (tap-hold $tap-time $hold-time l ralt)
-  semcol (tap-hold $tap-time $hold-time @semicol rmet)
-  ;; DK to US
+  l (tap-hold $tap-time $hold-time l lalt)
   semicol (switch
     ((or lsft rsft)) S-Period break
     () S-Comma break
   )
+  semcol (tap-hold $tap-time $hold-time @semicol rmet)
+  ;; DK to US
   btick (macro S-Equal S-Equal)
   tilde (macro (unshift ralt BracketRight) (unshift ralt BracketRight))
   tildtick (switch
