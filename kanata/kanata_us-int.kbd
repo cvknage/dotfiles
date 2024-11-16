@@ -57,13 +57,13 @@
 )
 
 (deflayermap (programmer)
-  IntlBackslash @intlbs Backquote @backq
+  IntlBackslash @intlbs
   caps @escctrl a @a s @s d @d f @f j @j k @k l @l Semicolon @semicolon
+  Backquote @backq
   ControlLeft @ctrlmod
 )
 
 (deflayermap (default)
-  IntlBackslash @intlbs Backquote @backq
   caps @escctrl
   ControlLeft @ctrlmod
 )
