@@ -1,0 +1,78 @@
+;; vim: set filetype=lisp :
+
+;; Function keys on masOS can sometimes be an issue, add them in if needed
+;;  f1   f2   f3   f4   f5   f6   f7   f8   f9   f10   f11   f12
+;;  brdn  brup  _    _    _    _   prev  pp  next  mute  vold  volu
+
+(defcfg
+  process-unmapped-keys yes
+  ;; macos-dev-names-include (
+    ;; "Apple Internal Keyboard / Trackpad"
+  ;; )
+)
+
+(defvar
+  tap-time 200
+  hold-time 200
+)
+
+(defalias
+  ;; layes
+  default (layer-switch default)
+  programmer (layer-switch programmer)
+  ctrlmod (layer-while-held control)
+
+  ;; home row mods
+  escctrl (tap-hold $tap-time $hold-time esc lctl)
+  a (tap-hold $tap-time $hold-time a lmet)
+  s (tap-hold $tap-time $hold-time s lalt)
+  d (tap-hold $tap-time $hold-time d lsft)
+  f (tap-hold $tap-time $hold-time f lctl)
+  j (tap-hold $tap-time $hold-time j rctl)
+  k (tap-hold $tap-time $hold-time k rsft)
+  l (tap-hold $tap-time $hold-time l lalt)
+  semicolon (tap-hold $tap-time $hold-time Semicolon rmet)
+)
+
+(platform (macos)
+  (defalias 
+    intlbs Backquote
+    backq IntlBackslash
+  )
+)
+
+(platform (linux)
+  (defalias 
+    intlbs IntlBackslash
+    backq Backquote
+  )
+)
+
+(defsrc
+  IntlBackslash Digit2 Digit4 Digit6 Digit7 Digit8 Digit9 Digit0 Minus Equal
+  BracketLeft BracketRight
+  caps a s d f j k l Semicolon Quote Backslash
+  lsft Backquote Comma Period Slash rsft
+  ControlLeft
+)
+
+(deflayermap (programmer)
+  IntlBackslash @intlbs Backquote @backq
+  caps @escctrl a @a s @s d @d f @f j @j k @k l @l Semicolon @semicolon
+  ControlLeft @ctrlmod
+)
+
+(deflayermap (default)
+  IntlBackslash @intlbs Backquote @backq
+  caps @escctrl
+  ControlLeft @ctrlmod
+)
+
+(deflayermap (control)
+  r lrld p @programmer
+  d @default
+  Semicolon RA-Quote Quote RA-o BracketLeft RA-a Equal RA-a ;; Quick Access æÆ øØ åÅ
+  lsft lsft rsft rsft
+  ___ XX
+)
+
