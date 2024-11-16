@@ -6,9 +6,14 @@
 
 (defcfg
   process-unmapped-keys yes
-  ;; macos-dev-names-include (
-    ;; "Apple Internal Keyboard / Trackpad"
-  ;; )
+  macos-dev-names-include (
+    "Apple Internal Keyboard / Trackpad"
+  )
+  linux-dev-names-exclude (
+    "ZSA Technology Labs Voyager"
+    "ZSA Technology Labs Voyager Consumer Control"
+    "ZSA Technology Labs Voyager Keyboard"
+  )
 )
 
 (defvar
@@ -34,14 +39,14 @@
   semicolon (tap-hold $tap-time $hold-time Semicolon rmet)
 )
 
-(platform (macos)
+(platform (macos) ;; Layout: U.S. Internationl - PC
   (defalias 
     intlbs Backquote
     backq IntlBackslash
   )
 )
 
-(platform (linux)
+(platform (linux) ;; Layout: U.S. English (Macintosh)
   (defalias 
     intlbs IntlBackslash
     backq Backquote
@@ -71,7 +76,7 @@
 (deflayermap (control)
   r lrld p @programmer
   d @default
-  Semicolon RA-Quote Quote RA-o BracketLeft RA-a Equal RA-a ;; Quick Access æÆ øØ åÅ
+  Semicolon RA-Quote Quote RA-o BracketLeft RA-a ;; Quick Access æÆ øØ åÅ
   lsft lsft rsft rsft
   ___ XX
 )

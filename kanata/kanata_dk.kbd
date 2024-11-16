@@ -78,7 +78,7 @@
   semicolon (tap-hold $tap-time $hold-time @semicol rmet)
 )
 
-(platform (macos)
+(platform (macos) ;; Layout: Danish
   (defalias 
   ;; DK to US
     brackl RA-Digit8
@@ -108,7 +108,7 @@
   )
 )
 
-(platform (linux)
+(platform (linux) ;; Layout: Danish
   (defalias 
     ;; DK to US
     brackl (switch
