@@ -32,6 +32,7 @@
   "oil.nvim": { "branch": "master", "commit": "ccab9d5e09e2d0042fbbe5b6bd05e82426247067" },
   "one-small-step-for-vimkind": { "branch": "main", "commit": "0f0d5bc67786c36edc2cb6fb5faa5c09dd1a6e10" },
   "plenary.nvim": { "branch": "master", "commit": "2d9b06177a975543726ce5c73fca176cedbffe9d" },
+  "render-markdown.nvim": { "branch": "main", "commit": "82184c4a3c3580a7a859b2cb7e58f16c10fd29ef" },
   "roslyn.nvim": { "branch": "main", "commit": "11168911d35ea276b1fbd8fa33f7564325b6c624" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "cf48d4dfce44e0b9a2e19a008d6ec6ea6f01a83b" },
   "telescope.nvim": { "branch": "master", "commit": "dc6fc321a5ba076697cca89c9d7ea43153276d81" },
