@@ -1,12 +1,9 @@
 -- Install Tabby server: https://tabby.tabbyml.com/docs/installation/
 -- Configuration instructions  https://tabby.tabbyml.com/docs/getting-started
 
-if vim.fn.executable("tabby") ~= 1 then
-  return {}
-end
-
 return {
   "TabbyML/vim-tabby",
+  enabled = vim.fn.executable("tabby") == 1,
   event = "BufEnter",
   init = function()
     -- Available models: https://tabby.tabbyml.com/docs/models/

@@ -1,7 +1,6 @@
-local M = {}
-
-M.navigator = {
+return {
   "christoomey/vim-tmux-navigator",
+  enabled = vim.fn.executable("tmux") == 1,
   keys = {
     { "<C-h>", desc = "Go to left window" },
     { "<C-j>", desc = "Go to lower window" },
@@ -9,9 +8,3 @@ M.navigator = {
     { "<C-l>", desc = "Go to right window" },
   },
 }
-
-if vim.fn.executable("tmux") == 1 then
-  return M.navigator
-end
-
-return {}

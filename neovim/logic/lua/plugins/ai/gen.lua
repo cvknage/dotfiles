@@ -1,11 +1,8 @@
 -- Install Ollama: https://ollama.ai/download
 
-if vim.fn.executable("ollama") ~= 1 then
-  return {}
-end
-
 return {
   "David-Kunz/gen.nvim",
+  enabled = vim.fn.executable("ollama") == 1,
   opts = {
     model = "codellama:13b", -- The model to use.
     display_mode = "split",  -- The display mode. Can be "float" or "split".
