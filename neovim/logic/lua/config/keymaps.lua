@@ -14,6 +14,8 @@ vim.keymap.set({ "n", "v" }, "<A-d>", [["_d]], { desc = "Delete selection withou
 vim.keymap.set({"n", "v" }, "<leader>cs", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]], { desc = "Swap word" }) -- swap/replace marked word
 vim.keymap.set("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line Diagnostics" }) -- display line diagnostic
 
+vim.keymap.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and clear hlsearch" }) -- Clear search with <esc>
+
 -- vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Project volumes" }) -- Project Volumes: opens netrw
 -- vim.keymap.set("n", "<leader>pe", vim.cmd.Lex, { desc = "Project explorer" }) -- Project Explorer: opens netrw
 -- vim.keymap.set("n", "<C-f>", "<cmd>silent !tmux neww tmux-sessionizer<CR>") -- switch project - https://github.com/edr3x/tmux-sessionizer
@@ -27,8 +29,6 @@ end
 -- Encoding
 vim.keymap.set("n", "<leader>eb", "<cmd>. ! tr -d '\\n' | base64<cr>", { desc = "Encode base64" })
 vim.keymap.set("n", "<leader>edb", "<cmd>. ! base64 -d<cr>", { desc = "Decode base64" })
-
-vim.keymap.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and clear hlsearch" }) -- Clear search with <esc>
 
 -- move lines
 vim.keymap.set("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "Move down" })
