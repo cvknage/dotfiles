@@ -38,7 +38,7 @@ require("lazy").setup({
     { import = "plugins.lang.easy-dotnet" },
 
     -- AI Code Completion
-    -- { import = "plugins.ai.codeium" },
+    { import = "plugins.ai.codeium" },
     -- { import = "plugins.ai.llm" },
     -- { import = "plugins.ai.tabby" },
 
