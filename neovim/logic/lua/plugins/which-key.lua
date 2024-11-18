@@ -25,6 +25,7 @@ return {
         { "<leader>gh",    group = "hunks" },
         { "<leader>gt",    group = "toggle" },
         { "<leader>j",     group = "json" },
+        { "<leader>o",     group = "obsidian" },
         { "<leader>p",     group = "project" },
         { "<leader>s",     group = "search" },
         { "<leader>t",     group = "test" },
