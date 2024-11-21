@@ -3,11 +3,11 @@ return {
   version = "*", -- recommended, use latest release instead of latest commit
   lazy = true,
   keys = {
-    { "<leader>on", "<cmd>ObsidianNew<cr>",         desc = "New Obsidian note",     mode = "n" },
-    { "<leader>oo", "<cmd>ObsidianSearch<cr>",      desc = "Search Obsidian notes", mode = "n" },
-    { "<leader>os", "<cmd>ObsidianQuickSwitch<cr>", desc = "Quick switch",          mode = "n" },
-    { "<leader>ob", "<cmd>ObsidianBacklinks<cr>",   desc = "Show backlinks",        mode = "n" },
-    { "<leader>ot", "<cmd>ObsidianTemplate<cr>",    desc = "Insert Template",       mode = "n" },
+    { "<leader>on", "<cmd>ObsidianNew<cr>",         desc = "New Note",        mode = "n" },
+    { "<leader>os", "<cmd>ObsidianSearch<cr>",      desc = "Search Notes",    mode = "n" },
+    { "<leader>of", "<cmd>ObsidianQuickSwitch<cr>", desc = "Find Notes",      mode = "n" },
+    { "<leader>ob", "<cmd>ObsidianBacklinks<cr>",   desc = "Show Backlinks",  mode = "n" },
+    { "<leader>ot", "<cmd>ObsidianTemplate<cr>",    desc = "Insert Template", mode = "n" },
   },
   ft = "markdown",
   -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
@@ -51,34 +51,28 @@ return {
     -- way then set 'mappings = {}'.
     mappings = {
       -- Follow markdown/wiki links within your vault "Obsidian follow".
-      ["<leader>of"] = {
+      -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
+      ["<leader>og"] = {
         action = function()
           return require("obsidian").util.gf_passthrough()
         end,
-        opts = { noremap = false, expr = true, buffer = true, desc = "Follow markdown/wiki link" },
+        opts = { noremap = false, expr = true, buffer = true, desc = "Go To" },
       },
       -- Toggle check-boxes "Obsidian done".
-      ["<leader>od"] = {
+      ["<leader>oc"] = {
         action = function()
           return require("obsidian").util.toggle_checkbox()
         end,
-        opts = { buffer = true, desc = "Toggle checkbox done" },
+        opts = { buffer = true, desc = "Toggle Checkbox" },
       },
       -- Smart action depending on context, either follow link or toggle checkbox.
-      --[[
-      ["<cr>"] = {
+      ["<leader>oa"] = {
         action = function()
           return require("obsidian").util.smart_action()
         end,
-        opts = { buffer = true, expr = true },
+        opts = { buffer = true, expr = true, desc = "Smart Action" },
       }
-      ]]
     },
-
-    -- Where to put new notes. Valid options are
-    --  * "current_dir" - put new notes in same directory as the current buffer.
-    --  * "notes_subdir" - put new notes in the default notes subdirectory.
-    new_notes_location = "current_dir",
 
     -- Optional, customize how note IDs are generated given an optional title.
     ---@param title string|?
@@ -88,7 +82,7 @@ return {
       if title ~= nil then
         id = title
       else
-        id = tostring(os.time())
+        id = "Untitled-" .. tostring(os.time())
       end
       return id
     end,
