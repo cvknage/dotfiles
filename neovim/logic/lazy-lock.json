@@ -35,7 +35,7 @@
   "one-small-step-for-vimkind": { "branch": "main", "commit": "dae43850114f1cd1715297e28c630522d5346b31" },
   "plenary.nvim": { "branch": "master", "commit": "2d9b06177a975543726ce5c73fca176cedbffe9d" },
   "render-markdown.nvim": { "branch": "main", "commit": "82184c4a3c3580a7a859b2cb7e58f16c10fd29ef" },
-  "roslyn.nvim": { "branch": "main", "commit": "11168911d35ea276b1fbd8fa33f7564325b6c624" },
+  "roslyn.nvim": { "branch": "main", "commit": "31113dcd48d22b11850c832349b79bb7698d814a" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "cf48d4dfce44e0b9a2e19a008d6ec6ea6f01a83b" },
   "telescope.nvim": { "branch": "master", "commit": "85922dde3767e01d42a08e750a773effbffaea3e" },
   "undotree": { "branch": "master", "commit": "78b5241191852ffa9bb5da5ff2ee033160798c3b" },

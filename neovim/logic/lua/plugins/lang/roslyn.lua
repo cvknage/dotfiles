@@ -15,11 +15,14 @@ return {
       opts = function(_, opts)
         local capabilities
         if pcall(require, 'cmp_nvim_lsp') then
+          --[[
           capabilities = vim.tbl_deep_extend(
             "force",
             vim.lsp.protocol.make_client_capabilities(),
             require('cmp_nvim_lsp').default_capabilities()
           )
+          ]]
+          capabilities = nil -- roslyn.nvim generates capabilities for cmp_nvim_lsp as a defaul
         elseif pcall(require, 'coq') then
           capabilities = require("coq").lsp_ensure_capabilities()
         else
