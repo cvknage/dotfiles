@@ -14,6 +14,17 @@ return {
     ft = { "markdown" },
     ---@module 'render-markdown'
     ---@type render.md.UserConfig
-    opts = {},
+    opts = {
+      code = {
+        -- Determines how the top / bottom of code block are rendered:
+        --  thick: use the same highlight as the code body
+        --  thin:  when lines are empty overlay the above & below icons
+        above = '',
+        -- Used below code blocks for thin border
+        below = '',
+        -- Highlight for code blocks
+        highlight = 'none',
+      },
+    },
   }
 }
