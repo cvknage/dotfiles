@@ -66,6 +66,7 @@ return {
         enabled = true,
         lsp = false
       },
+      render_markdown = true,
     },
   },
 }
