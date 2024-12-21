@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ inputs, config, pkgs, ... }:
 
 {
   # This value determines the Home Manager release that your configuration is
@@ -13,8 +13,12 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    pkgs.yazi
   ];
+
+  programs.wezterm = {
+        enable = true;
+        package = inputs.wezterm.packages.${pkgs.system}.default;
+    };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
@@ -30,7 +34,14 @@
     #   org.gradle.daemon.idletimeout=3600000
     # '';
 
+    ".config/nvim".source = config.lib.file.mkOutOfStoreSymlink ../neovim/logic;
+    ".tmux.conf".source = config.lib.file.mkOutOfStoreSymlink ../tmux/tmux.conf;
+    # ".tmux".source = config.lib.file.mkOutOfStoreSymlink ../tmux/tmux;
     ".config/yazi".source = config.lib.file.mkOutOfStoreSymlink ../yazi;
+    ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink ../gitui/config;
+    ".config/kanata".source = config.lib.file.mkOutOfStoreSymlink ../kanata;
+
+    ".wezterm.lua".source = config.lib.file.mkOutOfStoreSymlink ../wezterm/wezterm.lua;
   };
 
   # Home Manager can also manage your environment variables through

@@ -1,4 +1,4 @@
-{ config, pkgs, user, ... }:
+{ inputs, config, pkgs, user, ... }:
 
 {
   # Home Manager needs a bit of information about you and the paths it should
@@ -13,6 +13,24 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
+    pkgs.neovim
+    pkgs.tmux
+    pkgs.yazi
+    pkgs.gitui
+
+    pkgs.hugo
+
+    pkgs.fd
+    pkgs.jq
+    pkgs.fzf
+    pkgs.gnused
+    pkgs.zoxide
+    pkgs.ripgrep
+    pkgs.lua5_1
+    pkgs.luajitPackages.luarocks
+    pkgs.nodejs_latest
+    pkgs.rustc
+    pkgs.cargo
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
