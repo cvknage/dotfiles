@@ -66,7 +66,7 @@ return {
         local clients = vim.lsp.get_clients({ buffer = ev.bug })
         for _, client in pairs(clients) do
           lsp_utils.keymaps(client, ev.buf)
-          lsp_utils.inlay_hints(client, ev.buf)
+          -- lsp_utils.inlay_hints(client, ev.buf)
           lsp_utils.code_lens(client, ev.buf)
         end
       end

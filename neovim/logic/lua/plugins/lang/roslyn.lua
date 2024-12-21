@@ -37,7 +37,7 @@ return {
               if not pcall(require, 'lsp-zero') and not pcall(require, 'coq') then
                 local lsp_utils = require("plugins.lsp.utils")
                 lsp_utils.keymaps(client, bufnr)
-                lsp_utils.inlay_hints(client, bufnr)
+                -- lsp_utils.inlay_hints(client, bufnr)
                 lsp_utils.code_lens(client, bufnr)
               end
             end,

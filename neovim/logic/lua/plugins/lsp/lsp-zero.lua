@@ -91,7 +91,7 @@ return {
       ---@diagnostic disable-next-line: unused-local
       local lsp_attach = function(client, bufnr)
         lsp_utils.keymaps(client, bufnr)
-        lsp_utils.inlay_hints(client, bufnr)
+        -- lsp_utils.inlay_hints(client, bufnr)
         lsp_utils.code_lens(client, bufnr)
       end
 
