@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 
-rm -rf ~/.config/yazi/
-ln -s "$(pwd)" ~/.config/yazi
+CONFIG_DIR="$HOME/.config/yazi"
+
+rm -rf $CONFIG_DIR
+ln -s "$(pwd)" $CONFIG_DIR

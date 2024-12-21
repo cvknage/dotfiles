@@ -6,6 +6,7 @@ ln -s "$(pwd)/tmux.conf" ~/.tmux.conf
 
 # Install tmux package manager
 rm -rf ~/.tmux
-rm -rf "$(pwd)/tmux"
-git clone https://github.com/tmux-plugins/tpm "$(pwd)/tmux/plugins/tpm"
+if [ ! -d "$(pwd)/tmux" ]; then
+  git clone https://github.com/tmux-plugins/tpm "$(pwd)/tmux/plugins/tpm"
+fi
 ln -s "$(pwd)/tmux" ~/.tmux

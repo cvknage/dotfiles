@@ -9,14 +9,16 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    mac-app-util.url = "github:hraban/mac-app-util";
+    wezterm.url = "github:wez/wezterm?dir=nix";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, ... }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, ... }:
   let
     user = "chris";
     system = "aarch64-darwin";
     pkgs = nixpkgs.legacyPackages.${system};
-    extraArgs = { inherit user; };
+    extraArgs = { inherit inputs user; };
     configuration = { pkgs, user, ... }: {
       # List packages installed in system profile. To search by name, run:
       # $ nix-env -qaP | grep wget
@@ -53,7 +55,7 @@
     darwinConfigurations."logic" = nix-darwin.lib.darwinSystem {
       system = system;
       specialArgs = extraArgs;
-      modules = [ 
+      modules = [
         configuration
         home-manager.darwinModules.home-manager {
           home-manager.useGlobalPkgs = true;
@@ -63,7 +65,14 @@
           # Optionally, use home-manager.extraSpecialArgs to pass
           # arguments to home.nix
           home-manager.extraSpecialArgs = extraArgs;
+
+          # Help GUI Apps on mac to appear in Spotlight - https://github.com/hraban/mac-app-util
+          home-manager.sharedModules = [
+            mac-app-util.homeManagerModules.default
+          ];
         }
+        # Help GUI Apps on mac to appear in Spotlight - https://github.com/hraban/mac-app-util
+        mac-app-util.darwinModules.default
       ];
     };
 
