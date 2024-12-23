@@ -64,4 +64,18 @@ Use the command [`nix-collect-garbage`](https://nix.dev/manual/nix/2.24/command-
 ``` bash
 nix-collect-garbage
 ```
+## Uninstall
+
+On MacOS; [`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
+``` bash
+nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller
+```
+``` bash
+/nix/nix-installer uninstall
+```
+
+On Gnu/Linux (Not NixOS); uninstall `nix` with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
+``` bash
+/nix/nix-installer uninstall
+```
 
