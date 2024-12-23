@@ -66,20 +66,41 @@
           # arguments to home.nix
           home-manager.extraSpecialArgs = extraArgs;
 
-          # Help GUI Apps on mac to appear in Spotlight - https://github.com/hraban/mac-app-util
+          # (Nix) Utilities for Mac App launcher
+          # https://github.com/hraban/mac-app-util
           home-manager.sharedModules = [
             mac-app-util.homeManagerModules.default
           ];
         }
-        # Help GUI Apps on mac to appear in Spotlight - https://github.com/hraban/mac-app-util
+
+        # (Nix) Utilities for Mac App launcher
+        # https://github.com/hraban/mac-app-util
         mac-app-util.darwinModules.default
       ];
     };
 
-    homeConfigurations.${user} = home-manager.lib.homeManagerConfiguration {
+    homeConfigurations."${user}@logic" = home-manager.lib.homeManagerConfiguration {
+      # Home-Manager requires 'pkgs' instance
+      inherit pkgs; # inherit pkgs from let pkgs
+
+      # Specify your home configuration modules here, for example,
+      # the path to your home.nix.
+      modules = [
+        ./logic/home.nix 
+
+        # (Nix) Utilities for Mac App launcher
+        # https://github.com/hraban/mac-app-util
+        mac-app-util.homeManagerModules.default
+      ];
+
+      # Optionally use extraSpecialArgs
+      # to pass through arguments to home.nix
+      extraSpecialArgs = extraArgs;
+    };
+
+    homeConfigurations."${user}@penguin-tuxedo" = home-manager.lib.homeManagerConfiguration {
       # Home-Manager requires 'pkgs' instance
       pkgs = nixpkgs.legacyPackages.x86_64-linux;
-      # inherit pkgs; # inherit pkgs from let pkgs
 
       # Specify your home configuration modules here, for example,
       # the path to your home.nix.
