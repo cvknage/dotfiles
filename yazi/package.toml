@@ -1,0 +1,5 @@
+[plugin]
+deps = [{ use = "dawsers/toggle-view", rev = "9ae57f9" }, { use = "yazi-rs/plugins:chmod", rev = "71c4fc2" }, { use = "yazi-rs/plugins:max-preview", rev = "71c4fc2" }]
+
+[flavor]
+deps = []
