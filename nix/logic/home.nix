@@ -28,12 +28,15 @@
     pkgs.lua5_1
     pkgs.luajitPackages.luarocks
     pkgs.nodejs_latest
+
+    inputs.wezterm.packages.${pkgs.system}.default
   ];
 
-  programs.wezterm = {
-    enable = true;
-    package = inputs.wezterm.packages.${pkgs.system}.default;
-  };
+  # https://wezfurlong.org/wezterm/install/linux.html#flake
+  # programs.wezterm = {
+  #   enable = true;
+  #   package = inputs.wezterm.packages.${pkgs.system}.default;
+  # };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
