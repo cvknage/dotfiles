@@ -58,6 +58,16 @@ nix flake update home-manager --flake .
 
 Then apply the updates.
 
+### Install old versions of packages
+
+To install an old version of a package, the easiest way may be to add the  `nixpkgs` channel that contains the version you want to the inputs in the flake like this:
+``` bash
+nixpkgs-22-11.url = "nixpkgs/release-22.11";
+```
+
+Alternatively; discovering old versions of packages and how to install them can be done via this site:  
+[Nix package versions](https://lazamar.co.uk/nix-versions/)
+
 ### Clean store
 
 Use the command [`nix-collect-garbage`](https://nix.dev/manual/nix/2.24/command-ref/nix-collect-garbage.html) to delete unreachable store objects
