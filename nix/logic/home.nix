@@ -30,6 +30,7 @@
     pkgs.nodejs_latest
 
     inputs.wezterm.packages.${pkgs.system}.default
+    # inputs.ghostty.packages.${pkgs.system}.default # ghostty flake does not currently support aarch64-darwin
   ];
 
   # https://wezfurlong.org/wezterm/install/linux.html#flake

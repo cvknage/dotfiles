@@ -11,6 +11,7 @@
     };
     mac-app-util.url = "github:hraban/mac-app-util";
     wezterm.url = "github:wez/wezterm?dir=nix";
+    # ghostty.url = "github:ghostty-org/ghostty"; # ghostty flake does not currently support aarch64-darwin
   };
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, ... }:

@@ -1,0 +1,10 @@
+# separate Light and Dark Themes
+theme = dark:catppuccin-mocha,light:catppuccin-frappe
+background-opacity = 0.95
+
+# initial window size
+window-height = 37
+window-width = 140
+
+# macos ue option as alt
+macos-option-as-alt = true
