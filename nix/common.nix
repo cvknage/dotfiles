@@ -36,13 +36,16 @@
     #   org.gradle.daemon.idletimeout=3600000
     # '';
 
-    # ".config/nvim".source = config.lib.file.mkOutOfStoreSymlink ../neovim/logic;
-    # ".tmux.conf".source = config.lib.file.mkOutOfStoreSymlink ../tmux/tmux.conf;
-    # ".tmux".source = config.lib.file.mkOutOfStoreSymlink ../tmux/tmux;
-    # ".config/yazi".source = config.lib.file.mkOutOfStoreSymlink ../yazi;
-    # ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink ../gitui/config;
-    # ".config/kanata".source = config.lib.file.mkOutOfStoreSymlink ../kanata;
-    # ".wezterm.lua".source = config.lib.file.mkOutOfStoreSymlink ../wezterm/wezterm.lua;
+    # mkOutOfStoreSymlink only works as expected on absolute paths.
+    ".tmux.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/tmux/tmux.conf";
+    ".tmux".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/tmux/tmux";
+    ".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/neovim/logic";
+    ".config/yazi".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/yazi";
+    ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/gitui/config";
+    ".config/kanata".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/kanata";
+    ".config/wezterm".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/wezterm";
+    ".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/ghostty";
+
   };
 
   # Home Manager can also manage your environment variables through

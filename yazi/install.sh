@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
 
-CONFIG_DIR="$HOME/.config/yazi"
-
-rm -rf $CONFIG_DIR
-ln -s "$(pwd)" $CONFIG_DIR
-
+# Install yazi plugins
 ya pack --install &> /dev/null

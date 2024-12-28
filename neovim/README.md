@@ -43,10 +43,3 @@ Some of the plugins used require the following programs to function correctly:
 **[Homebrew](https://formulae.brew.sh/formula/jq)**: `brew install jq`  
 **[Apt](https://packages.debian.org/sid/jq)**: `sudo apt install jq`  
 
-## Install
-
-The install script will create a symlink from `$HOME/.config/nvim` to `./logic`:
-``` bash
-bash install.sh
-```
-

@@ -2,13 +2,6 @@
 
 Configuration for [kanata](https://github.com/jtroo/kanata)
 
-## Install
-
-The install script will create a symlink from `$HOME/.config/kanata` to `./`:
-``` bash
-bash install.sh
-```
-
 ## Install `kanata` binary
 
 ### Scripted Install

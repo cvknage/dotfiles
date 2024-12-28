@@ -9,10 +9,3 @@ Configuration for [Ghostty](https://ghostty.org)
 >
 > See also: `man ghostty`
 
-## Install
-
-The install script will create a symlink from `$HOME/.config/ghostty/` to `./`:
-``` bash
-bash install.sh
-```
-
