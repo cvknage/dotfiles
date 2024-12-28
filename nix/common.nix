@@ -17,10 +17,18 @@
   # environment.
   home.packages = [
     pkgs.fzf
-    pkgs.zoxide
     pkgs.rustc
     pkgs.cargo
   ];
+
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    options = [
+      "--cmd cd"
+    ];
+  };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
