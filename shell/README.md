@@ -1,4 +1,4 @@
-# `.(z)profile`
+# `shell`
 
 Configuration for [`zsh`](https://www.zsh.org) and [`bash`](https://www.gnu.org/software/bash/)
 

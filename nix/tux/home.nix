@@ -7,20 +7,17 @@
   home.homeDirectory = "/home/${user}";
 
   imports = [
-    ../common.nix # for all machines
+    # shared between all
+    ../common.nix
+
+    # specific to home
+    ../../shell/bash.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
   ];
-
-  programs.bash = {
-    enable = true;
-    initExtra = ''
-      PS1="\u@\h \W \$ "
-    '';
-  };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.

@@ -1,18 +1,5 @@
 # vim: set filetype=sh :
 
-# load .rc file on login
-if [ -n "$BASH_VERSION" ]; then
-    # include .bashrc if it exists
-    if [ -f "$HOME/.bashrc" ]; then
-      . "$HOME/.bashrc"
-    fi
-elif [ -n "$ZSH_VERSION" ]; then
-    # include .zshrc if it exists
-    if [ -f "$HOME/.zshrc" ]; then
-      . "$HOME/.zshrc"
-    fi
-fi
-
 # use zoxide to improve the cd command
 if command -v zoxide > /dev/null; then
   if [ -n "$BASH_VERSION" ]; then
@@ -20,22 +7,6 @@ if command -v zoxide > /dev/null; then
   elif [ -n "$ZSH_VERSION" ]; then
     eval "$(zoxide init --cmd cd zsh)"
   fi
-fi
-
-# set default system editor
-if command -v nvim > /dev/null; then
-  export EDITOR='nvim'
-  export VISUAL='nvim'
-  alias vim=nvim
-elif command -v vim > /dev/null; then
-  export EDITOR='vim'
-  export VISUAL='vim'
-elif command -v vi > /dev/null; then
-  export EDITOR='vi'
-  export VISUAL='vi'
-elif command -v nano > /dev/null; then
-  export EDITOR='nano'
-  export VISUAL='nano'
 fi
 
 # load cargo bin directory
@@ -138,4 +109,33 @@ function git-worktree-clone() {
   popd >/dev/null
 }
 alias gwtc="git-worktree-clone"
+
+if command -v docker > /dev/null; then
+  # start/stop kind cluster
+  function kind-funciton() {
+    docker $1 $(docker ps -a | grep "kindest" | awk '{print $1}')
+  }
+  alias kind-stop="kind-funciton stop"
+  alias kind-start="kind-funciton start"
+
+  # fzf docker lods
+  function docker-logs ()
+  {
+    docker logs $(docker ps -a | fzf | awk {'print $1'}) -f
+  }
+  alias dockerl="docker-logs"
+fi
+
+if command -v mirrord > /dev/null; then
+  # debug C# with mirrord
+  function mirrord-debug() {
+    namespace=$(kubectl get ns -A | fzf | awk '{print $1}')
+    items=("deployment" "statefulset")
+    type=$(printf "%s\n" "${items[@]}" | fzf)
+    entity=$(kubectl -n $namespace get "${type}s" | fzf | awk '{print $1}')
+    project=$(find . -type f -name '*.csproj' ! -ipath '*test*' ! -ipath '*mock*' | fzf)
+    mirrord exec -n $namespace --target "${type}/${entity}" --steal dotnet run -- --project $project
+  }
+  alias mirrordd="mirrord-debug"
+fi
 

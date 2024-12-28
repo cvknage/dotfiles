@@ -7,7 +7,11 @@
   home.homeDirectory = "/Users/${user}";
 
   imports = [
-    ../common.nix # for all machines
+    # shared between all
+    ../common.nix 
+
+    # specific to home
+    ../../shell/zsh.nix
     ../../yazi/yazi.nix
   ];
 
@@ -31,13 +35,6 @@
     inputs.wezterm.packages.${pkgs.system}.default # https://wezfurlong.org/wezterm/install/linux.html#flake
     # inputs.ghostty.packages.${pkgs.system}.default # ghostty flake does not currently support aarch64-darwin
   ];
-
-  programs.zsh = {
-    enable = true;
-    initExtra = ''
-      PS1="%n@%m %1~ %# "
-    '';
-  };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.

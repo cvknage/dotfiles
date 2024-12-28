@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-CUSTOM_DOTFILE="$(pwd)/dotprofile"
+: <<'EOM'
+CUSTOM_DOTFILE="$(pwd)/profile"
 DOT_PROFILE="${HOME}/.profile"
 DOT_ZPROFILE="${HOME}/.zprofile"
 
@@ -28,4 +29,5 @@ fi'
     . $USER_DOTPROFILE
   fi
 fi
+EOM
 
