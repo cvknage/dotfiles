@@ -31,10 +31,6 @@
 
       # Enable alternative shell support in nix-darwin.
       # programs.fish.enable = true;
-      programs.zsh = {
-        enable = true;
-        promptInit = "PS1=\"%n@%m %1~ %# \"";
-      };
 
       # Set Git commit hash for darwin-version.
       system.configurationRevision = self.rev or self.dirtyRev or null;

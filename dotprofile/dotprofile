@@ -38,18 +38,6 @@ elif command -v nano > /dev/null; then
   export VISUAL='nano'
 fi
 
-# use y as a shell wraper for yazi, that provides the ability to change the current working directory when exiting yazi
-if command -v yazi > /dev/null; then
-  function y() {
-    local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-    yazi "$@" --cwd-file="$tmp"
-    if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-      builtin cd -- "$cwd"
-    fi
-    rm -f -- "$tmp"
-  }
-fi
-
 # load cargo bin directory
 if [ -d "$HOME/.cargo/bin" ]; then
   export PATH="$HOME/.cargo/bin:$PATH"

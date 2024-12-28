@@ -1,4 +1,6 @@
 {pkgs, ...}: let
+
+  /* Manage plugins with ya pack CLI
   yazi-plugins = pkgs.fetchFromGitHub {
     # https://github.com/yazi-rs/plugins
     owner = "yazi-rs";
@@ -13,13 +15,16 @@
     rev = "9ae57f904d616f4462e829521ec1ad10727ec7ed";
     hash = "sha256-LBL+pCsnEt9bneiNYeVem6TvhRlk6eB5k/qD0+N2Tj8=";
   };
+  */
 
 in {
   programs.yazi = {
     enable = true;
     enableZshIntegration = true;
+    enableBashIntegration = true;
     shellWrapperName = "y";
 
+    /* Manage plugins with ya pack CLI
     settings = {
       manager = {
         show_hidden = true;
@@ -28,12 +33,6 @@ in {
         max_width = 2500;
         max_height = 2500;
       };
-    };
-
-    plugins = {
-      chmod = "${yazi-plugins}/chmod.yazi";
-      max-preview = "${yazi-plugins}/max-preview.yazi";
-      toggle-view = "${toggle-view}";
     };
 
     initLua = ''
@@ -66,5 +65,13 @@ in {
         }
       ];
     };
+
+    plugins = {
+      chmod = "${yazi-plugins}/chmod.yazi";
+      max-preview = "${yazi-plugins}/max-preview.yazi";
+      toggle-view = "${toggle-view}";
+    };
+    */
+
   };
 }
