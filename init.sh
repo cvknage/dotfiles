@@ -37,7 +37,7 @@ esac
 
 for dir in ./*/
 do
-  install_file="install.sh"
+  install_file="init.sh"
   if [ -f "$dir/$install_file" ]; then
     pushd "$dir" &> /dev/null
     bash "$install_file"

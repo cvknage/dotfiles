@@ -2,9 +2,9 @@
 
 These are my .s
 
-## Install
+## Init
 
 ``` bash
-bash install.sh
+bash init.sh
 ```
 
