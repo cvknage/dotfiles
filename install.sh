@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+git config user.name "$(git log --reverse --format=%an | head -n 1)"
+git config user.email "$(git log --reverse --format=%ae | head -n 1)"
+
+if ! command -v nix > /dev/null; then
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \
+  sh -s -- install
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$HOME/.dotfiles"
 if [ -L $DOTFILES_DIR ] || [ ! -d $DOTFILES_DIR ]; then
@@ -8,11 +16,6 @@ if [ -L $DOTFILES_DIR ] || [ ! -d $DOTFILES_DIR ]; then
 fi
 
 pushd $DOTFILES_DIR &> /dev/null
-
-if ! command -v nix > /dev/null; then
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \
-  sh -s -- install
-fi
 
 OS="$(uname)"
 case $OS in
