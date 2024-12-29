@@ -77,8 +77,8 @@
   #  /etc/profiles/per-user/chris/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    EDITOR = "nvim";
-    VISUAL = "nvim";
+    # EDITOR = "nvim";
+    # VISUAL = "nvim";
   };
 
   # Let Home Manager install and manage itself.
