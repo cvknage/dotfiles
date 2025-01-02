@@ -16,15 +16,32 @@
   imports = [
     # shared between all
     ../git/git.nix
+    ../yazi/yazi.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    pkgs.fzf
-    pkgs.rustc
-    pkgs.cargo
+    pkgs.neovim
+    pkgs.tmux
+    pkgs.gitui
+
+    pkgs.rustup
+
+    pkgs.fd
+    pkgs.jq
+    pkgs.gnused
+    pkgs.ripgrep
+    pkgs.lua5_1
+    pkgs.luajitPackages.luarocks
+    pkgs.nodejs_latest
   ];
+
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+  };
 
   programs.zoxide = {
     enable = true;
@@ -77,8 +94,9 @@
   #  /etc/profiles/per-user/chris/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    # EDITOR = "nvim";
-    # VISUAL = "nvim";
+    EDITOR = "nvim";
+    VISUAL = "nvim";
+    TERMINAL = "ghostty";
   };
 
   # Let Home Manager install and manage itself.

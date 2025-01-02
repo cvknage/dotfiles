@@ -10,11 +10,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     mac-app-util.url = "github:hraban/mac-app-util";
+    tuxedo-nixos.url = "github:sylvesterroos/tuxedo-nixos";
     wezterm.url = "github:wez/wezterm?dir=nix";
-    # ghostty.url = "github:ghostty-org/ghostty"; # ghostty flake does not currently support aarch64-darwin
+    ghostty.url = "github:ghostty-org/ghostty";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, ... }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, tuxedo-nixos, ... }:
   let
     user = "chris";
     system = "aarch64-darwin";
@@ -93,6 +94,28 @@
       # Optionally use extraSpecialArgs
       # to pass through arguments to home.nix
       extraSpecialArgs = extraArgs;
+    };
+
+    nixosConfigurations."penguin-tuxedo" = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+        modules = [
+          ./hosts/penguin-tuxedo/configuration.nix
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${user} = import ./tux/home.nix;
+
+            # Optionally, use home-manager.extraSpecialArgs to pass
+            # arguments to home.nix
+            home-manager.extraSpecialArgs = extraArgs;
+          }
+          tuxedo-nixos.nixosModules.default
+          {
+            hardware.tuxedo-control-center.enable = true;
+            hardware.tuxedo-control-center.package = tuxedo-nixos.packages.x86_64-linux.default;
+          }
+        ];
     };
 
     homeConfigurations."${user}@penguin-tuxedo" = home-manager.lib.homeManagerConfiguration {

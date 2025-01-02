@@ -28,8 +28,15 @@ fi
 
 pushd $DOTFILES_DIR &> /dev/null
 
-OS="$(uname)"
+if command -v nixos-rebuild > /dev/null; then
+  OS="NixOS"
+else
+  OS="$(uname)"
+fi
 case $OS in
+"NixOS")
+  sudo nixos-rebuild switch --flake ./nix
+  ;;
 "Darwin")
   if ! command -v darwin-rebuild > /dev/null; then
     nix run nix-darwin -- switch --flake ./nix
@@ -46,6 +53,8 @@ case $OS in
   ;;
 esac
 
+rustup default stable > /dev/null
+
 for dir in ./*/
 do
   install_file="init.sh"
@@ -56,7 +65,7 @@ do
   fi
 done
 
-if ! command -v kanata > /dev/null; then
+if ! command -v kanata > /dev/null && $OS -ne "NixOS"; then
   pushd ./kanata &> /dev/null
   bash ./kanata_install.sh
   popd &> /dev/null

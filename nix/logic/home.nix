@@ -12,28 +12,14 @@
 
     # specific to home
     ../../shell/zsh.nix
-    ../../yazi/yazi.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    pkgs.neovim
-    pkgs.tmux
-    pkgs.gitui
-
     pkgs.hugo
 
-    pkgs.fd
-    pkgs.jq
-    pkgs.gnused
-    pkgs.ripgrep
-    pkgs.lua5_1
-    pkgs.luajitPackages.luarocks
-    pkgs.nodejs_latest
-
     inputs.wezterm.packages.${pkgs.system}.default # https://wezfurlong.org/wezterm/install/linux.html#flake
-    # inputs.ghostty.packages.${pkgs.system}.default # ghostty flake does not currently support aarch64-darwin
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
@@ -68,7 +54,7 @@
   #  /etc/profiles/per-user/chris/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
-    EDITOR = "nvim";
-    VISUAL = "nvim";
+    # EDITOR = "nvim";
+    # VISUAL = "nvim";
   };
 }
