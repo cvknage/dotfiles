@@ -8,7 +8,7 @@ return {
     cmd = { "ConformInfo" },
     keys = {
       {
-        "<leader>cF",
+        "<leader>cf",
         function()
           require("conform").format({ async = true })
         end,
@@ -36,14 +36,23 @@ return {
         lsp_format = "fallback",
       },
 
-      format_on_save = { timeout_ms = 500 },
+      format_on_save = function(bufnr)
+        local filetype = vim.bo[bufnr].filetype
+        if filetype ~= "cs" then
+          return
+        end
+        return {
+          timeout_ms = 500,
+        }
+      end,
 
       formatters = {
         stylua = {
           command = "stylua",
           args = function()
-            local config_file = vim.fn.findfile("stylua.toml", ".;")
-            if config_file ~= "" then
+            local config_file = vim.fn.findfile(".stylua.toml", ".;") or vim.fn.findfile("stylua.toml", ".;")
+            local editorconfig = vim.fn.findfile(".editorconfig", ".;")
+            if config_file ~= "" or editorconfig ~= "" then
               return { "-" }
             else
               return {
@@ -58,7 +67,14 @@ return {
           stdin = true,
         },
         shfmt = {
-          prepend_args = { "-i", "2" },
+          prepend_args = function()
+            local editorconfig = vim.fn.findfile(".editorconfig", ".;")
+            if editorconfig ~= "" then
+              return {}
+            else
+              return { "-i", "2", "-ci" } -- 2 spaces and indent switch cases
+            end
+          end,
         },
         csharpier = {
           command = "dotnet-csharpier",
@@ -76,7 +92,7 @@ return {
     opts = function(_, opts)
       local ignore_install = {
         -- "stylua",
-        "shfmt",
+        -- "shfmt",
       }
 
       if not utils.has_dotnet then
