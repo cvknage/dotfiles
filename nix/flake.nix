@@ -17,6 +17,7 @@
 
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, tuxedo-nixos, ... }:
   let
+    owner = "Christophe Knage";
     user = "chris";
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
@@ -74,7 +75,7 @@
 
     nixosConfigurations."penguin-tuxedo" = nixpkgs.lib.nixosSystem {
       system = linuxArchitecture;
-      specialArgs = extraArgs // { hostPlatform = linuxArchitecture; };
+      specialArgs = extraArgs // { inherit owner; } // { hostPlatform = linuxArchitecture; };
       modules = [
         ./hosts/penguin-tuxedo/configuration.nix
         home-manager.nixosModules.home-manager
