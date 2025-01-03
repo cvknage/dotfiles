@@ -18,47 +18,23 @@
   outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, tuxedo-nixos, ... }:
   let
     user = "chris";
-    system = "aarch64-darwin";
-    pkgs = nixpkgs.legacyPackages.${system};
+    darwinArchitecture = "aarch64-darwin";
+    linuxArchitecture = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${darwinArchitecture};
     extraArgs = { inherit inputs user; };
-    configuration = { pkgs, user, ... }: {
-      # List packages installed in system profile. To search by name, run:
-      # $ nix-env -qaP | grep wget
-      environment.systemPackages = [
-      ];
-
-      # Necessary for using flakes on this system.
-      nix.settings.experimental-features = "nix-command flakes";
-
-      # Enable alternative shell support in nix-darwin.
-      # programs.fish.enable = true;
-
-      # Set Git commit hash for darwin-version.
-      system.configurationRevision = self.rev or self.dirtyRev or null;
-
-      # Used for backwards compatibility, please read the changelog before changing.
-      # $ darwin-rebuild changelog
-      system.stateVersion = 5;
-
-      # The platform the configuration will be used on.
-      nixpkgs.hostPlatform = system;
-
-      # Home-Manager needs this value to work with nix-darwin.
-      users.users.${user}.home = "/Users/${user}";
-    };
   in
   {
     # Build darwin flake using:
     # $ darwin-rebuild build --flake .#logic
     darwinConfigurations."logic" = nix-darwin.lib.darwinSystem {
-      system = system;
-      specialArgs = extraArgs;
+      system = darwinArchitecture;
+      specialArgs = extraArgs // { inherit self; } // { hostPlatform = darwinArchitecture; };
       modules = [
-        configuration
+        ./hosts/logic/configuration.nix
         home-manager.darwinModules.home-manager {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.${user} = import ./logic/home.nix;
+          home-manager.users.${user} = import ./homes/private/home.nix;
 
           # Optionally, use home-manager.extraSpecialArgs to pass
           # arguments to home.nix
@@ -84,7 +60,7 @@
       # Specify your home configuration modules here, for example,
       # the path to your home.nix.
       modules = [
-        ./logic/home.nix 
+        ./homes/private/home.nix
 
         # (Nix) Utilities for Mac App launcher
         # https://github.com/hraban/mac-app-util
@@ -97,25 +73,26 @@
     };
 
     nixosConfigurations."penguin-tuxedo" = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-        modules = [
-          ./hosts/penguin-tuxedo/configuration.nix
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.${user} = import ./tux/home.nix;
+      system = linuxArchitecture;
+      specialArgs = extraArgs // { hostPlatform = linuxArchitecture; };
+      modules = [
+        ./hosts/penguin-tuxedo/configuration.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.${user} = import ./homes/work/home.nix;
 
-            # Optionally, use home-manager.extraSpecialArgs to pass
-            # arguments to home.nix
-            home-manager.extraSpecialArgs = extraArgs;
-          }
-          tuxedo-nixos.nixosModules.default
-          {
-            hardware.tuxedo-control-center.enable = true;
-            hardware.tuxedo-control-center.package = tuxedo-nixos.packages.x86_64-linux.default;
-          }
-        ];
+          # Optionally, use home-manager.extraSpecialArgs to pass
+          # arguments to home.nix
+          home-manager.extraSpecialArgs = extraArgs;
+        }
+        tuxedo-nixos.nixosModules.default
+        {
+          hardware.tuxedo-control-center.enable = true;
+          hardware.tuxedo-control-center.package = tuxedo-nixos.packages.x86_64-linux.default;
+        }
+      ];
     };
 
     homeConfigurations."${user}@penguin-tuxedo" = home-manager.lib.homeManagerConfiguration {
@@ -124,7 +101,7 @@
 
       # Specify your home configuration modules here, for example,
       # the path to your home.nix.
-      modules = [ ./tux/home.nix ];
+      modules = [ ./homes/work/home.nix ];
 
       # Optionally use extraSpecialArgs
       # to pass through arguments to home.nix

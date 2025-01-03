@@ -4,22 +4,41 @@
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = user;
-  home.homeDirectory = "/Users/${user}";
+  home.homeDirectory = "/home/${user}";
 
   imports = [
     # shared between all
-    ../common.nix 
+    ../../common.nix
 
     # specific to home
-    ../../shell/zsh.nix
+    ../../../shell/bash.nix
+    ../../modules/AnotherRedisDesktopManager/another-redis-desktop-manager.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    pkgs.hugo
+    pkgs.slack
+    pkgs.teams-for-linux
+    pkgs.postman
+    pkgs.buttercup-desktop
 
-    inputs.wezterm.packages.${pkgs.system}.default # https://wezfurlong.org/wezterm/install/linux.html#flake
+    inputs.ghostty.packages.${pkgs.system}.default # Ghostty flake does not currently support aarch64-darwin
+
+    pkgs.dotnetCorePackages.dotnet_9.sdk
+    pkgs.docker
+    pkgs.azure-cli
+    pkgs.kubelogin
+    pkgs.kubectl
+    pkgs.kind
+    pkgs.kubernetes-helm
+    pkgs.go-task
+    pkgs.k9s
+    pkgs.mirrord
+
+    # gcc & make needed for nvim to install tresitter and fzf-native
+    pkgs.gcc
+    pkgs.gnumake
   ];
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage

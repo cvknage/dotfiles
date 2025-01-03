@@ -27,14 +27,16 @@
     pkgs.gitui
 
     pkgs.rustup
+    pkgs.nodejs_latest
 
     pkgs.fd
     pkgs.jq
     pkgs.gnused
     pkgs.ripgrep
+
+    # lua needed for lazy.nvim package manager to work corerctly
     pkgs.lua5_1
     pkgs.luajitPackages.luarocks
-    pkgs.nodejs_latest
   ];
 
   programs.fzf = {
