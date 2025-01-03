@@ -11,19 +11,18 @@ echo "Inatalling Kanata v${KANATA_VERSION}"
 if [ ! -d "${KANATA_GIT_CHECKOUT}" ]; then
   git clone "${KANATA_GIT_REPO}" "${KANATA_GIT_CHECKOUT}"
 fi
-cd "${KANATA_GIT_CHECKOUT}" && git checkout "v${KANATA_VERSION}" &> /dev/null && cd ..
-cargo install --path "./${KANATA_GIT_CHECKOUT}/" &> /dev/null
+cd "${KANATA_GIT_CHECKOUT}" && git checkout "v${KANATA_VERSION}" &>/dev/null && cd ..
+cargo install --path "./${KANATA_GIT_CHECKOUT}/" &>/dev/null
 
 OS="$(uname)"
 case $OS in
-"Linux")
-  bash ./kanata_install_linux.sh
-  ;;
-"Darwin")
-  bash ./kanata_install_macos.sh
-  ;;
-*)
-  echo "Installation of Kanata not supported for ${OS}"
-  ;;
+  "Linux")
+    bash ./kanata_install_linux.sh
+    ;;
+  "Darwin")
+    bash ./kanata_install_macos.sh
+    ;;
+  *)
+    echo "Installation of Kanata not supported for ${OS}"
+    ;;
 esac
-

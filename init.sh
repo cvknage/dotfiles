@@ -8,13 +8,13 @@ git config user.email "$(git log --reverse --format=%ae | head -n 1)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DOTFILES_DIR="$HOME/.dotfiles"
 if [ -L $DOTFILES_DIR ] || [ ! -d $DOTFILES_DIR ]; then
-  rm $DOTFILES_DIR &> /dev/null
+  rm $DOTFILES_DIR &>/dev/null
   ln -s $SCRIPT_DIR $DOTFILES_DIR
 fi
 
-if ! command -v nix > /dev/null; then
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | \
-  sh -s -- install
+if ! command -v nix >/dev/null; then
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
+    sh -s -- install
 
   # The determinate systems nix installer finishes with the line below:
   # To get started using Nix, open a new shell or run `. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`
@@ -22,54 +22,52 @@ if ! command -v nix > /dev/null; then
   echo "Then, to continue initializing dotfiles, run \`bash ~/.dotfiles/init.sh\`"
   echo ""
 
-  kill $(jobs -p) &> /dev/null
+  kill $(jobs -p) &>/dev/null
   exit 0
 fi
 
-pushd $DOTFILES_DIR &> /dev/null
+pushd $DOTFILES_DIR &>/dev/null
 
-if command -v nixos-rebuild > /dev/null; then
+if command -v nixos-rebuild >/dev/null; then
   OS="NixOS"
 else
   OS="$(uname)"
 fi
 case $OS in
-"NixOS")
-  sudo nixos-rebuild switch --flake ./nix
-  ;;
-"Darwin")
-  if ! command -v darwin-rebuild > /dev/null; then
-    nix run nix-darwin -- switch --flake ./nix
-  else
-    darwin-rebuild switch --flake ./nix
-  fi
-  ;;
-*)
-  if ! command -v home-manager > /dev/null; then
-    nix run home-manager/master -- switch --flake ./nix
-  else
-    home-manager switch --flake ./nix
-  fi
-  ;;
+  "NixOS")
+    sudo nixos-rebuild switch --flake ./nix
+    ;;
+  "Darwin")
+    if ! command -v darwin-rebuild >/dev/null; then
+      nix run nix-darwin -- switch --flake ./nix
+    else
+      darwin-rebuild switch --flake ./nix
+    fi
+    ;;
+  *)
+    if ! command -v home-manager >/dev/null; then
+      nix run home-manager/master -- switch --flake ./nix
+    else
+      home-manager switch --flake ./nix
+    fi
+    ;;
 esac
 
-rustup default stable > /dev/null
+rustup default stable >/dev/null
 
-for dir in ./*/
-do
+for dir in ./*/; do
   install_file="init.sh"
   if [ -f "$dir/$install_file" ]; then
-    pushd "$dir" &> /dev/null
+    pushd "$dir" &>/dev/null
     bash "$install_file"
-    popd &> /dev/null
+    popd &>/dev/null
   fi
 done
 
-if ! command -v kanata > /dev/null && $OS -ne "NixOS"; then
-  pushd ./kanata &> /dev/null
+if ! command -v kanata >/dev/null && $OS -ne "NixOS"; then
+  pushd ./kanata &>/dev/null
   bash ./kanata_install.sh
-  popd &> /dev/null
+  popd &>/dev/null
 fi
 
-popd &> /dev/null
-
+popd &>/dev/null

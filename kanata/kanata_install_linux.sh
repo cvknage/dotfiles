@@ -13,7 +13,7 @@ sudo usermod -aG input $USER
 sudo usermod -aG uinput $USER
 
 # Make sure the uinput device file has the right permissions.
-cat <<EOF | sudo tee "$RULES_FILE" > /dev/null
+cat <<EOF | sudo tee "$RULES_FILE" >/dev/null
 KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
 EOF
 
@@ -26,7 +26,7 @@ sudo modprobe uinput
 mkdir -p ~/.config/systemd/user
 touch "$SERVICE_FILE"
 
-cat <<EOF | sudo tee "$SERVICE_FILE" > /dev/null
+cat <<EOF | sudo tee "$SERVICE_FILE" >/dev/null
 [Unit]
 Description=Kanata keyboard remapper
 Documentation=https://github.com/jtroo/kanata

@@ -10,7 +10,7 @@ PLIST_FILE="/Library/LaunchDaemons/com.jtroo.kanata.plist"
 
 # Download Karabiner Driver
 mkdir -p "${MACOS_DROVER_FOLDER}"
-curl -o "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}" "$KANATA_MACOS_KARABINER_DRIVER_URI" &> /dev/null
+curl -o "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}" "$KANATA_MACOS_KARABINER_DRIVER_URI" &>/dev/null
 
 # Install Karabiner Driver
 open "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}"
@@ -30,10 +30,10 @@ echo ""
 echo ""
 
 # Create a sudoers file entry for kanata
-echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
+echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE" >/dev/null
 
 # Create a plist file for the LaunchDaemon
-cat <<EOF | sudo tee "$PLIST_FILE" > /dev/null
+cat <<EOF | sudo tee "$PLIST_FILE" >/dev/null
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -65,4 +65,4 @@ cat <<EOF | sudo tee "$PLIST_FILE" > /dev/null
 EOF
 
 # Load the daemon
-sudo launchctl load -w "$PLIST_FILE" 2> /dev/null
+sudo launchctl load -w "$PLIST_FILE" 2>/dev/null
