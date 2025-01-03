@@ -3,8 +3,10 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nix-darwin.url = "github:LnL7/nix-darwin";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -21,7 +23,6 @@
     user = "chris";
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${darwinArchitecture};
     extraArgs = { inherit inputs user; };
   in
   {
@@ -56,7 +57,7 @@
 
     homeConfigurations."${user}@logic" = home-manager.lib.homeManagerConfiguration {
       # Home-Manager requires 'pkgs' instance
-      inherit pkgs; # inherit pkgs from let pkgs
+      pkgs = nixpkgs.legacyPackages.${darwinArchitecture};
 
       # Specify your home configuration modules here, for example,
       # the path to your home.nix.
@@ -91,14 +92,14 @@
         tuxedo-nixos.nixosModules.default
         {
           hardware.tuxedo-control-center.enable = true;
-          hardware.tuxedo-control-center.package = tuxedo-nixos.packages.x86_64-linux.default;
+          hardware.tuxedo-control-center.package = tuxedo-nixos.packages.${linuxArchitecture}.default;
         }
       ];
     };
 
     homeConfigurations."${user}@penguin-tuxedo" = home-manager.lib.homeManagerConfiguration {
       # Home-Manager requires 'pkgs' instance
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
+      pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
 
       # Specify your home configuration modules here, for example,
       # the path to your home.nix.
