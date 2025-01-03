@@ -15,8 +15,8 @@
 
   imports = [
     # shared between all
-    ../git/git.nix
-    ../yazi/yazi.nix
+    ../../git/git.nix
+    ../../yazi/yazi.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your

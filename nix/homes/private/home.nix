@@ -8,7 +8,7 @@
 
   imports = [
     # shared between all
-    ../../common.nix 
+    ../common.nix 
 
     # specific to home
     ../../../shell/zsh.nix
