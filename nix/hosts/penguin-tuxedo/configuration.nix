@@ -15,6 +15,9 @@
     # Include cachix references
     ../cachix.nix
 
+    # Allow unfree packages
+    ../../allow-unfree.nix
+
     # Include setup for Kanata
     ../../../kanata/kanata_install_nixos.nix
   ];
@@ -98,9 +101,6 @@
 
   # Install firefox.
   programs.firefox.enable = true;
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

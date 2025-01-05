@@ -7,11 +7,15 @@
 
     # Include cachix references
     ../cachix.nix
+
+    # Allow unfree packages
+    ../../allow-unfree.nix
   ];
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = [
+    pkgs.appcleaner
   ];
 
   # Enable alternative shell support in nix-darwin.
@@ -52,7 +56,9 @@
     taps = builtins.attrNames config.nix-homebrew.taps;
 
     # List of Homebrew formulae to install.
-    brews = [];
+    brews = [
+      "mas"
+    ];
 
     # List of Homebrew casks to install.
     casks = [
@@ -60,7 +66,9 @@
     ];
 
     # Applications to install from Mac App Store using mas.
-    masApps = {};
+    masApps = {
+      "The Unarchiver" = 425424353;
+    };
   };
 }
 
