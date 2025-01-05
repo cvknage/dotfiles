@@ -23,7 +23,8 @@
     pkgs.postman
     pkgs.buttercup-desktop
 
-    inputs.ghostty.packages.${pkgs.system}.default # Ghostty flake does not currently support aarch64-darwin
+    # pkgs.ghostty
+    inputs.ghostty.packages.${pkgs.system}.default
 
     pkgs.dotnetCorePackages.dotnet_9.sdk
     pkgs.docker

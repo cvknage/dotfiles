@@ -51,7 +51,7 @@
 
     # List of Homebrew casks to install.
     casks = [
-      "ghostty"
+      "ghostty" # Ghostty from nixpkgs is marked as broken for darwin
     ];
 
     # Applications to install from Mac App Store using mas.
