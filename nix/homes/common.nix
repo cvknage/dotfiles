@@ -54,14 +54,6 @@
     ];
   };
 
-  # Nix supports a variety of configuration settings, which are read from
-  # configuration files or taken as command line flags.
-  nix.settings = {
-    # https://wezfurlong.org/wezterm/install/linux.html#cachix
-    substituters = ["https://wezterm.cachix.org"];
-    trusted-public-keys = ["wezterm.cachix.org-1:kAbhjYUC9qvblTE+s7S+kl5XM1zVa4skO+E/1IDWdH0="];
-  };
-
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
   # plain files is through 'home.file'.
   home.file = {

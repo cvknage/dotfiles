@@ -5,14 +5,16 @@
 { config, pkgs, user, owner, ... }:
 
 {
-  imports =
-    [ 
-      # Include the results of the hardware scan.
-      ./hardware-configuration.nix
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
 
-      # Include setup for Kanata
-      ../../../kanata/kanata_install_nixos.nix
-    ];
+    # Include setup for Kanata
+    ../../../kanata/kanata_install_nixos.nix
+
+    # Include cachix references
+    ../cachix.nix
+  ];
 
   # Enable nix flakes
   nix.extraOptions = ''
