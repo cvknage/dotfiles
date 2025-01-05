@@ -19,6 +19,7 @@
   home.packages = [
     pkgs.hugo
 
+    # pkgs.wezterm # has buggy behaviour rendering text
     inputs.wezterm.packages.${pkgs.system}.default # https://wezfurlong.org/wezterm/install/linux.html#flake
   ];
 
