@@ -17,9 +17,18 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
-    pkgs.hugo
-
+    # Developer Tools
     # pkgs.wezterm # has buggy behaviour rendering text
     inputs.wezterm.packages.${pkgs.system}.default # https://wezfurlong.org/wezterm/install/linux.html#flake
+    pkgs.cyberduck
+    pkgs.hugo
+    pkgs.ollama
+    pkgs.utm
+
+    # Notes
+    pkgs.obsidian
+
+    # Creative
+    pkgs.gimp
   ];
 }

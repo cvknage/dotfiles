@@ -62,7 +62,13 @@
 
     # List of Homebrew casks to install.
     casks = [
-      "ghostty" # Ghostty from nixpkgs is marked as broken for darwin
+      # Utilities
+      "senadevicemanager"   # Sena Bluetooth Device Manager
+      "tm-error-logger"     # TM Error Logger
+
+      # Developer Tools
+      "ghostty"             # nixpkgs version is marked as broken for darwin
+      "raspberry-pi-imager" # nixpkgs version is marked as broken for darwin
     ];
 
     # Applications to install from Mac App Store using mas.
@@ -108,4 +114,3 @@
     };
   };
 }
-
