@@ -67,7 +67,44 @@
 
     # Applications to install from Mac App Store using mas.
     masApps = {
+      # Core Tools
+      "Amphetamine" = 937984704;
       "The Unarchiver" = 425424353;
+      "BetterSnapTool" = 417375580;
+
+      # Safari Extensions
+      "Surfingkeys" = 1609752330;
+      "Dark Reader for Safari" = 1438243180;
+
+      # Developer Tools
+      "Xcode" = 497799835;
+      "CotEditor" = 1024640650;
+
+      # Creative
+      "Pixelmator Pro" = 1289583905;
+
+      # Maps
+      "Guru Maps" = 321745474;
+      # "Scenic Motorcycle Navigation" = 1089668246; # iPad/iPhone Apps not supported - https://github.com/mas-cli/mas/issues/321
+
+      # Tesla
+      "Dash View" = 1484225024;
+      "Auth for Tesla" = 1552058613;
+
+      # Hardware Devices
+      "Keymapp" = 6472865291;
+      "Brother iPrint&Scan" = 1193539993;
+      "ASUS Device Discovery" = 995124504;
+      "ASUS Firmware Restoration" = 1020519014;
+
+      # Office
+      "Pages" = 409201541;
+      "Numbers" = 409203825;
+      "Keynote" = 409183694;
+      "Msg Viewer Pro" = 1019539949;
+
+      # Finance
+      "Copay" = 1440201813;
     };
   };
 }
