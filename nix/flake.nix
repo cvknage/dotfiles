@@ -11,13 +11,26 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+    homebrew-bundle = {
+      url = "github:homebrew/homebrew-bundle";
+      flake = false;
+    };
     mac-app-util.url = "github:hraban/mac-app-util";
     tuxedo-nixos.url = "github:sylvesterroos/tuxedo-nixos";
     wezterm.url = "github:wez/wezterm?dir=nix";
     ghostty.url = "github:ghostty-org/ghostty";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, tuxedo-nixos, ... }:
+  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, tuxedo-nixos, nix-homebrew, homebrew-core, homebrew-cask, homebrew-bundle, ... }:
   let
     owner = "Christophe Knage";
     user = "chris";
@@ -52,6 +65,31 @@
         # (Nix) Utilities for Mac App launcher
         # https://github.com/hraban/mac-app-util
         mac-app-util.darwinModules.default
+
+        # Install Homebrew - packages are declared in darwinConfiguration
+        nix-homebrew.darwinModules.nix-homebrew
+        {
+          nix-homebrew = {
+            # Install Homebrew under the default prefix
+            enable = true;
+
+            # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
+            enableRosetta = false;
+
+            # User owning the Homebrew prefix
+            inherit user;
+
+            # Declarative tap management
+            taps = {
+              "homebrew/homebrew-core" = homebrew-core;
+              "homebrew/homebrew-cask" = homebrew-cask;
+              "homebrew/homebrew-bundle" = homebrew-bundle;
+            };
+
+            # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
+            mutableTaps = false;
+          };
+        }
       ];
     };
 
