@@ -9,17 +9,15 @@
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
 
-    # Include setup for Kanata
-    ../../../kanata/kanata_install_nixos.nix
+    # Enable flakes
+    ../flakes.nix
 
     # Include cachix references
     ../cachix.nix
-  ];
 
-  # Enable nix flakes
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes
-  '';
+    # Include setup for Kanata
+    ../../../kanata/kanata_install_nixos.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;

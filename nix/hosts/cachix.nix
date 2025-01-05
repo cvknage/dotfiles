@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ ... }:
 
 {
   # Nix supports a variety of configuration settings, which are read from
