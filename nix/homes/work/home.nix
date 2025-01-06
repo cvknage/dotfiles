@@ -18,15 +18,15 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
+    # Office Tools
     pkgs.slack
     pkgs.teams-for-linux
-    pkgs.postman
     pkgs.buttercup-desktop
 
-    # pkgs.ghostty
+    # Developer Tools
+    # pkgs.ghostty # perfer ghostty from its own repo
     inputs.ghostty.packages.${pkgs.system}.default
-
-    pkgs.dotnetCorePackages.dotnet_9.sdk
+    pkgs.postman
     pkgs.docker
     pkgs.azure-cli
     pkgs.kubelogin
@@ -36,6 +36,9 @@
     pkgs.go-task
     pkgs.k9s
     pkgs.mirrord
+
+    # SDKs
+    pkgs.dotnetCorePackages.dotnet_9.sdk
 
     # gcc & make needed for nvim to install tresitter and fzf-native
     pkgs.gcc

@@ -22,17 +22,18 @@
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
+    # Developer Tools
     pkgs.neovim
     pkgs.tmux
     pkgs.gitui
-
-    pkgs.rustup
-    pkgs.nodejs_latest
-
     pkgs.fd
     pkgs.jq
     pkgs.gnused
     pkgs.ripgrep
+
+    # SDKs
+    pkgs.rustup
+    pkgs.nodejs_latest
 
     # lua needed for lazy.nvim package manager to work corerctly
     pkgs.lua5_1
