@@ -42,8 +42,8 @@
     tailor-gui.enable = false;
   };
 
-  # Enable Tuxedo keyboard bscklighting
-  hardware.tuxedo-keyboard.enable = true;
+  # Enable Keyboard and hardware I/O driver for TUXEDO Computers laptops.
+  hardware.tuxedo-drivers.enable = true;
 
   # Enable OpenGL
   hardware.graphics = {
