@@ -40,5 +40,10 @@
     # gcc & make needed for nvim to install tresitter and fzf-native
     pkgs.gcc
     pkgs.gnumake
+    # unzip needed by neovim
+    pkgs.unzip
+
+    # Hack, use steam-run to allow me to use neovim with mason
+    pkgs.steam-run
   ];
 }

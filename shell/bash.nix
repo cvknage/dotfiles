@@ -12,9 +12,17 @@
       if [ -f "$CUSTOM_DOTFILE" ]; then
         . "$CUSTOM_DOTFILE"
       fi
+
+      # load custom variables
+      CUSTOM_VARIABLES="$HOME/.custom-variables"
+      if [ -f "$CUSTOM_VARIABLES" ]; then
+        . "$CUSTOM_VARIABLES"
+      fi
     '';
     shellAliases = {
-      vim = "nvim";
+      # Hack, use steam-run to allow me to use neovim with mason
+      vim = "steam-run nvim";
+      nvim = "steam-run nvim";
     };
   };
 }

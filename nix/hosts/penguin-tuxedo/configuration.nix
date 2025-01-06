@@ -13,7 +13,7 @@
     ../flakes.nix
 
     # Include cachix references
-    ../cachix.nix
+    # ../cachix.nix
 
     # Allow unfree packages
     ../../allow-unfree.nix
