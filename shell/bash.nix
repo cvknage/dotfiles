@@ -20,9 +20,7 @@
       fi
     '';
     shellAliases = {
-      # Hack, use steam-run to allow me to use neovim with mason
-      vim = "steam-run nvim";
-      nvim = "steam-run nvim";
+      vim = "nvim";
     };
   };
 }

@@ -37,6 +37,9 @@
     # lua needed for lazy.nvim package manager to work corerctly
     pkgs.lua5_1
     pkgs.luajitPackages.luarocks
+
+    # needed for mason.nvim package manager to work correctly
+    pkgs.unzip
   ];
 
   programs.fzf = {

@@ -99,6 +99,10 @@
     ];
   };
 
+  # Run unpatched dynamic binaries on NixOS;
+  # like binaries downloaded by mason, npm, pip or vscode
+  programs.nix-ld.enable = true;
+
   # Install firefox.
   programs.firefox.enable = true;
 
