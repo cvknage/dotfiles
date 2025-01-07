@@ -31,6 +31,11 @@ On Gnu/Linux (Not NixOS):
 home-manager switch --flake .
 ```
 
+On NixOS:
+``` bash
+sudo nixos-rebuild switch --flake .
+```
+
 ### Search for packages
 
 As specified in the [documentation](https://nixos.wiki/wiki/Searching_packages):  
@@ -40,7 +45,9 @@ Or use this command:
 nix search nixpkgs firefox
 ```
 
-However I often find it easier to search for packages on this [3'rd party website](https://searchix.alanpearce.eu/all/search)
+For home-manager options; use [Home Manager Options Search](https://home-manager-options.extranix.com/)
+
+Alternatively; use [Searchix](https://searchix.alanpearce.eu/all/search) for all your package needs - although it is unclear which version of nixpkgs is being serached
 
 ### Update
 
