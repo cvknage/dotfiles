@@ -60,13 +60,25 @@ Then apply the updates.
 
 ### Install old versions of packages
 
-To install an old version of a package, the easiest way may be to add the  `nixpkgs` channel that contains the version you want to the inputs in the flake like this:
+To install an old version of a package, the easiest way may be to add the `nixpkgs` channel that contains the version you want to the inputs in the flake like this:
 ``` bash
 nixpkgs-22-11.url = "nixpkgs/release-22.11";
 ```
+or add a specific `nixpkgs` reference from a commit on `https://github.com/NixOS/nixpkgs`, that containt the version yuo want, like this:
+``` bash
+nixpkgs_tmux33a.url = "github:NixOS/nixpkgs/10b813040df67c4039086db0f6eaf65c536886c6";
+```
 
-Alternatively; discovering old versions of packages and how to install them can be done via this site:  
-[Nix package versions](https://lazamar.co.uk/nix-versions/)
+Then use the input when installing a package like this:
+``` bash
+home.packages = [
+  inputs.nixpkgs_tmux33a.legacyPackages.${pkgs.system}.tmux
+];
+```
+
+Finding the git commit hash for a specific `nixpkgs`, can be done by searching for the package you want on one of there sites:
+- [Nixhub](https://www.nixhub.io/)  
+- [Nix package versions](https://lazamar.co.uk/nix-versions/)  
 
 ### Clean store
 
