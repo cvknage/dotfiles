@@ -22,6 +22,9 @@
     ../../../kanata/kanata_install_nixos.nix
   ];
 
+  # Enable Thunderbolt
+  services.hardware.bolt.enable = true;
+
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
