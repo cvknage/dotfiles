@@ -53,7 +53,7 @@
 
     # List of Homebrew formulae to install.
     brews = [
-      "mas"
+      # "mas" # When the option "masApps" is used, "mas" is automatically added to homebrew.brews.
     ];
 
     # List of Homebrew casks to install.
