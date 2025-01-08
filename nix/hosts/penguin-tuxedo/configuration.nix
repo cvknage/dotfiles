@@ -12,9 +12,6 @@
     # Enable flakes
     ../flakes.nix
 
-    # Include cachix references
-    ../cachix.nix
-
     # Allow unfree packages
     ../../allow-unfree.nix
 

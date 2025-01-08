@@ -5,9 +5,6 @@
     # Enable flakes
     ../flakes.nix
 
-    # Include cachix references
-    ../cachix.nix
-
     # Allow unfree packages
     ../../allow-unfree.nix
   ];
@@ -15,7 +12,6 @@
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = [
-    pkgs.appcleaner
   ];
 
   # Enable alternative shell support in nix-darwin.
@@ -63,12 +59,26 @@
     # List of Homebrew casks to install.
     casks = [
       # Utilities
-      "senadevicemanager"   # Sena Bluetooth Device Manager
-      "tm-error-logger"     # TM Error Logger
+      "senadevicemanager"
+      "tm-error-logger"
+      "appcleaner"
 
       # Developer Tools
-      "ghostty"             # nixpkgs version is marked as broken for darwin
-      "raspberry-pi-imager" # nixpkgs version is marked as broken for darwin
+      "ghostty"
+      "wezterm"
+      "raspberry-pi-imager"
+      "cyberduck"
+      "utm"
+
+      # Notes
+      "obsidian"
+
+      # Creative
+      "gimp"
+
+      # Audio & Video Tools
+      "iina"
+      "xld"
     ];
 
     # Applications to install from Mac App Store using mas.
@@ -77,6 +87,7 @@
       "Amphetamine" = 937984704;
       "The Unarchiver" = 425424353;
       "BetterSnapTool" = 417375580;
+      "EasyFind" = 411673888;
 
       # Safari Extensions
       "Surfingkeys" = 1609752330;
