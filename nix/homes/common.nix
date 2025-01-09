@@ -30,6 +30,7 @@
     pkgs.jq
     pkgs.gnused
     pkgs.ripgrep
+    pkgs.cargo-generate
 
     # SDKs
     pkgs.rustup
