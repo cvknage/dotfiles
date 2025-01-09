@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, user, owner, ... }:
+{ config, lib, pkgs, user, owner, ... }:
 
 {
   imports = [
@@ -21,6 +21,12 @@
 
   # Enable Thunderbolt
   services.hardware.bolt.enable = true;
+
+  # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
+  services.xserver.videoDrivers = [ "displaylink" "modesetting" ];
+  services.xserver.displayManager.sessionCommands = ''
+    ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
+  '';
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -112,8 +118,9 @@
     # vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     # wget
     # git
-    pkgs.lshw
-    pkgs.wl-clipboard
+    lshw
+    wl-clipboard
+    displaylink
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
