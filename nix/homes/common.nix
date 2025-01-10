@@ -31,6 +31,7 @@
     pkgs.gnused
     pkgs.ripgrep
     pkgs.cargo-generate
+    pkgs.rustlings
 
     # SDKs
     pkgs.rustup
