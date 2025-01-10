@@ -9,5 +9,5 @@ window-width = 140
 # macos use option as alt
 macos-option-as-alt = true
 
-# disable ligatures
-font-feature = -liga
+# disable coding ligatures
+font-feature = -calt
