@@ -76,6 +76,10 @@
       # Creative
       "gimp"
 
+      # Browsers
+      "firefox"
+      "eloston-chromium"
+
       # Audio & Video Tools
       "iina"
       "xld"
