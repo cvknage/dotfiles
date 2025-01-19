@@ -28,9 +28,6 @@
     ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
   '';
 
-  # Enable flatpak
-  services.flatpak.enable = true;
-
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -98,11 +95,29 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
+  # Enable flatpak
+  services.flatpak.enable = true;
+
+  # Enable container management
+  virtualisation = {
+    # Enable common container config files in /etc/containers
+    containers.enable = true;
+    # Enable podman
+    podman = {
+      enable = true;
+      dockerCompat = false;
+    };
+    # Enable docker
+    docker = {
+      enable = true;
+    };
+  };
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.${user} = {
     isNormalUser = true;
     description = "${owner}";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "podman" "docker" ];
     packages = with pkgs; [
       # thunderbird
     ];
@@ -124,6 +139,7 @@
     lshw
     wl-clipboard
     displaylink
+    distrobox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

@@ -27,7 +27,6 @@
     # pkgs.ghostty # perfer ghostty from its own repo
     inputs.ghostty.packages.${pkgs.system}.default
     pkgs.postman
-    pkgs.docker
     pkgs.azure-cli
     pkgs.kubelogin
     pkgs.kubectl
