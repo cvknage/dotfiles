@@ -127,9 +127,6 @@
   # like binaries downloaded by mason, npm, pip or vscode
   programs.nix-ld.enable = true;
 
-  # Install firefox.
-  programs.firefox.enable = true;
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [

@@ -43,4 +43,7 @@
     pkgs.gcc
     pkgs.gnumake
   ];
+
+  # Install firefox.
+  programs.firefox.enable = true;
 }
