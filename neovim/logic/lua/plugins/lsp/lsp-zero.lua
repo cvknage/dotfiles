@@ -34,12 +34,12 @@ return {
       },
       require("plugins.lsp.lazydev")
     },
-    config = function()
+    opts = function()
       local lsp_zero = require("lsp-zero")
       local cmp = require("cmp")
       local cmp_action = lsp_zero.cmp_action()
 
-      cmp.setup({
+      return {
         sources = cmp.config.sources({
           { name = "path" },     -- cmp-path
           { name = 'nvim_lsp' }, -- cmp-nvim-lsp
@@ -69,7 +69,7 @@ return {
           ["<C-f>"] = cmp_action.luasnip_jump_forward(),
           ["<C-b>"] = cmp_action.luasnip_jump_backward(),
         }),
-      })
+      }
     end,
   },
 
