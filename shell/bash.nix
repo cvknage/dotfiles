@@ -18,6 +18,11 @@
       if [ -f "$CUSTOM_VARIABLES" ]; then
         . "$CUSTOM_VARIABLES"
       fi
+
+      # load devbox
+      if [ -f "$HOME/.devbox" ]; then
+        . "$HOME/.devbox"
+      fi
     '';
     shellAliases = {
       vim = "nvim";
