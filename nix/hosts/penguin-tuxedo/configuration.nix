@@ -96,17 +96,19 @@
   # services.xserver.libinput.enable = true;
 
   # Enable flatpak
-  services.flatpak.enable = true;
+  # services.flatpak.enable = true;
 
   # Enable container management
   virtualisation = {
     # Enable common container config files in /etc/containers
     containers.enable = true;
     # Enable podman
+    /*
     podman = {
       enable = true;
       dockerCompat = false;
     };
+    */
     # Enable docker
     docker = {
       enable = true;
@@ -117,7 +119,7 @@
   users.users.${user} = {
     isNormalUser = true;
     description = "${owner}";
-    extraGroups = [ "networkmanager" "wheel" "podman" "docker" ];
+    extraGroups = [ "networkmanager" "wheel" "docker" /*"podman"*/ ];
     packages = with pkgs; [
       # thunderbird
     ];
@@ -136,7 +138,7 @@
     lshw
     wl-clipboard
     displaylink
-    distrobox
+    # distrobox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
