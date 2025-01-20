@@ -11,7 +11,6 @@
     ../common.nix
 
     # specific to home
-    ../../../shell/bash.nix
     ../../modules/AnotherRedisDesktopManager/another-redis-desktop-manager.nix
   ];
 
@@ -43,6 +42,25 @@
     pkgs.gcc
     pkgs.gnumake
   ];
+
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      ${builtins.readFile ../../../shell/bash/PS1}
+    '';
+    profileExtra = ''
+      ${builtins.readFile ../../../shell/common}
+
+      # load custom variables
+      CUSTOM_VARIABLES="$HOME/.custom-variables"
+      if [ -f "$CUSTOM_VARIABLES" ]; then
+        . "$CUSTOM_VARIABLES"
+      fi
+    '';
+    shellAliases = {
+      vim = "nvim";
+    };
+  };
 
   # Install firefox.
   programs.firefox.enable = true;

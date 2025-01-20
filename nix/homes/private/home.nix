@@ -11,7 +11,6 @@
     ../common.nix 
 
     # specific to home
-    ../../../shell/zsh.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
@@ -21,4 +20,17 @@
     pkgs.hugo
     pkgs.ollama
   ];
+
+  programs.zsh = {
+    enable = true;
+    initExtra = ''
+      ${builtins.readFile ../../../shell/zsh/PS1}
+    '';
+    profileExtra = ''
+      ${builtins.readFile ../../../shell/common}
+    '';
+    shellAliases = {
+      vim = "nvim";
+    };
+  };
 }

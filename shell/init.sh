@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 : <<'EOM'
-CUSTOM_DOTFILE="$(pwd)/profile"
+CUSTOM_DOTFILE="$(pwd)/common"
 DOT_PROFILE="${HOME}/.profile"
 DOT_ZPROFILE="${HOME}/.zprofile"
 
