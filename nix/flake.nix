@@ -115,7 +115,7 @@
       ];
     };
 
-    homeConfigurations."${user}@penguin-tuxedo" = home-manager.lib.homeManagerConfiguration {
+    homeConfigurations."${user}@full-tuxedo" = home-manager.lib.homeManagerConfiguration {
       # Home-Manager requires 'pkgs' instance
       pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
 
