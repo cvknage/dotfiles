@@ -16,7 +16,6 @@
 
     # shared between all
     ../../git/git.nix
-    ../../yazi/yazi.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
@@ -58,6 +57,13 @@
     options = [
       "--cmd cd"
     ];
+  };
+
+  programs.yazi = {
+    enable = true;
+    enableZshIntegration = true;
+    enableBashIntegration = true;
+    shellWrapperName = "y";
   };
 
   # Home Manager is pretty good at managing dotfiles. The primary way to manage
