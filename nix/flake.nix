@@ -92,25 +92,6 @@
       ];
     };
 
-    homeConfigurations."${user}@logic" = home-manager.lib.homeManagerConfiguration {
-      # Home-Manager requires 'pkgs' instance
-      pkgs = nixpkgs.legacyPackages.${darwinArchitecture};
-
-      # Specify your home configuration modules here, for example,
-      # the path to your home.nix.
-      modules = [
-        ./homes/private/home.nix
-
-        # (Nix) Utilities for Mac App launcher
-        # https://github.com/hraban/mac-app-util
-        mac-app-util.homeManagerModules.default
-      ];
-
-      # Optionally use extraSpecialArgs
-      # to pass through arguments to home.nix
-      extraSpecialArgs = extraArgs;
-    };
-
     nixosConfigurations."penguin-tuxedo" = nixpkgs.lib.nixosSystem {
       system = linuxArchitecture;
       specialArgs = extraArgs // { inherit owner; } // { hostPlatform = linuxArchitecture; };
