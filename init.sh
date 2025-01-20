@@ -19,7 +19,7 @@ if ! command -v nix >/dev/null; then
   # The determinate systems nix installer finishes with the line below:
   # To get started using Nix, open a new shell or run `. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`
   echo "Please open a new shell, it works better..."
-  echo "Then, to continue initializing dotfiles, run \`bash ~/.dotfiles/init.sh\`"
+  echo "Then, to continue initializing dotfiles, run \`cd ~/.dotfiles/ && bash init.sh\`"
   echo ""
 
   kill $(jobs -p) &>/dev/null
@@ -56,10 +56,10 @@ esac
 rustup default stable >/dev/null
 
 for dir in ./*/; do
-  install_file="init.sh"
-  if [ -f "$dir/$install_file" ]; then
+  init_file="init.sh"
+  if [ -f "$dir/$init_file" ]; then
     pushd "$dir" &>/dev/null
-    bash "$install_file"
+    bash "$init_file"
     popd &>/dev/null
   fi
 done
