@@ -19,6 +19,10 @@
     ../../../kanata/kanata_install_nixos.nix
   ];
 
+  nixpkgs.config.permittedInsecurePackages = [
+    "dotnet-sdk-7.0.410"
+  ];
+
   # Enable Thunderbolt
   services.hardware.bolt.enable = true;
 

@@ -1,5 +1,20 @@
 { inputs, config, pkgs, user, ... }:
 
+let
+  # Create combined package of dotnet SDKs
+  combinedDotNetSDKs = pkgs.buildEnv {
+    name = "combinedDotNetSDKs";
+    paths = [
+      (with pkgs.dotnetCorePackages;
+        combinePackages [
+          sdk_9_0
+          sdk_7_0
+        ]
+      )
+    ];
+  };
+in
+
 {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -36,7 +51,7 @@
     pkgs.mirrord
 
     # SDKs
-    pkgs.dotnetCorePackages.dotnet_9.sdk
+    combinedDotNetSDKs
 
     # gcc & make needed for nvim to install tresitter and fzf-native
     pkgs.gcc
