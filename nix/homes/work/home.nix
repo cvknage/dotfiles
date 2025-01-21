@@ -77,6 +77,9 @@ in
     };
   };
 
-  # Install firefox.
   programs.firefox.enable = true;
+
+  home.sessionVariables = {
+    DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
+  };
 }
