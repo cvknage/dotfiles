@@ -49,9 +49,11 @@ in
     pkgs.go-task
     pkgs.k9s
     pkgs.mirrord
+    pkgs.gh
 
     # SDKs
     combinedDotNetSDKs
+    pkgs.python3
 
     # gcc & make needed for nvim to install tresitter and fzf-native
     pkgs.gcc
@@ -66,10 +68,17 @@ in
     profileExtra = ''
       ${builtins.readFile ../../../shell/common}
 
-      # load custom variables
       CUSTOM_VARIABLES="$HOME/.custom-variables"
       if [ -f "$CUSTOM_VARIABLES" ]; then
         . "$CUSTOM_VARIABLES"
+      fi
+
+      if command -v gh > /dev/null; then
+        function gh-workflow() {
+          local solution=''${1:-$(pwd | awk -F'solutions/' '{print $2}' | cut -d'/' -f1 | sed 's/^$/nothing/')}
+          gh workflow run build-deploy-staging.yml --ref $(git branch --show-current) --field solution=$solution
+        }
+        alias ghwf="gh-workflow"
       fi
     '';
     shellAliases = {
