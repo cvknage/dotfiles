@@ -1,10 +1,14 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, lib, pkgs, user, owner, ... }:
-
 {
+  config,
+  lib,
+  pkgs,
+  user,
+  owner,
+  ...
+}: {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -27,7 +31,7 @@
   services.hardware.bolt.enable = true;
 
   # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
-  services.xserver.videoDrivers = [ "displaylink" "modesetting" ];
+  services.xserver.videoDrivers = ["displaylink" "modesetting"];
   services.xserver.displayManager.sessionCommands = ''
     ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
   '';
@@ -123,7 +127,14 @@
   users.users.${user} = {
     isNormalUser = true;
     description = "${owner}";
-    extraGroups = [ "networkmanager" "wheel" "docker" /*"podman"*/ ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "docker"
+      /*
+      "podman"
+      */
+    ];
     packages = with pkgs; [
       # thunderbird
     ];

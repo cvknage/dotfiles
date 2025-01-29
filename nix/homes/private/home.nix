@@ -1,6 +1,10 @@
-{ inputs, config, pkgs, user, ... }:
-
 {
+  inputs,
+  config,
+  pkgs,
+  user,
+  ...
+}: {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = user;
@@ -8,7 +12,7 @@
 
   imports = [
     # shared between all
-    ../common.nix 
+    ../common.nix
 
     # specific to home
   ];

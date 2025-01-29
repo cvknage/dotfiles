@@ -29,23 +29,34 @@
     ghostty.url = "github:ghostty-org/ghostty";
   };
 
-  outputs = inputs@{ self, nix-darwin, nixpkgs, home-manager, mac-app-util, tuxedo-nixos, nix-homebrew, homebrew-core, homebrew-cask, homebrew-bundle, ... }:
-  let
+  outputs = inputs @ {
+    self,
+    nix-darwin,
+    nixpkgs,
+    home-manager,
+    mac-app-util,
+    tuxedo-nixos,
+    nix-homebrew,
+    homebrew-core,
+    homebrew-cask,
+    homebrew-bundle,
+    ...
+  }: let
     owner = "Christophe Knage";
     user = "chris";
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
-    extraArgs = { inherit inputs user; };
-  in
-  {
+    extraArgs = {inherit inputs user;};
+  in {
     # Build darwin flake using:
     # $ darwin-rebuild build --flake .#logic
     darwinConfigurations."logic" = nix-darwin.lib.darwinSystem {
       system = darwinArchitecture;
-      specialArgs = extraArgs // { inherit self; } // { hostPlatform = darwinArchitecture; };
+      specialArgs = extraArgs // {inherit self;} // {hostPlatform = darwinArchitecture;};
       modules = [
         ./hosts/logic/configuration.nix
-        home-manager.darwinModules.home-manager {
+        home-manager.darwinModules.home-manager
+        {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.${user} = import ./homes/private/home.nix;
@@ -94,7 +105,7 @@
 
     nixosConfigurations."penguin-tuxedo" = nixpkgs.lib.nixosSystem {
       system = linuxArchitecture;
-      specialArgs = extraArgs // { inherit owner; } // { hostPlatform = linuxArchitecture; };
+      specialArgs = extraArgs // {inherit owner;} // {hostPlatform = linuxArchitecture;};
       modules = [
         ./hosts/penguin-tuxedo/configuration.nix
         home-manager.nixosModules.home-manager
@@ -121,7 +132,7 @@
 
       # Specify your home configuration modules here, for example,
       # the path to your home.nix.
-      modules = [ ./homes/work/home.nix ];
+      modules = [./homes/work/home.nix];
 
       # Optionally use extraSpecialArgs
       # to pass through arguments to home.nix

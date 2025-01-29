@@ -1,21 +1,24 @@
-{ inputs, config, pkgs, user, ... }:
-
-let
+{
+  inputs,
+  config,
+  pkgs,
+  user,
+  ...
+}: let
   # Create combined package of dotnet SDKs
   combinedDotNetSDKs = pkgs.buildEnv {
     name = "combinedDotNetSDKs";
     paths = [
-      (with pkgs.dotnetCorePackages;
-        combinePackages [
-          sdk_9_0
-          sdk_7_0
-        ]
+      (
+        with pkgs.dotnetCorePackages;
+          combinePackages [
+            sdk_9_0
+            sdk_7_0
+          ]
       )
     ];
   };
-in
-
-{
+in {
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = user;

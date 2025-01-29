@@ -1,4 +1,12 @@
 local utils = require("plugins.lang.dotnet-utils")
+local function contains(tbl, value)
+  for _, v in ipairs(tbl) do
+    if v == value then
+      return true
+    end
+  end
+  return false
+end
 
 return {
   {
@@ -25,6 +33,7 @@ return {
         bash = { "shfmt" },
         zsh = { "shfmt" },
         cs = { "csharpier" },
+        nix = { "alejandra" },
 
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
@@ -38,12 +47,15 @@ return {
 
       format_on_save = function(bufnr)
         local filetype = vim.bo[bufnr].filetype
-        if filetype ~= "cs" then
-          return
-        end
-        return {
-          timeout_ms = 500,
+        local format_filetypes_on_save = {
+          "nix",
+          -- "cs"
         }
+        if contains(format_filetypes_on_save, filetype) then
+          return {
+            timeout_ms = 500,
+          }
+        end
       end,
 
       formatters = {
@@ -92,7 +104,6 @@ return {
     opts = function(_, opts)
       local ignore_install = {
         -- "stylua",
-        -- "shfmt",
       }
 
       if not utils.has_dotnet then

@@ -1,6 +1,9 @@
-{ inputs, config, pkgs, ... }:
-
 {
+  inputs,
+  config,
+  pkgs,
+  ...
+}: {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
@@ -31,6 +34,7 @@
     pkgs.ripgrep
     pkgs.cargo-generate
     pkgs.rustlings
+    pkgs.alejandra
 
     # SDKs
     pkgs.rustup
@@ -86,6 +90,7 @@
     ".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/neovim/logic";
     ".config/yazi".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/yazi";
     ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/gitui/config";
+    ".config/k9s".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/k9s";
     ".config/kanata".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/kanata";
     ".config/wezterm".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/wezterm";
     ".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/ghostty";

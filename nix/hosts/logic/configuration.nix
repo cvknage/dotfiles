@@ -1,6 +1,11 @@
-{ config, self, pkgs, user, hostPlatform, ... }: 
-
 {
+  config,
+  self,
+  pkgs,
+  user,
+  hostPlatform,
+  ...
+}: {
   imports = [
     # Enable flakes
     ../flakes.nix
