@@ -33,8 +33,5 @@
     profileExtra = ''
       ${builtins.readFile ../../../shell/common}
     '';
-    shellAliases = {
-      vim = "nvim";
-    };
   };
 }

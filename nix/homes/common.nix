@@ -1,6 +1,7 @@
 {
   inputs,
   config,
+  lib,
   pkgs,
   ...
 }: {
@@ -25,28 +26,47 @@
   # environment.
   home.packages = [
     # Developer Tools
-    pkgs.neovim
     pkgs.tmux
     pkgs.gitui
-    pkgs.fd
     pkgs.jq
     pkgs.gnused
-    pkgs.ripgrep
     pkgs.cargo-generate
     pkgs.rustlings
-    pkgs.alejandra
 
     # SDKs
     pkgs.rustup
     pkgs.nodejs_latest
-
-    # lua needed for lazy.nvim package manager to work corerctly
-    pkgs.lua5_1
-    pkgs.luajitPackages.luarocks
-
-    # needed for mason.nvim package manager to work correctly
-    pkgs.unzip
   ];
+
+  programs.neovim = {
+    enable = true;
+    vimAlias = true;
+    extraPackages =
+      [
+        # needed for lazy.nvim package manager to work corerctly
+        pkgs.lua5_1
+        pkgs.luajitPackages.luarocks
+
+        # needed for mason.nvim package manager to work correctly
+        pkgs.unzip
+        pkgs.wget
+
+        # needed for nvim-treesitter to install some languages
+        pkgs.gnused
+
+        # needed for telescope.nvim to do "find" and "live grep"
+        pkgs.fd
+        pkgs.ripgrep
+
+        # nix code formatter for conform.nvim
+        pkgs.alejandra
+      ]
+      ++ lib.optionals pkgs.stdenv.isLinux [
+        # needed for nvim to install nvim-treesitter and fzf-native
+        pkgs.gcc
+        pkgs.gnumake
+      ];
+  };
 
   programs.fzf = {
     enable = true;

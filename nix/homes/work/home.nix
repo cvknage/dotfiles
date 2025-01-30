@@ -57,10 +57,6 @@ in {
     # SDKs
     combinedDotNetSDKs
     pkgs.python3
-
-    # gcc & make needed for nvim to install tresitter and fzf-native
-    pkgs.gcc
-    pkgs.gnumake
   ];
 
   programs.bash = {
@@ -84,9 +80,6 @@ in {
         alias ghwf="gh-workflow"
       fi
     '';
-    shellAliases = {
-      vim = "nvim";
-    };
   };
 
   programs.firefox.enable = true;
