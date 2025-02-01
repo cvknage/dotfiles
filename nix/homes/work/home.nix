@@ -62,7 +62,9 @@ in {
   programs.bash = {
     enable = true;
     initExtra = ''
-      ${builtins.readFile ../../../shell/bash/PS1}
+      # ''${builtins.readFile ../../../shell/bash/PS1}
+      ${builtins.readFile ../../../shell/bash/config}
+      ${builtins.readFile ../../../shell/colours}
     '';
     profileExtra = ''
       ${builtins.readFile ../../../shell/common}

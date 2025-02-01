@@ -1,0 +1,6 @@
+# vim: set filetype=sh :
+
+# Enable color support
+export CLICOLOR=1
+export LSCOLORS="exfxcxdxbxegedabagacad"
+export LS_COLORS="di=38;5;110:ln=38;5;140:so=38;5;72:pi=38;5;147:ex=38;5;107:bd=38;5;74:cd=38;5;211:su=38;5;167:sg=38;5;215:tw=38;5;174:ow=38;5;217"

@@ -1,5 +1,9 @@
 # vim: set filetype=sh :
 
+# Aliases
+alias ll='ls -lah --color=auto'
+alias grep='grep --color=auto'
+
 # load cargo bin directory
 if [ -d "$HOME/.cargo/bin" ]; then
   export PATH="$HOME/.cargo/bin:$PATH"
@@ -10,7 +14,6 @@ function gitui_themed() {
   OS="$(uname)"
   case $OS in
   "Linux")
-    # gdbus call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Settings.Read org.freedesktop.appearance color-scheme
 : <<'END'
     if [[ $(gsettings get org.gnome.desktop.interface color-scheme) =~ "dark" ]]; then
       gitui -t catppuccin-mocha.ron

@@ -1,0 +1,14 @@
+# vim: set filetype=sh :
+
+# Enable autocorrection
+setopt correct
+
+# Case-insensitive globbing
+setopt nocaseglob
+
+# Enable extended globbing
+setopt extendedglob
+
+# Enable autocomplete with menu selection
+autoload -U compinit && compinit
+zstyle ':completion:*' menu select

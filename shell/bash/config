@@ -1,0 +1,11 @@
+# vim: set filetype=sh :
+
+# Auto-correct minor typos in paths
+shopt -s cdspell
+
+# Enable case-insensitive globbing
+shopt -s nocaseglob
+
+# Autocomplete improvements
+bind 'set show-all-if-ambiguous on'
+bind 'set completion-ignore-case on'
