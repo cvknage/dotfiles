@@ -69,7 +69,7 @@ Then apply the updates.
 
 To install an old version of a package, the easiest way may be to add the `nixpkgs` channel that contains the version you want to the inputs in the flake like this:
 ``` bash
-nixpkgs-22-11.url = "nixpkgs/release-22.11";
+nixpkgs_2211.url = "nixpkgs/release-22.11";
 ```
 or add a specific `nixpkgs` reference from a commit on `https://github.com/NixOS/nixpkgs`, that containt the version yuo want, like this:
 ``` bash
