@@ -13,42 +13,39 @@ fi
 function gitui_themed() {
   OS="$(uname)"
   case $OS in
-  "Linux")
-: <<'END'
-    if [[ $(gsettings get org.gnome.desktop.interface color-scheme) =~ "dark" ]]; then
-      gitui -t catppuccin-mocha.ron
-    else
-      gitui -t catppuccin-frappe.ron
-    fi
-END
-    gitui -t catppuccin-macchiato.ron
-    ;;
-  "Darwin")
-    if [[ "$(osascript -l JavaScript -e "Application('System Events').appearancePreferences.darkMode.get()")" == "true" ]]; then
-      gitui -t catppuccin-mocha.ron
-    else
-      gitui -t catppuccin-frappe.ron
-    fi
-    ;;
-  *)
-    gitui -t catppuccin-macchiato.ron
-    ;;
+    "Linux")
+      if [[ "$XDG_CURRENT_DESKTOP" == *GNOME* ]]; then
+        if [[ $(gsettings get org.gnome.desktop.interface color-scheme) =~ "dark" ]]; then
+          gitui -t catppuccin-mocha.ron
+        else
+          gitui -t catppuccin-frappe.ron
+        fi
+      else
+        gitui -t catppuccin-macchiato.ron
+      fi
+      ;;
+    "Darwin")
+      if [[ "$(osascript -l JavaScript -e "Application('System Events').appearancePreferences.darkMode.get()")" == "true" ]]; then
+        gitui -t catppuccin-mocha.ron
+      else
+        gitui -t catppuccin-frappe.ron
+      fi
+      ;;
+    *)
+      gitui -t catppuccin-macchiato.ron
+      ;;
   esac
 }
 alias gitui="gitui_themed"
 
 # shortcut for cloning in to a bare repo
 function git-worktree-clone() {
-  for arg
-  do
-    if [ "$arg" = --single-branch ]
-    then
+  for arg; do
+    if [ "$arg" = --single-branch ]; then
       SingleBranch=1
-    elif [ -z ${Repository+x} ]
-    then
+    elif [ -z ${Repository+x} ]; then
       Repository="$arg"
-    elif [ -z ${Directory+x} ]
-    then
+    elif [ -z ${Directory+x} ]; then
       Directory="$arg"
     else
       echo 'Usage: [--single-branch] <repository> [<directory>]'
@@ -56,43 +53,38 @@ function git-worktree-clone() {
     fi
   done
 
-  if [ -z ${Repository+x} ]
-  then
+  if [ -z ${Repository+x} ]; then
     echo 'Usage: [--single-branch] <repository> [<directory>]'
     exit 1
   fi
 
-  if [ -z ${Directory+x} ]
-  then
+  if [ -z ${Directory+x} ]; then
     Directory="$(basename "${Repository}" .git)"
   fi
 
+  DirectoryExists="$(
+    test -d "${Directory}"
+    echo $?
+  )"
 
-  DirectoryExists="$(test -d "${Directory}"; echo $?)"
-
-  if [ "$SingleBranch" = 1 ]
-  then
+  if [ "$SingleBranch" = 1 ]; then
     git clone --single-branch --bare "${Repository}" "${Directory}/.git"
   else
     git clone --bare "${Repository}" "${Directory}/.git"
   fi
 
-  if [ $? -ne 0 ]
-  then
-    if [ ${DirectoryExists} -ne 0 ]
-    then
+  if [ $? -ne 0 ]; then
+    if [ ${DirectoryExists} -ne 0 ]; then
       rmdir "${Directory}"
     fi
     exit 1
   fi
 
-
   pushd "${Directory}" >/dev/null
 
   DefaultBranch="$(git rev-parse --abbrev-ref HEAD)"
 
-  if [ "$SingleBranch" = 1 ]
-  then
+  if [ "$SingleBranch" = 1 ]; then
     git config --add remote.origin.fetch "+refs/heads/${DefaultBranch}:refs/remotes/origin/${DefaultBranch}"
   else
     git config --add remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
@@ -104,7 +96,7 @@ function git-worktree-clone() {
 }
 alias gwtc="git-worktree-clone"
 
-if command -v docker > /dev/null; then
+if command -v docker >/dev/null; then
   # start/stop kind cluster
   function kind-funciton() {
     docker $1 $(docker ps -a | grep "kindest" | awk '{print $1}')
@@ -113,14 +105,13 @@ if command -v docker > /dev/null; then
   alias kind-start="kind-funciton start"
 
   # fzf docker lods
-  function docker-logs ()
-  {
+  function docker-logs() {
     docker logs $(docker ps -a | fzf | awk {'print $1'}) -f
   }
   alias dockerl="docker-logs"
 fi
 
-if command -v mirrord > /dev/null; then
+if command -v mirrord >/dev/null; then
   # debug C# with mirrord
   function mirrord-debug() {
     namespace=$(kubectl get ns -A | fzf | awk '{print $1}')
@@ -132,4 +123,3 @@ if command -v mirrord > /dev/null; then
   }
   alias mirrordd="mirrord-debug"
 fi
-
