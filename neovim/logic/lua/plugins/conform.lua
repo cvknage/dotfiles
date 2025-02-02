@@ -34,6 +34,7 @@ return {
         zsh = { "shfmt" },
         cs = { "csharpier" },
         nix = { "alejandra" },
+        toml = { "taplo" },
 
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
@@ -49,6 +50,7 @@ return {
         local filetype = vim.bo[bufnr].filetype
         local format_filetypes_on_save = {
           "nix",
+          "toml",
           -- "cs"
         }
         if contains(format_filetypes_on_save, filetype) then
