@@ -1,7 +1,6 @@
 {
   config,
   self,
-  pkgs,
   user,
   hostPlatform,
   ...

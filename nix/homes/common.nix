@@ -1,5 +1,4 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
@@ -61,7 +60,7 @@
         # nix code formatter for conform.nvim
         pkgs.alejandra
       ]
-      ++ lib.optionals pkgs.stdenv.isLinux [
+      ++ lib.optionals (!pkgs.stdenv.isDarwin) [
         # needed for nvim to install nvim-treesitter and fzf-native
         pkgs.gcc
         pkgs.gnumake

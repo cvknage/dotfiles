@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: {
+{...}: {
   # Enable the uinput module
   boot.kernelModules = ["uinput"];
 

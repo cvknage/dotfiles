@@ -1,8 +1,4 @@
-{
-  config,
-  pkgs,
-  ...
-}: let
+{pkgs, ...}: let
   # Set Version and SHA
   version = "1.7.1";
   SHA = "0m64isixgv6yx7h69x81nq97lx732dvvcdj1c7l9llp1qs7bir2y";
