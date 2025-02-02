@@ -26,6 +26,7 @@ $rust\
 $zig\
 [](fg:prev_bg bg:blue)\
 $docker_context\
+$kubernetes\
 [](fg:prev_bg bg:mauve)\
 $time\
 $cmd_duration\
@@ -119,7 +120,7 @@ format = "[ $symbol( $version) ]($style)"
 [docker_context]
 symbol = ""
 style = "fg:base bg:prev_bg"
-format = "[ $symbol( $version) ]($style)"
+format = "[ $symbol( $context) ]($style)"
 
 [dotnet]
 symbol = ""
@@ -159,6 +160,12 @@ symbol = ""
 style = "fg:base bg:prev_bg"
 format = "[ $symbol( $version) ]($style)"
 
+[kubernetes]
+disabled = false
+symbol = "󱃾"
+style = "fg:base bg:prev_bg"
+format = "[ $symbol( $context) ]($style)"
+
 [nodejs]
 symbol = ""
 style = "fg:base bg:prev_bg"
@@ -195,10 +202,10 @@ style = "fg:prev_fg bg:prev_bg"
 format = "[ $duration ]($style)"
 
 [memory_usage]
+disabled = false
 symbol = "󰍛"
 style = "fg:bold color_red bg:prev_bg"
 format = "[$symbol ${ram}]($style) "
-disabled = false
 
 [line_break]
 disabled = false
