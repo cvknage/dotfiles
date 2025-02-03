@@ -46,6 +46,7 @@
       autoUpdate = false;
 
       # Whether to enable Homebrew to upgrade outdated formulae and Mac App Store apps during nix-darwin system activation. The default is false so that repeated invocations of darwin-rebuild switch are idempotent.
+      # To upgrade all casks: brew upgrade --cask --greedy
       upgrade = false;
 
       # This uninstalls all formulae not listed in the generated Brewfile, and if the formula is a cask, removes all files associated with that cask.
