@@ -105,21 +105,11 @@
   # Enable flatpak
   # services.flatpak.enable = true;
 
-  # Enable container management
-  virtualisation = {
-    # Enable common container config files in /etc/containers
-    containers.enable = true;
-    # Enable podman
-    /*
-    podman = {
-      enable = true;
-      dockerCompat = false;
-    };
-    */
-    # Enable docker
-    docker = {
-      enable = true;
-    };
+  # Enable docker
+  virtualisation.docker.enable = true;
+  virtualisation.docker.rootless = {
+    enable = true;
+    setSocketVariable = true;
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
@@ -129,10 +119,6 @@
     extraGroups = [
       "networkmanager"
       "wheel"
-      "docker"
-      /*
-      "podman"
-      */
     ];
     packages = with pkgs; [
       # thunderbird
@@ -157,7 +143,6 @@
     lshw
     wl-clipboard
     displaylink
-    # distrobox
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
