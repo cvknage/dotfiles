@@ -18,6 +18,7 @@
     ../allow-unfree.nix
 
     # shared between all
+    ../../rust
   ];
 
   # The home.packages option allows you to install Nix packages into your
@@ -29,11 +30,8 @@
     pkgs.gitui
     pkgs.jq
     pkgs.gnused
-    pkgs.cargo-generate
-    pkgs.rustlings
 
     # SDKs
-    pkgs.rustup
     pkgs.nodejs_latest
   ];
 

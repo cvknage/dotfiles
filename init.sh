@@ -53,8 +53,6 @@ case $OS in
     ;;
 esac
 
-rustup default stable >/dev/null
-
 for dir in ./*/; do
   init_file="init.sh"
   if [ -f "$dir/$init_file" ]; then
