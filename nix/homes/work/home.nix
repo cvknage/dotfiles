@@ -52,6 +52,7 @@ in {
     pkgs.k9s
     pkgs.mirrord
     pkgs.gh
+    pkgs.k6
 
     # SDKs
     combinedDotNetSDKs
