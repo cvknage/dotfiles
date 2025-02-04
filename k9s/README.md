@@ -1,4 +1,4 @@
-# k9s
+# `k9s`
 
 Configuration for [k9s](https://k9scli.io/)
 

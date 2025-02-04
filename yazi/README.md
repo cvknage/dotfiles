@@ -1,4 +1,4 @@
-# Yazi
+# `yazi`
 
 Configuration for [Yazi](https://yazi-rs.github.io)
 
