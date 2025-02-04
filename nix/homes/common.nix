@@ -18,7 +18,6 @@
     ../allow-unfree.nix
 
     # shared between all
-    ../../git/git.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
@@ -26,6 +25,7 @@
   home.packages = [
     # Developer Tools
     pkgs.tmux
+    pkgs.git
     pkgs.gitui
     pkgs.jq
     pkgs.gnused
@@ -116,6 +116,7 @@
     # would upon activation create a symlink '~/foo' that points to the
     # absolute path of the 'bar' file relative the configuration file.
     ".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/ghostty";
+    ".config/git".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/git";
     ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/gitui";
     ".config/k9s".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/k9s";
     ".config/kanata".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/kanata";
