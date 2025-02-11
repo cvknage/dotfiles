@@ -132,6 +132,9 @@ return {
       if not utils.has_dotnet then
         table.insert(ignore_install, "csharpier")
       end
+      if vim.fn.executable("biome") == 1 then
+        table.insert(ignore_install, "biome")
+      end
 
       return {
         ignore_install = ignore_install,

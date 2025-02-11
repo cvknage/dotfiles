@@ -53,10 +53,12 @@ in {
     pkgs.mirrord
     pkgs.gh
     pkgs.k6
+    pkgs.biome
 
     # SDKs
     combinedDotNetSDKs
     pkgs.python3
+    pkgs.bun
   ];
 
   programs.bash = {
