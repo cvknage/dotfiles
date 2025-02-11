@@ -35,6 +35,15 @@ return {
         cs = { "csharpier" },
         nix = { "alejandra" },
         toml = { "taplo" },
+        css = { "biome" },
+        graphql = { "biome" },
+        javascript = { "biome" },
+        javascriptreact = { "biome" },
+        json = { "biome" },
+        jsonc = { "biome" },
+        typescript = { "biome" },
+        typescriptreact = { "biome" },
+        vue = { "biome" },
 
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
@@ -51,6 +60,15 @@ return {
         local format_filetypes_on_save = {
           "nix",
           "toml",
+          "css",
+          "graphql",
+          "javascript",
+          "javascriptreact",
+          "json",
+          "jsonc",
+          "typescript",
+          "typescriptreact",
+          "vue",
           -- "cs"
         }
         if contains(format_filetypes_on_save, filetype) then
@@ -93,6 +111,9 @@ return {
         csharpier = {
           command = "dotnet-csharpier",
           args = { "--write-stdout" },
+        },
+        biome = {
+          require_cwd = true,
         },
       },
     },
