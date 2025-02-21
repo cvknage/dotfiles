@@ -67,8 +67,7 @@ in {
       # ''${builtins.readFile ../../../shell/bash/PS1}
       ${builtins.readFile ../../../shell/bash/config}
       ${builtins.readFile ../../../shell/colours}
-    '';
-    profileExtra = ''
+
       ${builtins.readFile ../../../shell/common}
 
       CUSTOM_VARIABLES="$HOME/.custom-variables"
@@ -93,6 +92,8 @@ in {
       #
       # Disable this message by setting _ZO_DOCTOR=0.
       _ZO_DOCTOR=0
+    '';
+    profileExtra = ''
     '';
   };
 
