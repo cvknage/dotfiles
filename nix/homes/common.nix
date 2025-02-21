@@ -110,6 +110,7 @@
     #  "foo".source = config.lib.file.mkOutOfStoreSymlink ./bar;
     # would upon activation create a symlink '~/foo' that points to the
     # absolute path of the 'bar' file relative the configuration file.
+    # ('mkOutOfStoreSymlink' only works as expected for me when supplying the absolute path of the source file aka. './bar' in the example above)
     ".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/ghostty";
     ".config/git".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/git";
     ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/gitui";
