@@ -83,6 +83,16 @@ in {
         }
         alias ghwf="gh-workflow"
       fi
+
+      # Started getting the message below when using zoxide:
+      # zoxide: detected a possible configuration issue.
+      # Please ensure that zoxide is initialized right at the end of your shell configuration file (usually ~/.bashrc).
+      #
+      # If the issue persists, consider filing an issue at:
+      # https://github.com/ajeetdsouza/zoxide/issues
+      #
+      # Disable this message by setting _ZO_DOCTOR=0.
+      _ZO_DOCTOR=0
     '';
   };
 

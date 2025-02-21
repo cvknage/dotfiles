@@ -59,6 +59,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
           home-manager.users.${user} = import ./homes/private/home.nix;
 
           # Optionally, use home-manager.extraSpecialArgs to pass
@@ -112,6 +113,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "hm-backup";
           home-manager.users.${user} = import ./homes/work/home.nix;
 
           # Optionally, use home-manager.extraSpecialArgs to pass
