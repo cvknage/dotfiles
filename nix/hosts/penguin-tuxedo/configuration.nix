@@ -135,11 +135,12 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     # vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    # wget
-    # git
-    lshw
-    wl-clipboard
-    displaylink
+    # git # Install git here to clone dotfiles, then remove it again as git will be installed with home-manager.
+    wl-clipboard # Wayland clipboard utilities
+    lshw # (List Hardware) - use "sudo lshw -c display" to setup NVIDIA GPU: https://nixos.wiki/wiki/Nvidia
+    nvtopPackages.full # NVTOP stands for Neat Videocard TOP, a (h)top like task monitor for GPUs and accelerators.
+    nvitop # An interactive NVIDIA-GPU process viewer and beyond.
+    displaylink # DisplayLink Drivers - this is actually rather annoying, as rebuilds fail becaus a you need to run a command to prefetch the driver.
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
