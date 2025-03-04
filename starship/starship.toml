@@ -202,10 +202,10 @@ style = "fg:prev_fg bg:prev_bg"
 format = "[ $duration ]($style)"
 
 [memory_usage]
-disabled = false
+disabled = true
 symbol = "󰍛"
-style = "fg:bold color_red bg:prev_bg"
-format = "[$symbol ${ram}]($style) "
+style = "fg:bold prev_fg bg:prev_bg"
+format = "[$symbol ${ram}]($style)"
 
 [line_break]
 disabled = false
