@@ -4,6 +4,7 @@
 {
   config,
   lib,
+  pkgs,
   modulesPath,
   hostPlatform,
   ...
@@ -55,7 +56,16 @@
   };
 
   # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = ["nvidia"];
+  services.xserver.videoDrivers =
+    ["nvidia"]
+    ++
+    # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
+    ["displaylink" "modesetting"];
+
+  # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
+  services.xserver.displayManager.sessionCommands = ''
+    ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
+  '';
 
   hardware.nvidia = {
     # Modesetting is required.
@@ -90,6 +100,17 @@
 
   # Enable Nvidia Optimus PRIME
   hardware.nvidia.prime = {
+    /*
+    sync.enable = true;
+    */
+
+    /*
+    offload = {
+      enable = true;
+      enableOffloadCmd = true;
+    };
+    */
+
     intelBusId = "PCI:0:2:0";
     nvidiaBusId = "PCI:1:0:0";
   };

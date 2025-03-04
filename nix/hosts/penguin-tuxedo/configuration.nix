@@ -2,7 +2,6 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 {
-  lib,
   pkgs,
   user,
   owner,
@@ -28,12 +27,6 @@
 
   # Enable Thunderbolt
   services.hardware.bolt.enable = true;
-
-  # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
-  services.xserver.videoDrivers = ["displaylink" "modesetting"];
-  services.xserver.displayManager.sessionCommands = ''
-    ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
-  '';
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
