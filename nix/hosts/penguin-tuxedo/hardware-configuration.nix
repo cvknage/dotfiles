@@ -13,6 +13,7 @@
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
+  # boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.initrd.availableKernelModules = ["xhci_pci" "thunderbolt" "nvme" "usb_storage" "sd_mod"];
   boot.initrd.kernelModules = [];
   boot.kernelModules = ["kvm-intel"];
@@ -95,16 +96,14 @@
     nvidiaSettings = true;
 
     # Optionally, you may need to select the appropriate driver version for your specific GPU.
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
   # Enable Nvidia Optimus PRIME
   hardware.nvidia.prime = {
     /*
     sync.enable = true;
-    */
 
-    /*
     offload = {
       enable = true;
       enableOffloadCmd = true;
