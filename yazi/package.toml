@@ -1,5 +1,17 @@
-[plugin]
-deps = [{ use = "dawsers/toggle-view", rev = "9ae57f9" }, { use = "yazi-rs/plugins:chmod", rev = "71c4fc2" }, { use = "yazi-rs/plugins:max-preview", rev = "71c4fc2" }]
+[[plugin.deps]]
+use = "dawsers/toggle-view"
+rev = "9ae57f9"
+hash = "9d291f6cecb1f1f5542fc18177d5c107"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:chmod"
+rev = "71c4fc2"
+hash = "4c7e8fd0266eedee7b619d966bd2d025"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:max-preview"
+rev = "71c4fc2"
+hash = "9bc26d10d2f6e2aa93b10905b1b76979"
 
 [flavor]
 deps = []
