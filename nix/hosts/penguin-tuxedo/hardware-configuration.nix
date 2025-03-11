@@ -101,9 +101,9 @@
 
   # Enable Nvidia Optimus PRIME
   hardware.nvidia.prime = {
-    /*
     sync.enable = true;
 
+    /*
     offload = {
       enable = true;
       enableOffloadCmd = true;
