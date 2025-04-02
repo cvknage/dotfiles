@@ -59,6 +59,8 @@ in {
     combinedDotNetSDKs
     pkgs.python3
     pkgs.bun
+    pkgs.yarn-berry
+    pkgs.deno
   ];
 
   programs.bash = {
