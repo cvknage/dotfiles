@@ -144,6 +144,11 @@
   #   enableSSHSupport = true;
   # };
 
+  programs.localsend = {
+    enable = true;
+    openFirewall = true;
+  };
+
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
