@@ -58,8 +58,8 @@ in {
     # SDKs
     combinedDotNetSDKs
     pkgs.python3
+    pkgs.corepack
     pkgs.bun
-    pkgs.yarn-berry
     pkgs.deno
   ];
 
