@@ -1,7 +1,10 @@
+local utils = require("plugins.lang.dotnet-utils")
+
 return {
   "Exafunction/codeium.vim",
   build = ":Codeium Auth",
   event = "BufEnter",
+  enabled = not utils.has_dotnet,
   config = function ()
     vim.g.codeium_disable_bindings = 1
     vim.g.codeium_enabled = true

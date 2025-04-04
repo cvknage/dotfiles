@@ -1,13 +1,16 @@
+local utils = require("plugins.lang.dotnet-utils")
+
 return {
   {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
     build = ":Copilot auth",
     event = "InsertEnter",
+    enabled = utils.has_dotnet,
     opts = {
       suggestion = {
         enabled = true,
-        auto_trigger = true,
+        auto_trigger = false, -- disable ghost text
         keymap = {
           accept = false, -- handled by nvim-cmp / blink.cmp
           -- accept = "<C-a>",
