@@ -126,7 +126,7 @@ return {
     dependencies = { "stevearc/conform.nvim", "williamboman/mason.nvim" },
     opts = function(_, opts)
       local ignore_install = {
-        -- "stylua",
+        "alejandra"
       }
 
       if not utils.has_dotnet then

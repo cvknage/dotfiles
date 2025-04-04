@@ -30,10 +30,10 @@ return {
   {
     "hrsh7th/nvim-cmp",
     optional = true,
-    enabled = utils.has_dotnet,
     dependencies = { -- this will only be evaluated if nvim-cmp is enabled
       {
         "zbirenbaum/copilot-cmp",
+        enabled = utils.has_dotnet,
         opts = {},
         config = function(_, opts)
           local copilot_cmp = require("copilot_cmp")
@@ -62,6 +62,7 @@ return {
     },
   },
 
+  -- copilot chat
   {
     "CopilotC-Nvim/CopilotChat.nvim",
     enabled = utils.has_dotnet,
