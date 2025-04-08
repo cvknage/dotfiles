@@ -44,6 +44,11 @@ return {
     enabled = utils.has_dotnet,
     keys = {
       { "<leader>ac", "<cmd>CopilotChatToggle<cr>", desc = "Copilot Chat" },
+      { "<leader>aC", "<cmd>CopilotChatCommit<cr>", desc = "Copilot Commit" },
+      { "<leader>af", "<cmd>CopilotChatFix<cr>", desc = "Copilot Fix" },
+      { "<leader>ar", "<cmd>CopilotChatReview<cr>", desc = "Copilot Review" },
+      { "<leader>as", "<cmd>CopilotChatStop<cr>", desc = "Copilot Stop" },
+      { "<leader>at", "<cmd>CopilotChatTest<cr>", desc = "Copilot Test" },
     },
     dependencies = {
       { "zbirenbaum/copilot.lua" },
