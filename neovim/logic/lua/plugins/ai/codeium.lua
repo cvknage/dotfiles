@@ -10,7 +10,7 @@ return {
       { "<leader>ac", "<cmd>Codeium Chat<cr>", desc = "Codeium Chat" },
     },
     dependencies = {
-      "nvim-lua/plenary.nvim",
+      { "nvim-lua/plenary.nvim" },
       {
         "hrsh7th/nvim-cmp",
         opts = function(_, opts)

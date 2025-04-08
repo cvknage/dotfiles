@@ -1,23 +1,14 @@
 local utils = require("plugins.lang.dotnet-utils")
 
 return {
+  -- copilot
   {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
     build = ":Copilot auth",
-    event = "InsertEnter",
     enabled = utils.has_dotnet,
     opts = {
-      suggestion = {
-        enabled = true,
-        auto_trigger = false, -- disable ghost text
-        keymap = {
-          accept = false, -- handled by nvim-cmp
-          -- accept = "<C-a>",
-          next = "<C-TAB>",
-          prev = "<C-S-TAB>",
-        },
-      },
+      suggestion = { enabled = false },
       panel = { enabled = false },
       filetypes = {
         markdown = true,
@@ -26,40 +17,25 @@ return {
     },
   },
 
-  -- copilot cmp source
+  -- copilot cmp
   {
-    "hrsh7th/nvim-cmp",
-    optional = true,
-    dependencies = { -- this will only be evaluated if nvim-cmp is enabled
+    "zbirenbaum/copilot-cmp",
+    event = "InsertEnter",
+    enabled = utils.has_dotnet,
+    dependencies = {
+      { "zbirenbaum/copilot.lua" },
       {
-        "zbirenbaum/copilot-cmp",
-        enabled = utils.has_dotnet,
-        opts = {},
-        config = function(_, opts)
-          local copilot_cmp = require("copilot_cmp")
-          copilot_cmp.setup(opts)
-          -- attach cmp source whenever copilot attaches
-          -- fixes lazy-loading issues with the copilot cmp source
-          require("lsp-zero").on_attach(function(client, bufnr)
-            copilot_cmp._on_insert_enter({})
-          end, "copilot")
+        "hrsh7th/nvim-cmp",
+        opts = function(_, opts)
+          table.insert(opts.sources, 1, {
+            name = "copilot",
+            group_index = 1,
+            priority = 100,
+          })
         end,
-        specs = {
-          {
-            "hrsh7th/nvim-cmp",
-            optional = true,
-            ---@param opts cmp.ConfigSchema
-            opts = function(_, opts)
-              table.insert(opts.sources, 1, {
-                name = "copilot",
-                group_index = 1,
-                priority = 100,
-              })
-            end,
-          },
-        },
       },
     },
+    opts = {},
   },
 
   -- copilot chat
@@ -67,7 +43,7 @@ return {
     "CopilotC-Nvim/CopilotChat.nvim",
     enabled = utils.has_dotnet,
     keys = {
-      { "<leader>ac", "<cmd>CopilotChat<cr>", desc = "Copilot Chat" },
+      { "<leader>ac", "<cmd>CopilotChatToggle<cr>", desc = "Copilot Chat" },
     },
     dependencies = {
       { "zbirenbaum/copilot.lua" },
