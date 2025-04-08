@@ -12,7 +12,7 @@ return {
         enabled = true,
         auto_trigger = false, -- disable ghost text
         keymap = {
-          accept = false, -- handled by nvim-cmp / blink.cmp
+          accept = false, -- handled by nvim-cmp
           -- accept = "<C-a>",
           next = "<C-TAB>",
           prev = "<C-S-TAB>",
@@ -67,7 +67,7 @@ return {
     "CopilotC-Nvim/CopilotChat.nvim",
     enabled = utils.has_dotnet,
     keys = {
-      { "<leader>ac", "<cmd>CopilotChat<cr>", desc = "CopilotChat" },
+      { "<leader>ac", "<cmd>CopilotChat<cr>", desc = "Copilot Chat" },
     },
     dependencies = {
       { "zbirenbaum/copilot.lua" },
