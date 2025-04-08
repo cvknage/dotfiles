@@ -1,4 +1,4 @@
-local utils = require("plugins.lang.dotnet-utils")
+local dotnet_utils = require("plugins.lang.dotnet-utils")
 
 return {
   {
@@ -10,7 +10,7 @@ return {
       "seblj/roslyn.nvim", -- An updated fork of jmederosalvarado/roslyn.nvim: https://github.com/jmederosalvarado/roslyn.nvim/issues/39
       dependencies = { "williamboman/mason.nvim" },
       build = ":MasonInstall roslyn",
-      enabled = utils.has_dotnet,
+      enabled = dotnet_utils.has_dotnet,
       ft = "cs",
       opts = function(_, opts)
         local capabilities
@@ -109,12 +109,12 @@ return {
       "nvim-neotest/neotest",
       dependencies = {
         "Issafalcon/neotest-dotnet",
-        enabled = utils.has_dotnet,
+        enabled = dotnet_utils.has_dotnet,
       },
       opts = function(_, opts)
-        if utils.has_dotnet then
+        if dotnet_utils.has_dotnet then
           local dotnet = {
-            test_adapter = utils.test_adapter()
+            test_adapter = dotnet_utils.test_adapter()
           }
 
           if type(opts.lang_opts) == "table" then
@@ -132,11 +132,11 @@ return {
           "jay-babu/mason-nvim-dap.nvim",
           dependencies = { "williamboman/mason.nvim", },
           opts = function(_, opts)
-            if utils.has_dotnet then
+            if dotnet_utils.has_dotnet then
               local dotnet = {
-                ensure_installed = utils.debug_adapter().ensure_installed,
-                dap_options = utils.debug_adapter().dap_options,
-                test_dap = utils.debug_adapter().test_dap
+                ensure_installed = dotnet_utils.debug_adapter().ensure_installed,
+                dap_options = dotnet_utils.debug_adapter().dap_options,
+                test_dap = dotnet_utils.debug_adapter().test_dap
               }
 
               if type(opts.lang_opts) == "table" then

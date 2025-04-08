@@ -1,4 +1,4 @@
-local utils = require("plugins.lang.dotnet-utils")
+local utils = require("utils")
 
 return {
   -- copilot
@@ -6,7 +6,7 @@ return {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
     build = ":Copilot auth",
-    enabled = utils.has_dotnet,
+    enabled = utils.is_work_config,
     opts = {
       suggestion = { enabled = false },
       panel = { enabled = false },
@@ -21,7 +21,7 @@ return {
   {
     "zbirenbaum/copilot-cmp",
     event = "InsertEnter",
-    enabled = utils.has_dotnet,
+    enabled = utils.is_work_config,
     dependencies = {
       { "zbirenbaum/copilot.lua" },
       {
@@ -41,7 +41,7 @@ return {
   -- copilot chat
   {
     "CopilotC-Nvim/CopilotChat.nvim",
-    enabled = utils.has_dotnet,
+    enabled = utils.is_work_config,
     keys = {
       { "<leader>ac", "<cmd>CopilotChatToggle<cr>", desc = "Copilot Chat" },
       { "<leader>aC", "<cmd>CopilotChatCommit<cr>", desc = "Copilot Commit" },

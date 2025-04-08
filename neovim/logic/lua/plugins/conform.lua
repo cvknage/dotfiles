@@ -1,4 +1,4 @@
-local utils = require("plugins.lang.dotnet-utils")
+local dotnet_utils = require("plugins.lang.dotnet-utils")
 local function contains(tbl, value)
   for _, v in ipairs(tbl) do
     if v == value then
@@ -129,7 +129,7 @@ return {
         "alejandra"
       }
 
-      if not utils.has_dotnet then
+      if not dotnet_utils.has_dotnet then
         table.insert(ignore_install, "csharpier")
       end
       if vim.fn.executable("biome") == 1 then

@@ -1,4 +1,4 @@
-local utils = require("plugins.lang.dotnet-utils")
+local dotnet_utils = require("plugins.lang.dotnet-utils")
 
 local M = {}
 
@@ -77,7 +77,7 @@ M.omnisharp = {
     dependencies = { "Issafalcon/neotest-dotnet" },
     opts = function(_, opts)
       local dotnet = {
-        test_adapter = utils.test_adapter()
+        test_adapter = dotnet_utils.test_adapter()
       }
 
       if type(opts.lang_opts) == "table" then
@@ -97,9 +97,9 @@ M.omnisharp = {
         },
         opts = function(_, opts)
           local dotnet = {
-            ensure_installed = utils.debug_adapter().ensure_installed,
-            dap_options = utils.debug_adapter().dap_options,
-            test_dap = utils.debug_adapter().test_dap
+            ensure_installed = dotnet_utils.debug_adapter().ensure_installed,
+            dap_options = dotnet_utils.debug_adapter().dap_options,
+            test_dap = dotnet_utils.debug_adapter().test_dap
           }
 
           if type(opts.lang_opts) == "table" then

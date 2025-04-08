@@ -1,9 +1,9 @@
-local utils = require("plugins.lang.dotnet-utils")
+local utils = require("utils")
 
 return {
   {
     "Exafunction/windsurf.nvim",
-    enabled = not utils.has_dotnet,
+    enabled = utils.is_private_config,
     build = ":Codeium Auth",
     event = "BufEnter",
     keys = {
