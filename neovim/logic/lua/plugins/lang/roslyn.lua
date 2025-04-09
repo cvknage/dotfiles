@@ -3,7 +3,7 @@ local dotnet_utils = require("plugins.lang.dotnet-utils")
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "c_sharp" } }
+    opts = { ensure_installed = { "c_sharp" } },
   },
   {
     {
@@ -14,7 +14,7 @@ return {
       ft = "cs",
       opts = function(_, opts)
         local capabilities
-        if pcall(require, 'cmp_nvim_lsp') then
+        if pcall(require, "cmp_nvim_lsp") then
           --[[
           capabilities = vim.tbl_deep_extend(
             "force",
@@ -23,7 +23,7 @@ return {
           )
           ]]
           capabilities = nil -- roslyn.nvim generates capabilities for cmp_nvim_lsp as a defaul
-        elseif pcall(require, 'coq') then
+        elseif pcall(require, "coq") then
           capabilities = require("coq").lsp_ensure_capabilities()
         else
           capabilities = vim.lsp.make_client_capabilities()
@@ -34,7 +34,7 @@ return {
           config = {
             capabilities = capabilities,
             on_attach = function(client, bufnr)
-              if not pcall(require, 'lsp-zero') and not pcall(require, 'coq') then
+              if not pcall(require, "lsp-zero") and not pcall(require, "coq") then
                 local lsp_utils = require("plugins.lsp.utils")
                 lsp_utils.keymaps(client, bufnr)
                 -- lsp_utils.inlay_hints(client, bufnr)
@@ -99,11 +99,11 @@ return {
               },
               ["csharp|symbol_search"] = {
                 dotnet_search_reference_assemblies = true,
-              }
-            }
+              },
+            },
           },
         }
-      end
+      end,
     },
     {
       "nvim-neotest/neotest",
@@ -114,7 +114,7 @@ return {
       opts = function(_, opts)
         if dotnet_utils.has_dotnet then
           local dotnet = {
-            test_adapter = dotnet_utils.test_adapter()
+            test_adapter = dotnet_utils.test_adapter(),
           }
 
           if type(opts.lang_opts) == "table" then
@@ -123,31 +123,25 @@ return {
             opts.lang_opts = { dotnet }
           end
         end
-      end
+      end,
     },
     {
-      "mfussenegger/nvim-dap",
-      dependencies = {
-        {
-          "jay-babu/mason-nvim-dap.nvim",
-          dependencies = { "williamboman/mason.nvim", },
-          opts = function(_, opts)
-            if dotnet_utils.has_dotnet then
-              local dotnet = {
-                ensure_installed = dotnet_utils.debug_adapter().ensure_installed,
-                dap_options = dotnet_utils.debug_adapter().dap_options,
-                test_dap = dotnet_utils.debug_adapter().test_dap
-              }
+      "jay-babu/mason-nvim-dap.nvim",
+      opts = function(_, opts)
+        if dotnet_utils.has_dotnet then
+          local dotnet = {
+            ensure_installed = dotnet_utils.debug_adapter().ensure_installed,
+            dap_options = dotnet_utils.debug_adapter().dap_options,
+            test_dap = dotnet_utils.debug_adapter().test_dap,
+          }
 
-              if type(opts.lang_opts) == "table" then
-                table.insert(opts.lang_opts, dotnet)
-              else
-                opts.lang_opts = { dotnet }
-              end
-            end
+          if type(opts.lang_opts) == "table" then
+            table.insert(opts.lang_opts, dotnet)
+          else
+            opts.lang_opts = { dotnet }
           end
-        },
-      },
+        end
+      end,
     },
-  }
+  },
 }
