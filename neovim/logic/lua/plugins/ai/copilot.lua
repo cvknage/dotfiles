@@ -57,6 +57,7 @@ return {
     build = "make tiktoken", -- Only on MacOS or Linux
     opts = {
       -- See Configuration section for options
+      model = 'gpt-4o',
       mappings = {
         reset = {
           normal = "<C-r>",
