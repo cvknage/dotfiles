@@ -34,6 +34,14 @@ return {
       { "<leader>dt", function() require("dap").terminate() end, desc = "Terminate" },
       { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
     },
+    config = function()
+      -- setup dap config by VsCode launch.json file
+      local vscode = require("dap.ext.vscode")
+      local json = require("plenary.json")
+      vscode.json_decode = function(str)
+        return vim.json.decode(json.json_strip_comments(str))
+      end
+    end,
   },
 
   -- dap ui config
@@ -50,9 +58,6 @@ return {
     },
     opts = {},
     config = function(_, opts)
-      -- setup dap config by VsCode launch.json file
-      require("dap.ext.vscode").load_launchjs()
-
       local dap = require("dap")
       local dapui = require("dapui")
       dapui.setup(opts)
@@ -118,21 +123,6 @@ return {
         end,
       },
     },
-    config = function(_, opts)
-      if type(opts.lang_opts) == "table" then
-        for _, opt in pairs(opts.lang_opts) do
-          table.insert(opts.ensure_installed, opt.ensure_installed)
-          opts.handlers[opt.ensure_installed] = function(config)
-            require("mason-nvim-dap").default_setup(opt.dap_options(config))
-          end
-          if type(opt.test_dap) == "table" then
-            require("dap").adapters[opt.test_dap.adapter] = opt.test_dap.config
-          end
-        end
-      end
-
-      require("mason-nvim-dap").setup(opts)
-    end,
   },
 
   -- lua dap config

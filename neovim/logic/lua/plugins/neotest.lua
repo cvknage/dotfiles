@@ -15,23 +15,15 @@ return {
       ---@type neotest.Config.discovery
       discovery = {
         concurrent = 0,
-        enabled = true
+        enabled = true,
       },
       ---@diagnostic disable-next-line: missing-fields
       status = {
-        virtual_text = true
+        virtual_text = true,
       },
-      log_level = vim.log.levels.ERROR -- logs can be found at: ~/.local/state/nvim/neotest.log
+      log_level = vim.log.levels.ERROR, -- logs can be found at: ~/.local/state/nvim/neotest.log
     },
-    config = function(_, opts)
-      if type(opts.lang_opts) == "table" then
-        for _, opt in pairs(opts.lang_opts) do
-          table.insert(opts.adapters, opt.test_adapter)
-        end
-      end
-
-      require("neotest").setup(opts)
-    end,
+    -- stylua: ignore
     keys = {
       { "<leader>tt", function() require("neotest").run.run(vim.fn.expand("%")) end, desc = "Run File" },
       { "<leader>tT", function() require("neotest").run.run(vim.loop.cwd()) end, desc = "Run All Test Files" },
@@ -46,6 +38,7 @@ return {
   {
     "mfussenegger/nvim-dap",
     optional = true,
+    -- stylua: ignore
     keys = {
       ---@diagnostic disable-next-line: missing-fields
       { "<leader>td", function() require("neotest").run.run({ strategy = "dap" }) end, desc = "Debug Nearest" },

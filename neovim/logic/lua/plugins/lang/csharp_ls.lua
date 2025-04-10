@@ -22,58 +22,58 @@ M.csharp_ls = {
           -- loading for $metadata$ documents.
           handlers = {
             ["textDocument/definition"] = require("csharpls_extended").handler,
-            ["textDocument/typeDefinition"] = require('csharpls_extended').handler,
+            ["textDocument/typeDefinition"] = require("csharpls_extended").handler,
           },
 
           on_attach = function(_, bufnr)
-            vim.keymap.set("n", "gd", function() require('csharpls_extended').lsp_definitions() end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
+            vim.keymap.set("n", "gd", function()
+              require("csharpls_extended").lsp_definitions()
+            end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
           end,
-        }
+        },
       }
 
-      if type(opts.lang_opts) == "table" then
-        table.insert(opts.lang_opts, csharp_ls)
-      else
-        opts.lang_opts = { csharp_ls }
-      end
-    end
+      opts.lang_opts = opts.lang_opts or {}
+      table.insert(opts.lang_opts, csharp_ls)
+    end,
   },
   {
     "nvim-neotest/neotest",
     dependencies = { "Issafalcon/neotest-dotnet" },
     opts = function(_, opts)
-      local dotnet = {
-        test_adapter = dotnet_utils.test_adapter()
-      }
-
-      if type(opts.lang_opts) == "table" then
-        table.insert(opts.lang_opts, dotnet)
-      else
-        opts.lang_opts = { dotnet }
+      if dotnet_utils.has_dotnet then
+        opts.adapters = opts.adapters or {}
+        table.insert(opts.adapters, dotnet_utils.test_adapter())
       end
-    end
+    end,
   },
   {
-    "mfussenegger/nvim-dap",
+    "jay-babu/mason-nvim-dap.nvim",
     dependencies = {
-      {
-        "jay-babu/mason-nvim-dap.nvim",
-        dependencies = { "williamboman/mason.nvim", },
-        opts = function(_, opts)
-          local dotnet = {
-            ensure_installed = dotnet_utils.debug_adapter().ensure_installed,
-            dap_options = dotnet_utils.debug_adapter().dap_options,
-            test_dap = dotnet_utils.debug_adapter().test_dap
-          }
-
-          if type(opts.lang_opts) == "table" then
-            table.insert(opts.lang_opts, dotnet)
-          else
-            opts.lang_opts = { dotnet }
+      "mfussenegger/nvim-dap",
+      opts = function()
+        if dotnet_utils.has_dotnet then
+          local dap = require("dap")
+          local test_dap = dotnet_utils.debug_adapter().test_dap
+          if not dap.adapters["netcoredbg"] then
+            dap.adapters[test_dap.adapter] = test_dap.config
           end
         end
-      },
+      end,
     },
+    opts = function(_, opts)
+      if dotnet_utils.has_dotnet then
+        local debug_adapter = dotnet_utils.debug_adapter()
+        vim.tbl_deep_extend("force", opts, {
+          ensure_installed = debug_adapter.ensure_installed,
+          handlers = {
+            [debug_adapter.ensure_installed] = function(config)
+              require("mason-nvim-dap").default_setup(debug_adapter.dap_options(config))
+            end,
+          },
+        })
+      end
+    end,
   },
 }
 
