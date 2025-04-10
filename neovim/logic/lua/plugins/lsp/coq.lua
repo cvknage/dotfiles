@@ -64,7 +64,17 @@ return {
     require("plugins.lsp.lazydev"),
   },
   config = function(_, opts)
+    local lsp_defaults = require("lspconfig").util.default_config
     local lsp_utils = require("plugins.lsp.utils")
+
+    -- Add coq capabilities settings to lspconfig
+    -- This should be executed before you configure any language server
+    -- stylua: ignore
+    lsp_defaults.capabilities = vim.tbl_deep_extend(
+      "force",
+      lsp_defaults.capabilities,
+      require("coq").lsp_ensure_capabilities()
+    )
 
     -- LspAttach is where you enable features that only work
     -- if there is a language server active in the file
@@ -86,12 +96,10 @@ return {
         -- This first function is the "default handler"
         -- it applies to every language server without a "custom handler"
         function(server_name)
-          require("lspconfig")[server_name].setup(
-            require("coq").lsp_ensure_capabilities(vim.lsp.protocol.make_client_capabilities())
-          )
+          require("lspconfig")[server_name].setup({})
         end,
         lua_ls = function()
-          require("lspconfig").lua_ls.setup(require("coq").lsp_ensure_capabilities(lsp_utils.lsp_options().lua_ls))
+          require("lspconfig").lua_ls.setup(lsp_utils.lsp_options().lua_ls)
         end,
       },
     }
@@ -100,7 +108,7 @@ return {
       for _, opt in pairs(opts.lang_opts) do
         table.insert(config.ensure_installed, opt.ensure_installed)
         config.handlers[opt.ensure_installed] = function()
-          require("lspconfig")[opt.ensure_installed].setup(require("coq").lsp_ensure_capabilities(opt.lsp_options))
+          require("lspconfig")[opt.ensure_installed].setup(opt.lsp_options)
         end
       end
     end
