@@ -2,11 +2,6 @@ return {
   "neovim/nvim-lspconfig",
   cmd = { "LspInfo", "LspInstall", "LspStart" },
   event = { "BufReadPre", "BufNewFile" },
-  init = function()
-    -- Reserve a space in the gutter
-    -- This will avoid an annoying layout shift in the screen
-    vim.opt.signcolumn = "yes"
-  end,
   dependencies = {
     {
       "ms-jpq/coq_nvim",
@@ -63,6 +58,22 @@ return {
     { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim" } },
     require("plugins.lsp.lazydev"),
   },
+  init = function()
+    -- Reserve a space in the gutter
+    -- This will avoid an annoying layout shift in the screen
+    vim.opt.signcolumn = "yes"
+  end,
+  opts_extend = { "ensure_installed" },
+  opts = {
+    ensure_installed = {},
+    handlers = {
+      -- This first function is the "default handler"
+      -- it applies to every language server without a "custom handler"
+      function(server_name)
+        require("lspconfig")[server_name].setup({})
+      end,
+    },
+  },
   config = function(_, opts)
     local lsp_defaults = require("lspconfig").util.default_config
     local lsp_utils = require("plugins.lsp.utils")
@@ -90,28 +101,18 @@ return {
       end,
     })
 
-    local config = {
-      ensure_installed = lsp_utils.ensure_installed(),
-      handlers = {
-        -- This first function is the "default handler"
-        -- it applies to every language server without a "custom handler"
-        function(server_name)
-          require("lspconfig")[server_name].setup({})
-        end,
-        lua_ls = function()
-          require("lspconfig").lua_ls.setup(lsp_utils.lsp_options().lua_ls)
-        end,
-      },
-    }
-
-    if type(opts.lang_opts) == "table" then
-      for _, opt in pairs(opts.lang_opts) do
-        table.insert(config.ensure_installed, opt.ensure_installed)
-        config.handlers[opt.ensure_installed] = function()
-          require("lspconfig")[opt.ensure_installed].setup(opt.lsp_options)
-        end
-      end
+    for _, lsp in ipairs(lsp_utils.ensure_installed()) do
+      table.insert(opts.ensure_installed, lsp)
     end
+
+    opts.handlers.lua_ls = function()
+      require("lspconfig").lua_ls.setup(lsp_utils.lsp_options().lua_ls)
+    end
+
+    local config = {
+      ensure_installed = opts.ensure_installed,
+      handlers = opts.handlers,
+    }
 
     require("mason-lspconfig").setup(config)
 

@@ -1,7 +1,7 @@
 local M = {}
 
 function M.ensure_installed()
-  return { "lua_ls", "ts_ls", "rust_analyzer", "nil_ls" }
+  return { "lua_ls", "nil_ls" }
 end
 
 function M.keymaps(client, bufnr)

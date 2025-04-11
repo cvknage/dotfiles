@@ -14,31 +14,35 @@ M.csharp_ls = {
   { "Decodetalkers/csharpls-extended-lsp.nvim", lazy = true },
   {
     "neovim/nvim-lspconfig",
-    opts = function(_, opts)
-      local csharp_ls = {
-        ensure_installed = "csharp_ls",
-        lsp_options = {
-          -- Extended textDocument/definition handler that handles assembly/decompilation
-          -- loading for $metadata$ documents.
-          handlers = {
-            ["textDocument/definition"] = require("csharpls_extended").handler,
-            ["textDocument/typeDefinition"] = require("csharpls_extended").handler,
-          },
+    opts = {
+      ensure_installed = { "csharp_ls" },
+      handlers = {
+        csharp_ls = function()
+          require("lspconfig").csharp_ls.setup({
+            -- Extended textDocument/definition handler that handles assembly/decompilation
+            -- loading for $metadata$ documents.
+            handlers = {
+              ["textDocument/definition"] = require("csharpls_extended").handler,
+              ["textDocument/typeDefinition"] = require("csharpls_extended").handler,
+            },
 
-          on_attach = function(_, bufnr)
-            vim.keymap.set("n", "gd", function()
-              require("csharpls_extended").lsp_definitions()
-            end, vim.tbl_extend("force", { buffer = bufnr, remap = false }, { desc = "Goto Definition" }))
-          end,
-        },
-      }
-
-      opts.lang_opts = opts.lang_opts or {}
-      table.insert(opts.lang_opts, csharp_ls)
-    end,
+            on_attach = function(_, bufnr)
+              vim.keymap.set("n", "gd", function()
+                require("csharpls_extended").lsp_definitions()
+              end, vim.tbl_extend(
+                "force",
+                { buffer = bufnr, remap = false },
+                { desc = "Goto Definition" }
+              ))
+            end,
+          })
+        end,
+      },
+    },
   },
   {
     "nvim-neotest/neotest",
+    optional = true,
     dependencies = { "Issafalcon/neotest-dotnet" },
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
@@ -49,6 +53,7 @@ M.csharp_ls = {
   },
   {
     "jay-babu/mason-nvim-dap.nvim",
+    optional = true,
     dependencies = {
       "mfussenegger/nvim-dap",
       opts = function()
