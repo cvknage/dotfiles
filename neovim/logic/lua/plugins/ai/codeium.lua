@@ -13,6 +13,7 @@ return {
       { "nvim-lua/plenary.nvim" },
       {
         "hrsh7th/nvim-cmp",
+        optional = true,
         opts = function(_, opts)
           table.insert(opts.sources, 1, {
             name = "codeium",
@@ -23,17 +24,19 @@ return {
       },
     },
     config = function()
+      local has_cmp = pcall(require, 'cmp')
       require("codeium").setup({
+        enable_cmp_source = has_cmp,
         virtual_text = {
-          enabled = false,
+          enabled = not has_cmp,
         },
         key_bindings = {
-          accept = false,
+          accept = "<C-y>",
           accept_word = false,
           accept_line = false,
           clear = false,
-          next = "<C-TAB>",
-          prev = "<C-S-TAB>",
+          next = "<C-n>",
+          prev = "<C-b>",
         },
       })
     end,

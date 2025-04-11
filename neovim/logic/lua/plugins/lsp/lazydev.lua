@@ -13,12 +13,19 @@ return {
         -- add the cmp source for completion of:
         -- `require "modname"`
         -- `---@module "modname"`
-        cmp = pcall(require, 'cmp'),
+        cmp = true,
         -- add the coq source for completion of:
         -- `require "modname"`
         -- `---@module "modname"`
-        coq = pcall(require, 'coq'),
+        coq = true,
       },
     },
+    config = function(_, opts)
+      local has_cmp = pcall(require, "cmp")
+      local has_coq = pcall(require, "coq")
+      opts.integrations.cmp = has_cmp
+      opts.integrations.coq = has_coq
+      require("lazydev").setup(opts)
+    end,
   },
 }

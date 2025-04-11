@@ -2,6 +2,7 @@ return {
   "epwalsh/obsidian.nvim",
   version = "*", -- recommended, use latest release instead of latest commit
   lazy = true,
+  -- stylua: ignore
   keys = {
     { "<leader>on", "<cmd>ObsidianNew<cr>",         desc = "New Note",        mode = "n" },
     { "<leader>os", "<cmd>ObsidianSearch<cr>",      desc = "Search Notes",    mode = "n" },
@@ -20,6 +21,7 @@ return {
   -- },
   dependencies = {
     "nvim-lua/plenary.nvim", -- Required.
+    { "hrsh7th/nvim-cmp", optional = true },
   },
   opts = {
     -- Optional, configure additional syntax highlighting / extmarks.
@@ -71,7 +73,7 @@ return {
           return require("obsidian").util.smart_action()
         end,
         opts = { buffer = true, expr = true, desc = "Smart Action" },
-      }
+      },
     },
 
     -- Optional, customize how note IDs are generated given an optional title.
@@ -117,4 +119,9 @@ return {
       substitutions = {},
     },
   },
+  config = function(_, opts)
+    local has_cmp = pcall(require, "cmp")
+    opts.completion.nvim_cmp = has_cmp
+    require("obsidian").setup(opts)
+  end,
 }
