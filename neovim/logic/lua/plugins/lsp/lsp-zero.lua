@@ -21,7 +21,6 @@ return {
         "hrsh7th/cmp-nvim-lsp",
         "saadparwaiz1/cmp_luasnip",
       },
-      require("plugins.lsp.lazydev"),
     },
     opts = function()
       local cmp = require("cmp")
@@ -66,10 +65,6 @@ return {
           { name = "path" }, -- cmp-path
           { name = "nvim_lsp" }, -- cmp-nvim-lsp
           { name = "luasnip" }, -- cmp_luasnip
-          {
-            name = "lazydev", -- lazydev completion source for require statements and module annotations
-            group_index = 0, -- set group index to 0 to skip loading LuaLS completions
-          },
         }, {
           { name = "buffer" }, -- cmp-buffer
         }),

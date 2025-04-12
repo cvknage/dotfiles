@@ -56,7 +56,6 @@ return {
     },
     { "ms-jpq/coq.artifacts", branch = "artifacts" },
     { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim" } },
-    require("plugins.lsp.lazydev"),
   },
   init = function()
     -- Reserve a space in the gutter

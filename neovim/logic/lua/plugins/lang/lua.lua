@@ -18,42 +18,47 @@ return {
           require("lspconfig").lua_ls.setup({
             settings = {
               Lua = {
-                telemetry = {
-                  enable = false,
-                },
+                telemetry = { enable = false }, -- disable telemetry
+                hint = { enable = true }, -- enable inlay hints
+                codeLens = { enable = true }, -- enable code lens
               },
             },
             on_init = function(client)
               local join = vim.fs.joinpath
               local path = client.workspace_folders[1].name
-              local runtime_path = vim.split(package.path, ";")
-              table.insert(runtime_path, "lua/?.lua")
-              table.insert(runtime_path, "lua/?/init.lua")
 
               -- Don't do anything if there is project local config
               if vim.uv.fs_stat(join(path, ".luarc.json")) or vim.uv.fs_stat(join(path, ".luarc.jsonc")) then
+                vim.g.lazydev_enabled = false -- also disable lazydev
                 return
               end
 
+              --[[ handled by lazydev
+              local runtime_path = vim.split(package.path, ";")
+              table.insert(runtime_path, "lua/?.lua")
+              table.insert(runtime_path, "lua/?/init.lua")
+              ]]
+
               local nvim_settings = {
+                --[[ handled by lazydev
                 runtime = {
                   -- Tell the language server which version of Lua you're using
                   version = "LuaJIT",
                   path = runtime_path,
-                },
-                diagnostics = {
-                  -- Get the language server to recognize the `vim` global
-                  globals = { "vim" },
                 },
                 workspace = {
                   checkThirdParty = false,
                   library = {
                     -- Make the server aware of Neovim runtime files
                     vim.env.VIMRUNTIME,
+                    vim.fn.stdpath("config"),
                     "${3rd}/luv/library",
                     -- "${3rd}/busted/library",
-                    vim.fn.stdpath("config"),
                   },
+                },
+                ]]
+                diagnostics = {
+                  globals = { "vim" }, -- get the language server to recognize the `vim` global
                 },
               }
 
@@ -64,6 +69,49 @@ return {
         end,
       },
     },
+  },
+  {
+    "folke/lazydev.nvim",
+    dependencies = {
+      { "Bilal2453/luvit-meta", lazy = true }, -- optional `vim.uv` typings
+      {
+        "hrsh7th/nvim-cmp",
+        optional = true,
+        opts = function(_, opts)
+          opts.sources = opts.sources or {}
+          table.insert(opts.sources, 1, {
+            name = "lazydev", -- lazydev completion source for require statements and module annotations
+            group_index = 0, -- set group index to 0 to skip loading LuaLS completions
+          })
+        end,
+      },
+    },
+    ft = "lua",
+    opts = {
+      library = {
+        -- Resolve library paths from nvim config
+        vim.fn.stdpath("config"),
+        -- Load luvit types when the `vim.uv` word is found
+        { path = "luvit-meta/library", words = { "vim%.uv" } },
+      },
+      integrations = {
+        -- add the cmp source for completion of:
+        -- `require "modname"`
+        -- `---@module "modname"`
+        cmp = true,
+        -- add the coq source for completion of:
+        -- `require "modname"`
+        -- `---@module "modname"`
+        coq = true,
+      },
+    },
+    config = function(_, opts)
+      local has_cmp = pcall(require, "cmp")
+      local has_coq = pcall(require, "coq")
+      opts.integrations.cmp = has_cmp
+      opts.integrations.coq = has_coq
+      require("lazydev").setup(opts)
+    end,
   },
   {
     "jbyuki/one-small-step-for-vimkind",

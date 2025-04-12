@@ -15,6 +15,7 @@ return {
         "hrsh7th/nvim-cmp",
         optional = true,
         opts = function(_, opts)
+          opts.sources = opts.sources or {}
           table.insert(opts.sources, 1, {
             name = "codeium",
             group_index = 1,
@@ -24,7 +25,7 @@ return {
       },
     },
     config = function()
-      local has_cmp = pcall(require, 'cmp')
+      local has_cmp = pcall(require, "cmp")
       require("codeium").setup({
         enable_cmp_source = has_cmp,
         virtual_text = {
