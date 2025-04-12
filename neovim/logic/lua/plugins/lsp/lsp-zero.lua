@@ -121,13 +121,7 @@ return {
     opts_extend = { "ensure_installed" },
     opts = {
       ensure_installed = {},
-      handlers = {
-        -- This first function is the "default handler"
-        -- it applies to every language server without a "custom handler"
-        function(server_name)
-          require("lspconfig")[server_name].setup({})
-        end,
-      },
+      handlers = {},
     },
     config = function(_, opts)
       local lsp_defaults = require("lspconfig").util.default_config
@@ -156,9 +150,14 @@ return {
         end,
       })
 
-      for _, lsp in ipairs(lsp_utils.ensure_installed()) do
-        table.insert(opts.ensure_installed, lsp)
-      end
+      table.insert(
+        opts.handlers,
+        -- This function is the "default handler"
+        -- it applies to every language server without a "custom handler"
+        function(server_name)
+          require("lspconfig")[server_name].setup({})
+        end
+      )
 
       local config = {
         ensure_installed = opts.ensure_installed,
