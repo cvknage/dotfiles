@@ -53,7 +53,6 @@ return {
                     vim.env.VIMRUNTIME,
                     vim.fn.stdpath("config"),
                     "${3rd}/luv/library",
-                    -- "${3rd}/busted/library",
                   },
                 },
                 ]]
@@ -73,7 +72,6 @@ return {
   {
     "folke/lazydev.nvim",
     dependencies = {
-      { "Bilal2453/luvit-meta", lazy = true }, -- optional `vim.uv` typings
       {
         "hrsh7th/nvim-cmp",
         optional = true,
@@ -91,8 +89,8 @@ return {
       library = {
         -- Resolve library paths from nvim config
         vim.fn.stdpath("config"),
-        -- Load luvit types when the `vim.uv` word is found
-        { path = "luvit-meta/library", words = { "vim%.uv" } },
+        -- Only load luvit types when the `vim.uv` word is found
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
       },
       integrations = {
         -- add the cmp source for completion of:
