@@ -83,60 +83,12 @@ return {
     cmd = { "DapInstall", "DapUninstall" },
     opts_extend = { "ensure_installed" },
     opts = {
-      ensure_installed = { },
+      ensure_installed = {},
       handlers = {
         function(config)
           require("mason-nvim-dap").default_setup(config)
         end,
       },
     },
-  },
-
-  -- lua dap config
-  {
-    "jbyuki/one-small-step-for-vimkind",
-    dependencies = {
-      "mfussenegger/nvim-dap",
-    },
-    lazy = true,
-    config = function()
-      local dap = require("dap")
-
-      dap.adapters.nlua = function(callback, config)
-        local adapter = {
-          type = "server",
-          host = config.host or "127.0.0.1",
-          port = config.port or 8086,
-        }
-
-        if config.start_neovim then
-          local dap_run = dap.run
-          ---@diagnostic disable-next-line: duplicate-set-field
-          dap.run = function(running_config)
-            adapter.port = running_config.port
-            adapter.host = running_config.host
-          end
-          require("osv").run_this()
-          dap.run = dap_run
-        end
-
-        callback(adapter)
-      end
-
-      dap.configurations.lua = {
-        {
-          type = "nlua",
-          request = "attach",
-          name = "Run this file",
-          start_neovim = {},
-        },
-        {
-          type = "nlua",
-          request = "attach",
-          name = "Attach to running Neovim instance (port = 8086)",
-          port = 8086,
-        },
-      }
-    end,
   },
 }

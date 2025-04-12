@@ -1,7 +1,7 @@
 local M = {}
 
 function M.ensure_installed()
-  return { "lua_ls", "nil_ls" }
+  return { "nil_ls" }
 end
 
 function M.keymaps(client, bufnr)
@@ -74,58 +74,5 @@ M.diagnostics = {
     },
   },
 }
-
-function M.lsp_options()
-  local options = {}
-
-  options.lua_ls = {
-    settings = {
-      Lua = {
-        telemetry = {
-          enable = false,
-        },
-      },
-    },
-    on_init = function(client)
-      local join = vim.fs.joinpath
-      local path = client.workspace_folders[1].name
-      local runtime_path = vim.split(package.path, ";")
-      table.insert(runtime_path, "lua/?.lua")
-      table.insert(runtime_path, "lua/?/init.lua")
-
-      -- Don't do anything if there is project local config
-      if vim.uv.fs_stat(join(path, ".luarc.json")) or vim.uv.fs_stat(join(path, ".luarc.jsonc")) then
-        return
-      end
-
-      local nvim_settings = {
-        runtime = {
-          -- Tell the language server which version of Lua you're using
-          version = "LuaJIT",
-          path = runtime_path,
-        },
-        diagnostics = {
-          -- Get the language server to recognize the `vim` global
-          globals = { "vim" },
-        },
-        workspace = {
-          checkThirdParty = false,
-          library = {
-            -- Make the server aware of Neovim runtime files
-            vim.env.VIMRUNTIME,
-            "${3rd}/luv/library",
-            -- "${3rd}/busted/library",
-            vim.fn.stdpath("config"),
-          },
-        },
-      }
-
-      client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, nvim_settings)
-      client.notify("workspace/didChangeConfiguration", { settings = client.config.settings })
-    end,
-  }
-
-  return options
-end
 
 return M

@@ -165,10 +165,6 @@ return {
         table.insert(opts.ensure_installed, lsp)
       end
 
-      opts.handlers.lua_ls = function()
-        require("lspconfig").lua_ls.setup(lsp_utils.lsp_options().lua_ls)
-      end
-
       local config = {
         ensure_installed = opts.ensure_installed,
         handlers = opts.handlers,
