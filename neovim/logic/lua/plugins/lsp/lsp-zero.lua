@@ -79,7 +79,7 @@ return {
             -- vim.snippet.expand(args.body) -- For native neovim snippets (Neovim v0.10+)
           end,
         },
-        formatting = cmp_format({ datails = true }),
+        formatting = cmp_format({ details = true }),
         mapping = cmp.mapping.preset.insert({
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<Tab>"] = cmp.mapping.select_next_item(),
