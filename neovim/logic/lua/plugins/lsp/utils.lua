@@ -1,9 +1,5 @@
 local M = {}
 
-function M.ensure_installed()
-  return { "nil_ls" }
-end
-
 function M.keymaps(client, bufnr)
   local telescope_builtin = function(builtin, opts)
     return function()

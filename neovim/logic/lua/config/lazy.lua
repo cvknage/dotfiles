@@ -38,6 +38,7 @@ require("lazy").setup({
     { import = "plugins.lang.rust" },
     { import = "plugins.lang.javascript" },
     { import = "plugins.lang.lua" },
+    { import = "plugins.lang.nix" },
 
     -- AI Code Completion
     { import = "plugins.ai.copilot" },
