@@ -39,6 +39,8 @@ require("lazy").setup({
     { import = "plugins.lang.javascript" },
     { import = "plugins.lang.lua" },
     { import = "plugins.lang.nix" },
+    { import = "plugins.lang.sh" },
+    { import = "plugins.lang.toml" },
 
     -- AI Code Completion
     { import = "plugins.ai.copilot" },

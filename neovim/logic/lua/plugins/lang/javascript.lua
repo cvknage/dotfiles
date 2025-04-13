@@ -17,6 +17,37 @@ return {
     },
   },
   {
+    "stevearc/conform.nvim",
+    optional = true,
+    opts = {
+      formatters_by_ft = {
+        css = { "biome" },
+        graphql = { "biome" },
+        javascript = { "biome" },
+        javascriptreact = { "biome" },
+        json = { "biome" },
+        jsonc = { "biome" },
+        typescript = { "biome" },
+        typescriptreact = { "biome" },
+      },
+      formatters = {
+        biome = {
+          require_cwd = true,
+        },
+      },
+    },
+  },
+  {
+    "zapling/mason-conform.nvim",
+    optional = true,
+    opts = function(_, opts)
+      opts.ignore_install = opts.ignore_install or {}
+      if vim.fn.executable("biome") == 1 then
+        table.insert(opts.ignore_install, "biome")
+      end
+    end,
+  },
+  {
     "jay-babu/mason-nvim-dap.nvim",
     optional = true,
     dependencies = {

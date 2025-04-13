@@ -105,6 +105,32 @@ return {
     end,
   },
   {
+    "stevearc/conform.nvim",
+    optional = true,
+    opts = {
+      formatters_by_ft = {
+        cs = { "csharpier" },
+      },
+      formatters = {
+        csharpier = {
+          command = "dotnet-csharpier",
+          args = { "--write-stdout" },
+        },
+      },
+      ignore_format_filetypes_on_save = { "cs" },
+    },
+  },
+  {
+    "zapling/mason-conform.nvim",
+    optional = true,
+    opts = function(_, opts)
+      if not dotnet_utils.has_dotnet then
+        opts.ignore_install = opts.ignore_install or {}
+        table.insert(opts.ignore_install, "csharpier")
+      end
+    end,
+  },
+  {
     "nvim-neotest/neotest",
     optional = true,
     dependencies = {

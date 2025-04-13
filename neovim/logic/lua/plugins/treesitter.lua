@@ -5,6 +5,7 @@ return {
       {
         "nvim-treesitter/nvim-treesitter-context",
         opts = { mode = "cursor", max_lines = 5 },
+        -- stylua: ignore
         keys = {
           { "<leader>ut", function() require("treesitter-context").toggle() end, desc = "Toggle Treesitter Context", },
         },
@@ -39,7 +40,6 @@ return {
     opts_extend = { "ensure_installed" },
     opts = {
       ensure_installed = {
-        "bash",
         "c",
         "diff",
         "html",
@@ -50,7 +50,6 @@ return {
         "python",
         "query",
         "regex",
-        "toml",
         "vim",
         "vimdoc",
         "yaml",

@@ -5,8 +5,6 @@ return {
   },
   {
     "neovim/nvim-lspconfig",
-    opts = {
-      ensure_installed = { "rust_analyzer" },
-    },
+    opts = { ensure_installed = { "rust_analyzer" } },
   },
 }

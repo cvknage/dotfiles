@@ -112,6 +112,36 @@ return {
     end,
   },
   {
+    "stevearc/conform.nvim",
+    optional = true,
+    opts = {
+      formatters_by_ft = {
+        lua = { "stylua" },
+      },
+      formatters = {
+        stylua = {
+          command = "stylua",
+          args = function()
+            local config_file = vim.fn.findfile(".stylua.toml", ".;") or vim.fn.findfile("stylua.toml", ".;")
+            local editorconfig = vim.fn.findfile(".editorconfig", ".;")
+            if config_file ~= "" or editorconfig ~= "" then
+              return { "-" }
+            else
+              return {
+                "--indent-type",
+                "Spaces",
+                "--indent-width",
+                "2",
+                "-",
+              }
+            end
+          end,
+          stdin = true,
+        },
+      },
+    },
+  },
+  {
     "jbyuki/one-small-step-for-vimkind",
     dependencies = {
       "mfussenegger/nvim-dap",
