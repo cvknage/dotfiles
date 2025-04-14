@@ -27,7 +27,7 @@ require("lazy").setup({
   spec = {
     { import = "plugins" },
 
-    -- LSPs
+    -- Autocompletion & LSP
     { import = "plugins.lsp.lsp-zero" },
     -- { import = "plugins.lsp.coq" },
 
@@ -43,13 +43,11 @@ require("lazy").setup({
     { import = "plugins.lang.toml" },
     ]]
 
-    -- AI Code Completion
+    -- AI
     { import = "plugins.ai.copilot" },
     { import = "plugins.ai.codeium" },
     -- { import = "plugins.ai.llm" },
     -- { import = "plugins.ai.tabby" },
-
-    -- AI - Prompts
     -- { import = "plugins.ai.gen" },
   },
   install = {
