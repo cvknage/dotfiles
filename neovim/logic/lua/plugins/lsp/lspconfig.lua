@@ -43,6 +43,9 @@ return {
       end,
     })
 
+    -- Configure global diagnostic options
+    lsp_utils.diagnostics()
+
     table.insert(
       opts.handlers,
       -- This function is the "default handler"
@@ -58,17 +61,5 @@ return {
     }
 
     require("mason-lspconfig").setup(config)
-
-    vim.diagnostic.config({
-      virtual_text = true,
-      signs = {
-        text = {
-          [vim.diagnostic.severity.ERROR] = "✘",
-          [vim.diagnostic.severity.WARN] = "▲",
-          [vim.diagnostic.severity.HINT] = "⚑",
-          [vim.diagnostic.severity.INFO] = "»",
-        },
-      },
-    })
   end,
 }
