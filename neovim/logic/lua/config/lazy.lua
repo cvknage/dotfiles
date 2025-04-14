@@ -32,15 +32,16 @@ require("lazy").setup({
     -- { import = "plugins.lsp.coq" },
 
     -- Languages
-    -- { import = "plugins.lang.omnisharp" },
-    -- { import = "plugins.lang.csharp_ls" },
-    { import = "plugins.lang.roslyn" },
-    { import = "plugins.lang.rust" },
+    { import = "plugins.lang" },
+    --[[
+    { import = "plugins.lang.dotnet.roslyn" },
     { import = "plugins.lang.javascript" },
     { import = "plugins.lang.lua" },
     { import = "plugins.lang.nix" },
+    { import = "plugins.lang.rust" },
     { import = "plugins.lang.sh" },
     { import = "plugins.lang.toml" },
+    ]]
 
     -- AI Code Completion
     { import = "plugins.ai.copilot" },

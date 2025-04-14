@@ -1,4 +1,4 @@
-local dotnet_utils = require("plugins.lang.dotnet-utils")
+local dotnet_utils = require("plugins.lang.dotnet.utils")
 
 return {
   {
