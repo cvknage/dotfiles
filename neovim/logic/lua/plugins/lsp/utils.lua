@@ -1,5 +1,8 @@
 local M = {}
 
+--- Configure LSP keymaps
+--- @param client vim.lsp.Client
+--- @param bufnr integer
 function M.keymaps(client, bufnr)
   local telescope_builtin = function(builtin, opts)
     return function()
@@ -31,19 +34,28 @@ function M.keymaps(client, bufnr)
   vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
   -- stylua: ignore end
 
+  ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
   if client.supports_method("textDocument/inlayHint") then
     -- stylua: ignore
     vim.keymap.set("n", "<leader>ci", function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr }) end, options({ desc = "Toggle Inlay Hints" }))
   end
 end
 
+--- Enable inlay hints on supported clients
+--- @param client vim.lsp.Client
+--- @param bufnr integer
 function M.inlay_hints(client, bufnr)
+  ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
   if client.supports_method("textDocument/inlayHint") then
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
 end
 
+--- Enable code lens on supported clients
+--- @param client vim.lsp.Client
+--- @param bufnr integer
 function M.code_lens(client, bufnr)
+  ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
   if client.supports_method("textDocument/codeLens") then
     vim.api.nvim_create_autocmd({
       "BufEnter",
@@ -59,6 +71,7 @@ function M.code_lens(client, bufnr)
   end
 end
 
+--- Configure global diagnostic options
 function M.diagnostics()
   vim.diagnostic.config({
     virtual_text = true,
