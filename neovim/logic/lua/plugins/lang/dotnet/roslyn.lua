@@ -117,7 +117,7 @@ return {
           args = { "--write-stdout" },
         },
       },
-      ignore_format_filetypes_on_save = { "cs" },
+      disable_format_on_save_for_ft = { "cs" },
     },
   },
   {

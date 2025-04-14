@@ -28,7 +28,7 @@ return {
           end,
         },
       },
-      ignore_format_filetypes_on_save = { "sh", "bash", "zsh" },
+      disable_format_on_save_for_ft = { "sh", "bash", "zsh" },
     },
   },
 }

@@ -16,7 +16,7 @@ return {
     keys = {
       { "<leader>cf", function() require("conform").format({ async = true }) end, mode = "", desc = "Format", },
     },
-    opts_extend = { "ignore_format_filetypes_on_save" },
+    opts_extend = { "disable_format_on_save_for_ft" },
     ---@module "conform"
     ---@type conform.setupOpts
     opts = {
@@ -31,7 +31,7 @@ return {
         lsp_format = "fallback",
       },
       formatters = {},
-      ignore_format_filetypes_on_save = {},
+      disable_format_on_save_for_ft = {},
     },
     init = function()
       vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
@@ -39,7 +39,7 @@ return {
     config = function(_, opts)
       opts.format_on_save = function(bufnr)
         local filetype = vim.bo[bufnr].filetype
-        if not contains(opts.ignore_format_filetypes_on_save, filetype) then
+        if not contains(opts.disable_format_on_save_for_ft, filetype) then
           return {
             timeout_ms = 500,
           }
