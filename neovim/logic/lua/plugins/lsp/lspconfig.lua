@@ -50,11 +50,10 @@ return {
       end
     )
 
-    local config = {
+    require("mason-lspconfig").setup({
+      automatic_installation = false,
       ensure_installed = opts.ensure_installed,
       handlers = opts.handlers,
-    }
-
-    require("mason-lspconfig").setup(config)
+    })
   end,
 }
