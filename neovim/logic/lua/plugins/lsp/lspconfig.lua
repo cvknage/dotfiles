@@ -5,11 +5,6 @@ return {
   dependencies = {
     { "williamboman/mason-lspconfig.nvim", dependencies = { "williamboman/mason.nvim" } },
   },
-  init = function()
-    -- Reserve a space in the gutter
-    -- This will avoid an annoying layout shift in the screen
-    vim.opt.signcolumn = "yes"
-  end,
   opts_extend = { "ensure_installed" },
   opts = {
     ensure_installed = {},
