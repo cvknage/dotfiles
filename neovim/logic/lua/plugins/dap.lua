@@ -9,7 +9,6 @@ return {
       -- They are listed here to make them load when nvim-dap loads
       "rcarriga/nvim-dap-ui",
       "jay-babu/mason-nvim-dap.nvim",
-      "jbyuki/one-small-step-for-vimkind",
     },
     -- stylua: ignore
     keys = {

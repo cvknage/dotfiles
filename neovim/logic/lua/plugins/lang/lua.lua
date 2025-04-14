@@ -142,6 +142,14 @@ return {
     },
   },
   {
+    "mfussenegger/nvim-dap",
+    dependencies = {
+      -- The plugins below are technically dependant in reverse
+      -- They are listed here to make them load when nvim-dap loads
+      "jbyuki/one-small-step-for-vimkind",
+    },
+  },
+  {
     "jbyuki/one-small-step-for-vimkind",
     dependencies = {
       "mfussenegger/nvim-dap",
@@ -181,7 +189,7 @@ return {
         {
           type = "nlua",
           request = "attach",
-          name = "Attach to running Neovim instance (port = 8086)",
+          name = "Attach to running Neovim instance (port = 8086) - Read ducuentation @ https://github.com/jbyuki/one-small-step-for-vimkind/blob/main/doc/osv.txt#L44C1-L44C11",
           port = 8086,
         },
       }
