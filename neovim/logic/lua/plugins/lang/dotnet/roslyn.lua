@@ -28,6 +28,8 @@ return {
         capabilities = vim.lsp.make_client_capabilities()
       end
 
+      dotnet_utils.dotnet_add_prerecorded_macros()
+
       return {
         -- config: https://github.com/seblj/roslyn.nvim/tree/main?tab=readme-ov-file#%EF%B8%8F-configuration
         config = {
