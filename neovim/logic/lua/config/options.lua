@@ -15,7 +15,7 @@ vim.opt.confirm = true -- Confirm to save changes before exiting modified buffer
 
 vim.opt.swapfile = false -- Disable swap file - use undotree
 vim.opt.backup = false -- Disable backup files - use undotree
-vim.opt.undofile = true -- Enable undo file for undotree 
+vim.opt.undofile = true -- Enable undo file for undotree
 vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir" -- Undo dir for undotree
 
 vim.opt.hlsearch = true -- Enable search highlight
@@ -32,3 +32,10 @@ vim.opt.isfname:append("@-@")
 vim.opt.updatetime = 50 -- Save swap file and trigger CursorHold
 
 vim.opt.colorcolumn = "120" -- Code length guide
+
+vim.opt.foldmethod = "expr" -- Use expression folding
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Use treesitter for expression folding
+vim.opt.foldnestmax = 4 -- Maximum fold depth
+vim.opt.foldlevel = 99 -- Minimum level of a fold that will be closed by default.
+vim.opt.foldlevelstart = 1 -- Dicate upon editing a buffer what level of folds should be open by default
+vim.opt.foldtext = "" -- Show first line of the fold formatted
