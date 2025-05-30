@@ -67,6 +67,17 @@
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
 
+  # Exclude default GNOME Applications.
+  environment.gnome.excludePackages = with pkgs; [
+    gnome-tour # tour app
+    gnome-contacts # contacts app
+    gnome-music # music player
+    geary # email reader
+  ];
+
+  # Enable dconf for managing GNOME settings
+  programs.dconf.enable = true;
+
   # Configure keymap in X11
   services.xserver.xkb = {
     layout = "us";
@@ -129,6 +140,7 @@
   environment.systemPackages = with pkgs; [
     # vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     # git # Install git here to clone dotfiles, then remove it again as git will be installed with home-manager.
+    # gnome-tweaks $ Tweak gnome with dconf instead.
     wl-clipboard # Wayland clipboard utilities
     lshw # (List Hardware) - use "sudo lshw -c display" to setup NVIDIA GPU: https://nixos.wiki/wiki/Nvidia
     nvtopPackages.full # NVTOP stands for Neat Videocard TOP, a (h)top like task monitor for GPUs and accelerators.

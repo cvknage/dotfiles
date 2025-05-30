@@ -34,6 +34,10 @@ in {
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
+    # Gnome extensions
+    pkgs.gnomeExtensions.auto-move-windows
+    pkgs.gnomeExtensions.appindicator
+
     # Office Tools
     pkgs.slack
     pkgs.teams-for-linux
@@ -100,6 +104,20 @@ in {
   };
 
   programs.firefox.enable = true;
+
+  # Configure GNOME desktop settings using dconf
+  dconf = {
+    settings = {
+      "org/gnome/shell" = {
+        disable-user-extensions = false;
+        # Use command: `gnome-extensions list` to get extension UUIDs
+        enabled-extensions = [
+          "appindicatorsupport@rgcjonas.gmail.com"
+          "auto-move-windows@gnome-shell-extensions.gcampax.github.com"
+        ];
+      };
+    };
+  };
 
   home.sessionVariables = {
     DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
