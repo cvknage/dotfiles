@@ -81,14 +81,6 @@ in {
         . "$CUSTOM_VARIABLES"
       fi
 
-      if command -v gh > /dev/null; then
-        function gh-workflow() {
-          local solution=''${1:-$(pwd | awk -F'solutions/' '{print $2}' | cut -d'/' -f1 | sed 's/^$/nothing/')}
-          gh workflow run build-deploy-staging.yml --ref $(git branch --show-current) --field solution=$solution
-        }
-        alias ghwf="gh-workflow"
-      fi
-
       # Started getting the message below when using zoxide:
       # zoxide: detected a possible configuration issue.
       # Please ensure that zoxide is initialized right at the end of your shell configuration file (usually ~/.bashrc).
