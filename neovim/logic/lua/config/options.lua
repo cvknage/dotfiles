@@ -37,5 +37,5 @@ vim.opt.foldmethod = "expr" -- Use expression folding
 vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- Use treesitter for expression folding
 vim.opt.foldnestmax = 4 -- Maximum fold depth
 vim.opt.foldlevel = 99 -- Minimum level of a fold that will be closed by default.
-vim.opt.foldlevelstart = 1 -- Dicate upon editing a buffer what level of folds should be open by default
+-- vim.opt.foldlevelstart = 1 -- Dicate upon editing a buffer what level of folds should be open by default
 vim.opt.foldtext = "" -- Show first line of the fold formatted
