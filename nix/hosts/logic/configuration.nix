@@ -70,6 +70,8 @@
       "senadevicemanager"
       "tm-error-logger"
       "appcleaner"
+      "ente-auth"
+      "garmin-express"
 
       # Developer Tools
       "ghostty"
