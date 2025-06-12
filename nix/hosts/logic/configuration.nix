@@ -38,6 +38,9 @@
   homebrew = {
     enable = true;
 
+    # The user that owns the Homebrew installation. In most cases this should be the normal user account that you installed Homebrew as.
+    user = "${user}";
+
     # Whether to enable Homebrew to auto-update itself and all formulae when you manually invoke commands like brew install, brew upgrade, brew tap, and brew bundle [install].
     global.autoUpdate = false;
 
