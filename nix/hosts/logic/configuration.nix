@@ -72,6 +72,7 @@
       "appcleaner"
       "ente-auth"
       "garmin-express"
+      "openmtp"
 
       # Developer Tools
       "ghostty"
