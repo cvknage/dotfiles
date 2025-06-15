@@ -25,7 +25,7 @@
 
   programs.zsh = {
     enable = true;
-    initExtra = ''
+    initContent = ''
       # ''${builtins.readFile ../../../shell/zsh/PS1}
       ${builtins.readFile ../../../shell/zsh/config}
       ${builtins.readFile ../../../shell/colours}
