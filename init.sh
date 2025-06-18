@@ -39,9 +39,9 @@ case $OS in
     ;;
   "Darwin")
     if ! command -v darwin-rebuild >/dev/null; then
-      nix run nix-darwin -- switch --flake ./nix
+      sudo nix run nix-darwin -- switch --flake ./nix
     else
-      darwin-rebuild switch --flake ./nix
+      sudo darwin-rebuild switch --flake ./nix
     fi
     ;;
   *)
