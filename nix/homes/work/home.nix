@@ -37,11 +37,13 @@ in {
     # Gnome extensions
     pkgs.gnomeExtensions.auto-move-windows
     pkgs.gnomeExtensions.appindicator
+    pkgs.gnomeExtensions.easyeffects-preset-selector
 
     # Office Tools
     pkgs.slack
     pkgs.teams-for-linux
     pkgs.buttercup-desktop
+    pkgs.easyeffects
 
     # Developer Tools
     # pkgs.ghostty # perfer ghostty from its own repo
@@ -106,6 +108,7 @@ in {
         enabled-extensions = [
           "appindicatorsupport@rgcjonas.gmail.com"
           "auto-move-windows@gnome-shell-extensions.gcampax.github.com"
+          "eepresetselector@ulville.github.io"
         ];
       };
     };
