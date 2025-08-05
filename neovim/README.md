@@ -10,15 +10,4 @@ Configuration for [neovim](https://neovim.io)
 
 ## Prequisites
 
-Some of the plugins used require the following programs to function correctly:
-
-- [luarocks](https://github.com/luarocks/luarocks)  
-- [ripgrep](https://github.com/BurntSushi/ripgrep)  
-- [fd](https://github.com/sharkdp/fd)  
-- [sed](https://www.gnu.org/software/sed/)  
-
-### Optional
-
-- [fzf](https://github.com/junegunn/fzf)  
-- [jq](https://jqlang.github.io/jq/)  
-
+Some of the plugins used in this config have dependencies on native programs. See `programs.neovim` in [common.nix](https://github.com/cvknage/dotfiles/blob/main/nix/homes/common.nix)
