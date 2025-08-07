@@ -76,7 +76,7 @@ return {
     build = "make tiktoken", -- Only on MacOS or Linux
     opts = {
       -- See Configuration section for options
-      model = "gpt-4o",
+      -- model = "gpt-4o", -- :CopilotChatModels
       mappings = {
         reset = {
           normal = "<C-r>",
