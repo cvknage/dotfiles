@@ -115,8 +115,9 @@ return {
       },
       formatters = {
         csharpier = {
-          command = "dotnet-csharpier",
-          args = { "--write-stdout" },
+          command = "csharpier",
+          args = { "format", "$FILENAME" },
+          stdin = false,
         },
       },
       disable_format_on_save_for_ft = { "cs" },
@@ -125,15 +126,12 @@ return {
   {
     "zapling/mason-conform.nvim",
     optional = true,
-    opts = { ignore_install = { "csharpier" } },
-    --[[
     opts = function(_, opts)
       if not dotnet_utils.has_dotnet then
         opts.ignore_install = opts.ignore_install or {}
         table.insert(opts.ignore_install, "csharpier")
       end
     end,
-    ]]
   },
   {
     "nvim-neotest/neotest",

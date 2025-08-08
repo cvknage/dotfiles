@@ -69,13 +69,6 @@ in {
     pkgs.deno
   ];
 
-  programs.neovim = {
-    extraPackages = [
-      # C# code formatter for conform.nvim - Version from Mason stopped working with conform.nvim
-      pkgs.csharpier
-    ];
-  };
-
   programs.bash = {
     enable = true;
     initExtra = ''
