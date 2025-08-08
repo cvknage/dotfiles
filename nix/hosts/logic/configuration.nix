@@ -89,7 +89,7 @@
 
       # Browsers
       "firefox"
-      "eloston-chromium"
+      "ungoogled-chromium"
 
       # Audio & Video Tools
       "iina"
