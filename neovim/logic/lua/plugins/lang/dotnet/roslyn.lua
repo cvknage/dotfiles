@@ -7,7 +7,7 @@ return {
   },
   {
     "seblyng/roslyn.nvim", -- An updated fork of jmederosalvarado/roslyn.nvim: https://github.com/jmederosalvarado/roslyn.nvim/issues/39
-    dependencies = { "williamboman/mason.nvim" },
+    dependencies = { "mason-org/mason.nvim" },
     build = ":MasonInstall roslyn",
     enabled = dotnet_utils.has_dotnet,
     ft = "cs",

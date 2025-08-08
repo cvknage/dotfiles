@@ -52,7 +52,7 @@ return {
     "zapling/mason-conform.nvim",
     dependencies = {
       "stevearc/conform.nvim",
-      "williamboman/mason.nvim",
+      "mason-org/mason.nvim",
     },
     opts_extend = { "ignore_install" },
     opts = {
