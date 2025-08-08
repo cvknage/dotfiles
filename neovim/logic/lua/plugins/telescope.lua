@@ -11,13 +11,13 @@ return {
   dependencies = {
     { "nvim-lua/plenary.nvim" },
     {
-      'nvim-telescope/telescope-fzf-native.nvim',
-      build = 'make',
+      "nvim-telescope/telescope-fzf-native.nvim",
+      build = "make",
       config = function()
         -- To get fzf loaded and working with telescope, you need to call
         -- load_extension, somewhere after setup function:
-        require('telescope').load_extension('fzf')
-      end
+        require("telescope").load_extension("fzf")
+      end,
     },
   },
   cmd = "Telescope",
@@ -44,7 +44,7 @@ return {
     { "<leader>sb", builtin("buffers"), desc = "Buffer" },
     { "<leader>sc", builtin("command_history"), desc = "Command History" },
     { "<leader>sC", builtin("commands"), desc = "Commands" },
-    { "<leader>sd", builtin("diagnostics", { bufnr=0 }), desc = "Document diagnostics" },
+    { "<leader>sd", builtin("diagnostics", { bufnr = 0 }), desc = "Document diagnostics" },
     { "<leader>sD", builtin("diagnostics"), desc = "Workspace diagnostics" },
     { "<leader>sg", builtin("live_grep"), desc = "Grep" },
     { "<leader>sh", builtin("help_tags"), desc = "Help Pages" },
@@ -65,12 +65,12 @@ return {
     local actions = require("telescope.actions")
     return {
       defaults = {
-        winblend = 0,
+        -- winblend = 0,
         layout_config = {
           horizontal = {
             width = 0.95,
-            preview_width = 0.55
-          }
+            preview_width = 0.55,
+          },
         },
         mappings = {
           i = {

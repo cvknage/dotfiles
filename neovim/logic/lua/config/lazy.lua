@@ -50,9 +50,7 @@ require("lazy").setup({
     -- { import = "plugins.ai.tabby" },
     -- { import = "plugins.ai.gen" },
   },
-  install = {
-    colorscheme = { "catppuccin-macchiato" },
-  },
+  install = { colorscheme = { "catppuccin", "habamax" } },
   dev = {
     path = "~/Code",
     patterns = { "cvknage" },
