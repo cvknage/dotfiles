@@ -9,5 +9,15 @@ return {
     "MasonUninstallAll",
     "MasonLog",
   },
-  config = true,
+  -- config = true,
+  config = function(_, _)
+    -- Add custom mason registry to allow mason to download roslyn.
+    -- Remove this config section and use "config = true" instead when mason has the roslyn package natievly.
+    require("mason").setup({
+      registries = {
+        "github:mason-org/mason-registry",
+        "github:Crashdummyy/mason-registry",
+      },
+    })
+  end,
 }

@@ -107,13 +107,4 @@ M.dotnet_get_dll_path = function()
   return M["dotnet_last_dll_path"]
 end
 
-M.dotnet_add_prerecorded_macros = function()
-  local esc = vim.api.nvim_replace_termcodes("<Esc>", true, true, true)
-  -- stylua: ignore start
-  vim.fn.setreg("c", "yoConsole.WriteLine($\"\"\"" .. esc .. "hpa: {" .. esc .. "pa{<80>kb}" .. esc .. "A_<80>kb);" .. esc .. "")
-  vim.fn.setreg("l", "yo_logger.LogInformation();" .. esc .. "hha\"\"" .. esc .. "hpa: " .. esc .. "la, " .. esc .. "p")
-  vim.fn.setreg("m", "yovar res = pa switch\n{\nIMethodSuccess<> => ,\nIMethodFailure<> f => f,\n\n_ => throw new InvalidOperationException(\"Something went wrong\")\n};?<k")
-  -- stylua: ignore end
-end
-
 return M
