@@ -46,8 +46,8 @@ in {
     pkgs.easyeffects
 
     # Developer Tools
-    # pkgs.ghostty # perfer ghostty from its own repo
-    inputs.ghostty.packages.${pkgs.system}.default
+    pkgs.ghostty # perfer ghostty from its own repo
+    # inputs.ghostty.packages.${pkgs.system}.default
     pkgs.postman
     pkgs.azure-cli
     pkgs.kubelogin
