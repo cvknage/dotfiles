@@ -1,19 +1,19 @@
-[[mgr.prepend_keymap]]
+[[manager.prepend_keymap]]
 desc = "Maximize or restore the preview pane"
 on = "T"
 run = "plugin max-preview"
 
-[[mgr.prepend_keymap]]
+[[manager.prepend_keymap]]
 desc = "Chmod on selected files"
 on = ["c", "m"]
 run = "plugin chmod"
 
-[[mgr.prepend_keymap]]
+[[manager.prepend_keymap]]
 desc = "UI toggle parent"
 on = ["u", "p"]
 run = "plugin toggle-view --args=parent"
 
-[[mgr.prepend_keymap]]
+[[manager.prepend_keymap]]
 desc = "UI toggle Preview"
 on = ["u", "P"]
 run = "plugin toggle-view --args=preview"
