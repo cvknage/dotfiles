@@ -1,7 +1,11 @@
 return {
   {
     "mason-org/mason.nvim",
-    lazy = true,
+    dependencies = {
+      -- The plugins below are technically dependant in reverse
+      -- They are listed here to make them load when mason loads
+      "zapling/mason-lock.nvim",
+    },
     cmd = {
       "Mason",
       "MasonUpdate",
@@ -24,10 +28,13 @@ return {
   },
   {
     "zapling/mason-lock.nvim",
-    init = function()
-      require("mason-lock").setup({
-        lockfile_path = vim.fn.stdpath("config") .. "/mason-lock.json",
-      })
-    end,
+    dependencies = { "mason-org/mason.nvim" },
+    cmd = {
+      "MasonLock",
+      "MasonLockRestore",
+    },
+    opts = {
+      lockfile_path = vim.fn.stdpath("config") .. "/mason-lock.json",
+    },
   },
 }
