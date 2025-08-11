@@ -45,8 +45,6 @@ return {
         "html",
         "json",
         "jsonc",
-        "markdown",
-        "markdown_inline",
         "python",
         "query",
         "regex",
