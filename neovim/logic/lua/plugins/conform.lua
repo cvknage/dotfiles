@@ -10,11 +10,6 @@ end
 return {
   {
     "stevearc/conform.nvim",
-    dependencies = {
-      -- The plugins below are technically dependant in reverse
-      -- They are listed here to make them load when conform loads
-      "zapling/mason-conform.nvim",
-    },
     event = { "BufWritePre" },
     cmd = { "ConformInfo" },
     -- stylua: ignore
@@ -51,13 +46,19 @@ return {
         end
       end
       require("conform").setup(opts)
+
+      -- It's crucial to setup plugins in the following order: mason.nvim -> conform.nvim -> mason-conform.nvim
+      -- https://github.com/zapling/mason-conform.nvim?tab=readme-ov-file#setup
+      vim.schedule(function()
+        require("mason-conform")
+      end)
     end,
   },
   {
     "zapling/mason-conform.nvim",
     dependencies = {
-      "stevearc/conform.nvim",
       "mason-org/mason.nvim",
+      "stevearc/conform.nvim",
     },
     lazy = true,
     opts_extend = { "ignore_install" },
