@@ -23,7 +23,7 @@ return {
 
       -- Load mason-lock after mason
       vim.schedule(function()
-        require("mason-lock")
+        require("lazy").load({ plugins = { "mason-lock.nvim" } })
       end)
     end,
   },
@@ -35,7 +35,10 @@ return {
       "MasonLockRestore",
     },
     opts = {
-      lockfile_path = vim.fn.stdpath("config") .. "/mason-lock.json",
+      lockfile_path = vim.fn.stdpath("config")
+        .. "/mason-lock"
+        .. (require("utils").is_private_config and "-private" or require("utils").is_work_config and "-work" or "")
+        .. ".json",
     },
   },
 }

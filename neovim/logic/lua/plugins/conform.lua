@@ -50,7 +50,7 @@ return {
       -- It's crucial to setup plugins in the following order: mason.nvim -> conform.nvim -> mason-conform.nvim
       -- https://github.com/zapling/mason-conform.nvim?tab=readme-ov-file#setup
       vim.schedule(function()
-        require("mason-conform")
+        require("lazy").load({ plugins = { "mason-conform.nvim" } })
       end)
     end,
   },
