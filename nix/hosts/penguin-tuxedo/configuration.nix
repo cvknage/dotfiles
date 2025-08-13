@@ -8,7 +8,7 @@
   ...
 }: let
   # Declare a custom XKB symbols file for U.S. English (Macintosh) layout.
-  # Swap the '`' (grave) and '§' (section) keys to make the layout similar to the "U.S. Internationl - PC" layout on Mac.
+  # Swap the '`' (grave) and '§' (section) keys on the us(mac) layout to make a layout similar to the "U.S. Internationl - PC" layout on Mac.
   # This makes using Kanata and ZSA Voyager the same experience on both platforms.
   usEnglishMacintoshSymbolsFile = pkgs.writeText "us_en_macintosh" ''
     partial alphanumeric_keys
@@ -90,17 +90,8 @@ in {
   # Enable the X11 windowing system.
   services.xserver.enable = true;
 
-  # Configure keymap in X11
+  # Add a custom keymap config in X11
   services.xserver.xkb = {
-    # Laout should to be: U.S. English (Macintosh) to make it simila to "U.S. Internationl - PC" layout on Mac.
-    # This makes using Kanata and ZSA Voyager the same experience on both platforms.
-    # This used to work, but '`' (grave) and '§' (section) keys got swapped in a NixOS update:
-    /*
-    layout = "us";
-    variant = "mac";
-    */
-
-    # Use a custom symbols file to swap '`' (grave) and '§' (section) keys:
     layout = "us_en_macintosh";
     extraLayouts = {
       us_en_macintosh = {

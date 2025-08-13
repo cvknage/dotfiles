@@ -105,7 +105,13 @@ in {
     settings = {
       # Select keyboard layout
       "org/gnome/desktop/input-sources" = {
-        sources = [(lib.hm.gvariant.mkTuple ["xkb" "us_en_macintosh"])];
+        sources = [
+          (lib.hm.gvariant.mkTuple ["xkb" "us_en_macintosh"])
+          # Laout should to be: U.S. English (Macintosh) to make it simila to "U.S. Internationl - PC" layout on Mac.
+          # This makes using Kanata and ZSA Voyager the same experience on both platforms.
+          # This used to work, but '`' (grave) and '§' (section) keys got swapped in a NixOS update:
+          # (lib.hm.gvariant.mkTuple ["xkb" "us+mac"])
+        ];
         xkb-options = [];
       };
       # Enable extensions
