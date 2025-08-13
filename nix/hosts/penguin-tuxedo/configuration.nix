@@ -7,9 +7,10 @@
   owner,
   ...
 }: let
-  # Declare a custom XKB symbols file for U.S. English (Macintosh) layout.
-  # Swap the '`' (grave) and '§' (section) keys on the us(mac) layout to make a layout similar to the "U.S. Internationl - PC" layout on Mac.
-  # This makes using Kanata and ZSA Voyager the same experience on both platforms.
+  # Declare a custom XKB symbols file for a custom "U.S. English (Macintosh)" layout.
+  # Use the "us(mac)" layout as a bae and swap the '`' (grave) and '§' (section) keys.
+  # The intention is to make a layout that is similar to the "U.S. Internationl - PC" layout on Mac.
+  # "us(mac)" used to be similar, but '`' (grave) and '§' (section) keys got swapped in a NixOS update.
   usEnglishMacintoshSymbolsFile = pkgs.writeText "us_en_macintosh" ''
     partial alphanumeric_keys
     xkb_symbols "us_en_macintosh" {
