@@ -1,5 +1,6 @@
 {
   inputs,
+  lib,
   pkgs,
   user,
   ...
@@ -102,6 +103,12 @@ in {
   # Configure GNOME desktop settings using dconf
   dconf = {
     settings = {
+      # Select keyboard layout
+      "org/gnome/desktop/input-sources" = {
+        sources = [(lib.hm.gvariant.mkTuple ["xkb" "us_en_macintosh"])];
+        xkb-options = [];
+      };
+      # Enable extensions
       "org/gnome/shell" = {
         disable-user-extensions = false;
         # Use command: `gnome-extensions list` to get extension UUIDs

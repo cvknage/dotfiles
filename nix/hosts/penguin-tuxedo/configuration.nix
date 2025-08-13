@@ -6,7 +6,19 @@
   user,
   owner,
   ...
-}: {
+}: let
+  # Declare a custom XKB symbols file for U.S. English (Macintosh) layout.
+  # Swap the '`' (grave) and '§' (section) keys to make the layout similar to the "U.S. Internationl - PC" layout on Mac.
+  # This makes using Kanata and ZSA Voyager the same experience on both platforms.
+  usEnglishMacintoshSymbolsFile = pkgs.writeText "us_en_macintosh" ''
+    partial alphanumeric_keys
+    xkb_symbols "us_en_macintosh" {
+      include "us(mac)"
+      key <TLDE> { [ grave, asciitilde ] };
+      key <LSGT> { [ section, plusminus ] };
+    };
+  '';
+in {
   imports = [
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
@@ -60,12 +72,9 @@
     LC_TIME = "da_DK.UTF-8";
   };
 
-  # Enable the X11 windowing system.
-  services.xserver.enable = true;
-
   # Enable the GNOME Desktop Environment.
-  services.xserver.displayManager.gdm.enable = true;
-  services.xserver.desktopManager.gnome.enable = true;
+  services.displayManager.gdm.enable = true;
+  services.desktopManager.gnome.enable = true;
 
   # Exclude default GNOME Applications.
   environment.gnome.excludePackages = with pkgs; [
@@ -78,11 +87,32 @@
   # Enable dconf for managing GNOME settings
   programs.dconf.enable = true;
 
+  # Enable the X11 windowing system.
+  services.xserver.enable = true;
+
   # Configure keymap in X11
   services.xserver.xkb = {
+    # Laout should to be: U.S. English (Macintosh) to make it simila to "U.S. Internationl - PC" layout on Mac.
+    # This makes using Kanata and ZSA Voyager the same experience on both platforms.
+    # This used to work, but '`' (grave) and '§' (section) keys got swapped in a NixOS update:
+    /*
     layout = "us";
     variant = "mac";
+    */
+
+    # Use a custom symbols file to swap '`' (grave) and '§' (section) keys:
+    layout = "us_en_macintosh";
+    extraLayouts = {
+      us_en_macintosh = {
+        description = "U.S. English (Macintosh)";
+        languages = ["eng"];
+        symbolsFile = usEnglishMacintoshSymbolsFile;
+      };
+    };
   };
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.xserver.libinput.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -102,9 +132,6 @@
     # no need to redefine it in your config for now)
     #media-session.enable = true;
   };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
 
   # Enable flatpak
   # services.flatpak.enable = true;
