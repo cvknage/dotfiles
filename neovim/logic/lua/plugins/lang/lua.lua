@@ -150,34 +150,31 @@ return {
         "jbyuki/one-small-step-for-vimkind",
         config = function()
           local dap = require("dap")
-
+          dap.configurations.lua = {
+            {
+              type = "nlua",
+              request = "launch",
+              name = "Launch a vimkind server - Read ducuentation @ https://github.com/jbyuki/one-small-step-for-vimkind/blob/main/doc/osv.txt#L44C1-L44C11",
+            },
+            {
+              type = "nlua",
+              request = "attach",
+              name = "Attach to a vimkind server runningin another Neovim instance",
+            },
+          }
           dap.adapters.nlua = function(callback, config)
-            local adapter = {
+            local server = {
               type = "server",
               host = config.host or "127.0.0.1",
               port = config.port or 8086,
             }
 
             if config.request == "launch" then
-              require("osv").launch({ port = 8086 })
+              require("osv").launch(server)
+            else
+              callback(server)
             end
-
-            callback(adapter)
           end
-
-          dap.configurations.lua = {
-            {
-              type = "nlua",
-              request = "launch",
-              name = "Launch Vimkind Server - Read ducuentation @ https://github.com/jbyuki/one-small-step-for-vimkind/blob/main/doc/osv.txt#L44C1-L44C11",
-            },
-            {
-              type = "nlua",
-              request = "attach",
-              name = "Attach to a Vimkind server runningin another Neovim instance",
-              port = 8086,
-            },
-          }
         end,
       },
     },
