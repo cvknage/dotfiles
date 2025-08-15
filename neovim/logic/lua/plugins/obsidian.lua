@@ -20,7 +20,7 @@ return {
   --   "BufNewFile path/to/my-vault/*.md",
   -- },
   dependencies = {
-    "nvim-lua/plenary.nvim", -- Required.
+    "nvim-lua/plenary.nvim",
     { "hrsh7th/nvim-cmp", optional = true },
   },
   opts = {

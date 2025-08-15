@@ -3,12 +3,8 @@ return {
   {
     "mfussenegger/nvim-dap",
     dependencies = {
+      { "nvim-lua/plenary.nvim" },
       { "theHamsta/nvim-dap-virtual-text", opts = {} },
-
-      -- The plugins below are technically dependant in reverse
-      -- They are listed here to make them load when nvim-dap loads
-      "rcarriga/nvim-dap-ui",
-      "jay-babu/mason-nvim-dap.nvim",
     },
     -- stylua: ignore
     keys = {
@@ -33,13 +29,26 @@ return {
       { "<leader>dt", function() require("dap").terminate() end, desc = "Terminate" },
       { "<leader>dw", function() require("dap.ui.widgets").hover() end, desc = "Widgets" },
     },
-    config = function()
-      -- setup dap config by VsCode launch.json file
+    opts_extend = { "linked_plugins" },
+    opts = {
+      linked_plugins = {},
+    },
+    config = function(_, opts)
+      -- Make sure JSON Comments are strippes from VsCode launch.json files.
       local vscode = require("dap.ext.vscode")
       local json = require("plenary.json")
+      ---@diagnostic disable-next-line: duplicate-set-field
       vscode.json_decode = function(str)
         return vim.json.decode(json.json_strip_comments(str))
       end
+
+      -- Load linked_plugins.
+      vim.schedule(function()
+        local plugin_names = vim.tbl_map(function(plugin)
+          return plugin:match("/(.+)$") or plugin
+        end, opts.linked_plugins)
+        require("lazy").load({ plugins = plugin_names })
+      end)
     end,
   },
 
@@ -47,7 +56,7 @@ return {
   {
     "rcarriga/nvim-dap-ui",
     dependencies = {
-      "mfussenegger/nvim-dap",
+      { "mfussenegger/nvim-dap", opts = { linked_plugins = { "rcarriga/nvim-dap-ui" } } },
       "nvim-neotest/nvim-nio",
     },
     -- stylua: ignore
@@ -76,7 +85,7 @@ return {
   {
     "jay-babu/mason-nvim-dap.nvim",
     dependencies = {
-      "mason-org/mason.nvim",
+      { "mfussenegger/nvim-dap", opts = { linked_plugins = { "jay-babu/mason-nvim-dap.nvim" } } },
       "mfussenegger/nvim-dap",
     },
     cmd = { "DapInstall", "DapUninstall" },

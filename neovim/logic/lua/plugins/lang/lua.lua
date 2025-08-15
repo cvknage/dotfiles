@@ -143,56 +143,43 @@ return {
   },
   {
     "mfussenegger/nvim-dap",
+    optional = true,
     dependencies = {
-      -- The plugins below are technically dependant in reverse
-      -- They are listed here to make them load when nvim-dap loads
-      "jbyuki/one-small-step-for-vimkind",
-    },
-  },
-  {
-    "jbyuki/one-small-step-for-vimkind",
-    dependencies = {
-      "mfussenegger/nvim-dap",
-    },
-    lazy = true,
-    config = function()
-      local dap = require("dap")
+      -- one-small-step-for-vimkind must be loaded before nvim-dap to work correctly.
+      {
+        "jbyuki/one-small-step-for-vimkind",
+        config = function()
+          local dap = require("dap")
 
-      dap.adapters.nlua = function(callback, config)
-        local adapter = {
-          type = "server",
-          host = config.host or "127.0.0.1",
-          port = config.port or 8086,
-        }
+          dap.adapters.nlua = function(callback, config)
+            local adapter = {
+              type = "server",
+              host = config.host or "127.0.0.1",
+              port = config.port or 8086,
+            }
 
-        if config.start_neovim then
-          local dap_run = dap.run
-          ---@diagnostic disable-next-line: duplicate-set-field
-          dap.run = function(running_config)
-            adapter.port = running_config.port
-            adapter.host = running_config.host
+            if config.request == "launch" then
+              require("osv").launch({ port = 8086 })
+            end
+
+            callback(adapter)
           end
-          require("osv").run_this()
-          dap.run = dap_run
-        end
 
-        callback(adapter)
-      end
-
-      dap.configurations.lua = {
-        {
-          type = "nlua",
-          request = "attach",
-          name = "Run this file",
-          start_neovim = {},
-        },
-        {
-          type = "nlua",
-          request = "attach",
-          name = "Attach to running Neovim instance (port = 8086) - Read ducuentation @ https://github.com/jbyuki/one-small-step-for-vimkind/blob/main/doc/osv.txt#L44C1-L44C11",
-          port = 8086,
-        },
-      }
-    end,
+          dap.configurations.lua = {
+            {
+              type = "nlua",
+              request = "launch",
+              name = "Launch Vimkind Server - Read ducuentation @ https://github.com/jbyuki/one-small-step-for-vimkind/blob/main/doc/osv.txt#L44C1-L44C11",
+            },
+            {
+              type = "nlua",
+              request = "attach",
+              name = "Attach to a Vimkind server runningin another Neovim instance",
+              port = 8086,
+            },
+          }
+        end,
+      },
+    },
   },
 }

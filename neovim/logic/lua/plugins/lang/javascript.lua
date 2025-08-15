@@ -66,8 +66,11 @@ return {
             executable = {
               command = "node",
               args = {
+                --[[
                 require("mason-registry").get_package("js-debug-adapter"):get_install_path()
                   .. "/js-debug/src/dapDebugServer.js",
+                ]]
+                vim.fn.exepath("js-debug-adapter"),
                 "${port}",
               },
             },

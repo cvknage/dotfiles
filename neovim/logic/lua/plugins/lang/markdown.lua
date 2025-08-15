@@ -1,10 +1,12 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = {
-      "markdown",
-      "markdown_inline",
-    } },
+    opts = {
+      ensure_installed = {
+        "markdown",
+        "markdown_inline",
+      },
+    },
   },
   {
     "iamcco/markdown-preview.nvim",

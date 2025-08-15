@@ -63,7 +63,8 @@ M.debug_adapter = function()
       adapter = "netcoredbg",
       config = {
         type = "executable",
-        command = require("mason-registry").get_package("netcoredbg"):get_install_path() .. "/netcoredbg",
+        -- command = require("mason-registry").get_package("netcoredbg"):get_install_path() .. "/netcoredbg",
+        command = vim.fn.exepath("netcoredbg"),
         args = { "--interpreter=vscode" },
       },
     },
