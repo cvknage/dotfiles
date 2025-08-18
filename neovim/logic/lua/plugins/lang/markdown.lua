@@ -10,15 +10,21 @@ return {
   },
   {
     "iamcco/markdown-preview.nvim",
+    enabled = false, -- Trying out live-preview.nvim instead.
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
     ft = { "markdown" },
     build = ":call mkdp#util#install()",
   },
   {
+    "brianhuster/live-preview.nvim",
+    cmd = { "LivePreview" },
+    dependencies = {
+      "nvim-telescope/telescope.nvim",
+    },
+  },
+  {
     "MeanderingProgrammer/render-markdown.nvim",
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
-    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" }, -- if you prefer nvim-web-devicons
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     cmd = { "RenderMarkdown" },
     ft = { "markdown" },
     ---@module 'render-markdown'

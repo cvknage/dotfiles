@@ -100,7 +100,7 @@ Setup host system to be ready for Kanata:
   sudo launchctl load -w "$PLIST_FILE"
   ```
 
-  ```
+  ``` txt
   How do I use `launchctl` again?
 
   TL;DR
