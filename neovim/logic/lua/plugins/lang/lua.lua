@@ -164,14 +164,13 @@ return {
           }
           dap.adapters.nlua = function(callback, config)
             local server = {
-              type = "server",
               host = config.host or "127.0.0.1",
               port = config.port or 8086,
             }
-
             if config.request == "launch" then
               require("osv").launch(server)
             else
+              server.type = "server"
               callback(server)
             end
           end
