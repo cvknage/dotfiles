@@ -164,7 +164,7 @@ in {
     lshw # (List Hardware) - use "sudo lshw -c display" to setup NVIDIA GPU: https://nixos.wiki/wiki/Nvidia
     nvtopPackages.full # NVTOP stands for Neat Videocard TOP, a (h)top like task monitor for GPUs and accelerators.
     nvitop # An interactive NVIDIA-GPU process viewer and beyond.
-    displaylink # DisplayLink Drivers - this is actually rather annoying, as rebuilds fail becaus a you need to run a command to prefetch the driver.
+    # displaylink # DisplayLink Drivers - this is actually rather annoying, as rebuilds fail becaus a you need to run a command to prefetch the driver.
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

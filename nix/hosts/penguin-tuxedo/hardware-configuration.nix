@@ -57,16 +57,15 @@
   };
 
   # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers =
-    ["nvidia"]
-    ++
-    # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
-    ["displaylink" "modesetting"];
+  services.xserver.videoDrivers = ["nvidia"];
+  # ++
+  # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
+  # ["displaylink" "modesetting"];
 
   # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
-  services.xserver.displayManager.sessionCommands = ''
-    ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
-  '';
+  # services.xserver.displayManager.sessionCommands = ''
+  #   ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
+  # '';
 
   hardware.nvidia = {
     # Modesetting is required.
