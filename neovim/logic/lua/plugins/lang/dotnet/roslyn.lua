@@ -93,7 +93,6 @@ return {
           stdin = false,
         },
       },
-      disable_format_on_save_for_ft = { "cs" },
     },
   },
   {
