@@ -1,8 +1,6 @@
 return {
   {
     "nvim-neotest/neotest",
-    -- https://github.com/Issafalcon/neotest-dotnet/issues/141 and https://github.com/nvim-neotest/neotest/issues/531
-    -- commit = "52fca6717ef972113ddd6ca223e30ad0abb2800c",
     dependencies = {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
