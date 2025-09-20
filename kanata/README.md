@@ -35,9 +35,11 @@ git checkout v<VERSION>
 cargo install --path <KANATA_CHECKOUT_DIR>
 ```
 
-Setup host system to be ready for Kanata:
+Configure host system for Kanata:
 <details>
   <summary>For macOS</summary>
+
+  #### Install Karabiner DriverKit
 
   Download and install the specified [`Karabiner-DriverKit-VirtualHIDDevice Driver`](https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice) for the Kanata version
 
@@ -46,24 +48,45 @@ Setup host system to be ready for Kanata:
   /Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate
   ```
 
+  Make sure `.Karabiner-VirtualHIDDevice-Manager` has been activated correctly  
+  Under: Settings > General > Login Items & Extensions  
+  If it's not there, the `Karabiner-DriverKit-VirtualHIDDevice Driver` must be uninstalled and installed again to trigger the prompt that allows it  
+
   To uninstall it:
   ``` bash
   bash '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/scripts/uninstall/deactivate_driver.sh'
   sudo bash '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/scripts/uninstall/remove_files.sh'
   ```
+
+  To launch the daemon:
+  ``` bash
+    sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon'
+  ```
+
   Allow Kanata in macOS's TCC (Transparency, Consent and Control)  
   Under: Settings > Privacy and Security > Input Monitoring  
   Add the Kanata binary (from `~/.cargo/bin/kanata`) to allow it to run as a launch daemon  
-  <img width="827" alt="TCC" src="https://github.com/user-attachments/assets/120ea53c-4e60-4f5f-9369-34160eecb41b" />
+  (If this is an update, the kanata binary must be removed and added again)
+  <img width="827" alt="TCC" src="https://github.com/user-attachments/assets/120ea53c-4e60-4f5f-9369-34160eecb41b" />  
 
+  Now is a good time to test if everything works correctly:
+  ``` bash
+  sudo kanata --cfg ~/.config/kanata/kanata.kbd
+  ```
+  If it doen't work, fix it before continuing
+
+  <br/>
+  <br/>
+
+  #### Run Kanata on startup
   Create a sudoers file entry for kanata
   ``` bash
   echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE"
   ```
 
-  Create a plist file for the LaunchDaemon
+  Create plist files for the LaunchDaemons
   ``` bash
-  cat <<EOF | sudo tee "$PLIST_FILE"
+  cat <<EOF | sudo tee "$KANATA_PLIST_FILE" >/dev/null
   <?xml version="1.0" encoding="UTF-8"?>
   <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
   <plist version="1.0">
@@ -95,9 +118,52 @@ Setup host system to be ready for Kanata:
   EOF
   ```
 
-  Load the daemon
   ``` bash
-  sudo launchctl load -w "$PLIST_FILE"
+  cat <<EOF | sudo tee "$KARABINER_DAEMON_PLIST_FILE" >/dev/null
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+  <dict>
+      <key>Label</key>
+      <string>com.pqrs-org.karabiner-vhiddaemon</string>
+      <key>ProgramArguments</key>
+      <array>
+          <string>/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon</string>
+      </array>
+      <key>RunAtLoad</key>
+      <true/>
+      <key>KeepAlive</key>
+      <true/>
+  </dict>
+  </plist>
+    EOF
+  ```
+
+  ``` bash
+  cat <<EOF | sudo tee "$KARABINER_MANAGER_PLIST_FILE" >/dev/null
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+  <plist version="1.0">
+  <dict>
+      <key>Label</key>
+      <string>com.pqrs-org.karabiner-vhidmanager</string>
+      <key>ProgramArguments</key>
+      <array>
+          <string>/Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager</string>
+          <string>activate</string>
+      </array>
+      <key>RunAtLoad</key>
+      <true/>
+  </dict>
+  </plist>
+  EOF
+  ```
+
+  Load the daemons
+  ``` bash
+  sudo launchctl load -w "$KARABINER_MANAGER_PLIST_FILE"
+  sudo launchctl load -w "$KARABINER_DAEMON_PLIST_FILE"
+  sudo launchctl load -w "$KANATA_PLIST_FILE"
   ```
 
   ``` txt
@@ -123,6 +189,8 @@ Setup host system to be ready for Kanata:
   <summary>For Gnu/Linux</summary>
 
   Basically follow the guide desribed [here](https://github.com/jtroo/kanata/blob/main/docs/setup-linux.md):
+
+  #### Grant Kanata permission to access the input and uinput subsystem
 
   If the uinput group does not exist, create a new group
   ``` bash
@@ -150,6 +218,20 @@ Setup host system to be ready for Kanata:
   ``` bash
   sudo modprobe uinput
   ```
+
+  <br/>
+  <br/>
+
+  Now is a good time to test if everything works correctly:
+  ``` bash
+  sudo kanata --cfg ~/.config/kanata/kanata.kbd
+  ```
+  If it doen't work, fix it before continuing
+
+  <br/>
+  <br/>
+
+  #### Run Kanata on startup
   Create and enable a systemd daemon service
   ``` bash
   mkdir -p ~/.config/systemd/user
@@ -181,8 +263,3 @@ Setup host system to be ready for Kanata:
   ```
 </details>
 <br/>
-
-On Gnu/Linux and macOS, this may not work without `sudo`
-``` bash
-kanata --cfg ~/.config/kanata/kanata.kbd
-```
