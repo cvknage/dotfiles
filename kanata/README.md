@@ -58,6 +58,10 @@ Configure host system for Kanata:
   Check that `.Karabiner-VirtualHIDDevice-Manager` is listed under `Extensions` and that it is activated  
   - If it is not listed there, the `.Karabiner-VirtualHIDDevice-Manager` driver must be uninstalled and installed again.  
     It may be necessary to reboot between uninstall and install, to trigger the prompt that allows `.Karabiner-VirtualHIDDevice-Manager` in `System Settings`  
+  <p align="center">
+    <img width="450" alt="Login Items & Extensions 1" src="./doc/login_items_and_extensions_1.png" style="vertical-align: middle;" />
+    <img width="450" alt="Login Items & Extensions 2" src="./doc/login_items_and_extensions_2.png" style="vertical-align: middle;" />
+  </p>
 
   To uninstall it:
   ``` bash
@@ -70,7 +74,9 @@ Configure host system for Kanata:
   Under: Settings > Privacy and Security > Input Monitoring  
   Add the Kanata binary (from `~/.cargo/bin/kanata`) to allow it to run as a launch daemon  
   - If this is an update from a previous version, the Kanata binary must be removed and added again
-  <img width="827" alt="TCC" src="https://github.com/user-attachments/assets/120ea53c-4e60-4f5f-9369-34160eecb41b" />  
+  <p align="center">
+    <img width="450" alt="Input Monitoring" src="./doc/input_monitoring.png" style="vertical-align: middle;" />  
+  </p>
 
   Now is a good time to test if everything works correctly:  
   While the daemon is running, open a new terminal window and run:
