@@ -41,35 +41,39 @@ Configure host system for Kanata:
 
   #### Install Karabiner DriverKit
 
-  Download and install the specified [`Karabiner-DriverKit-VirtualHIDDevice Driver`](https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice) for the Kanata version
+  Download and install the [`Karabiner-DriverKit-VirtualHIDDevice Driver`](https://github.com/pqrs-org/Karabiner-DriverKit-VirtualHIDDevice) that is specified for the Kanata version
 
-  To activate it:
+  Activate it:
   ``` bash
   /Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate
   ```
 
-  Make sure `.Karabiner-VirtualHIDDevice-Manager` has been activated correctly  
+  Launch the daemon:
+  ``` bash
+    sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon'
+  ```
+
+  Verify that `.Karabiner-VirtualHIDDevice-Manager` has been activated  
   Under: Settings > General > Login Items & Extensions  
-  If it's not there, the `Karabiner-DriverKit-VirtualHIDDevice Driver` must be uninstalled and installed again to trigger the prompt that allows it  
+  Check that `.Karabiner-VirtualHIDDevice-Manager` is listed under `Extensions` and that it is activated  
+  - If it is not listed there, the `.Karabiner-VirtualHIDDevice-Manager` driver must be uninstalled and installed again.  
+    It may be necessary to reboot between uninstall and install, to trigger the prompt that allows `.Karabiner-VirtualHIDDevice-Manager` in `System Settings`  
 
   To uninstall it:
   ``` bash
   bash '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/scripts/uninstall/deactivate_driver.sh'
   sudo bash '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/scripts/uninstall/remove_files.sh'
-  ```
-
-  To launch the daemon:
-  ``` bash
-    sudo '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/Applications/Karabiner-VirtualHIDDevice-Daemon.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Daemon'
+  sudo killall Karabiner-VirtualHIDDevice-Daemon
   ```
 
   Allow Kanata in macOS's TCC (Transparency, Consent and Control)  
   Under: Settings > Privacy and Security > Input Monitoring  
   Add the Kanata binary (from `~/.cargo/bin/kanata`) to allow it to run as a launch daemon  
-  (If this is an update, the kanata binary must be removed and added again)
+  - If this is an update from a previous version, the Kanata binary must be removed and added again
   <img width="827" alt="TCC" src="https://github.com/user-attachments/assets/120ea53c-4e60-4f5f-9369-34160eecb41b" />  
 
-  Now is a good time to test if everything works correctly:
+  Now is a good time to test if everything works correctly:  
+  While the daemon is running, open a new terminal window and run:
   ``` bash
   sudo kanata --cfg ~/.config/kanata/kanata.kbd
   ```
@@ -79,9 +83,20 @@ Configure host system for Kanata:
   <br/>
 
   #### Run Kanata on startup
+
+  Define shell variables (paste these in the shell)
+  ``` bash
+  KANATA_BIN_PATH="$HOME/.cargo/bin/kanata"
+  KANATA_CONFIG_PATH="$HOME/.config/kanata/kanata.kbd"
+  KANATA_SUDOERS_FILE="/etc/sudoers.d/kanata"
+  KANATA_PLIST_FILE="/Library/LaunchDaemons/com.jtroo.kanata.plist"
+  KARABINER_DAEMON_PLIST_FILE="/Library/LaunchDaemons/com.pqrs-org.karabiner-vhiddaemon.plist"
+  KARABINER_MANAGER_PLIST_FILE="/Library/LaunchDaemons/com.pqrs-org.karabiner-vhidmanager.plist"
+  ```
+
   Create a sudoers file entry for kanata
   ``` bash
-  echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE"
+  echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$KANATA_SUDOERS_FILE"
   ```
 
   Create plist files for the LaunchDaemons

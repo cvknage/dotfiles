@@ -1,21 +1,22 @@
 #!/usr/bin/env bash
 
 # Variables
-MACOS_DROVER_FOLDER="macos.driver"
+MACOS_DRIVER_FOLDER="macos.driver"
 KARABINER_DRIVER_NAME="Karabiner-DriverKit-VirtualHIDDevice"
 KARABINER_DRIVER_FILE_NAME="${KARABINER_DRIVER_NAME}.pkg"
-SUDOERS_FILE="/etc/sudoers.d/kanata"
+KARABINER_MANAGER_NAME=".Karabiner-VirtualHIDDevice-Manager"
+KANATA_SUDOERS_FILE="/etc/sudoers.d/kanata"
 KANATA_PLIST_FILE="/Library/LaunchDaemons/com.jtroo.kanata.plist"
 KARABINER_DAEMON_PLIST_FILE="/Library/LaunchDaemons/com.pqrs-org.karabiner-vhiddaemon.plist"
 KARABINER_MANAGER_PLIST_FILE="/Library/LaunchDaemons/com.pqrs-org.karabiner-vhidmanager.plist"
 . ./kanata_variables.sh
 
 # Download Karabiner Driver
-mkdir -p "${MACOS_DROVER_FOLDER}"
-curl -o "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}" "$KANATA_MACOS_KARABINER_DRIVER_URI" &>/dev/null
+mkdir -p "${MACOS_DRIVER_FOLDER}"
+curl -o "${MACOS_DRIVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}" "$KANATA_MACOS_KARABINER_DRIVER_URI" &>/dev/null
 
 # Install Karabiner Driver
-open "${MACOS_DROVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}"
+open "${MACOS_DRIVER_FOLDER}/${KARABINER_DRIVER_FILE_NAME}"
 
 # Announce manual actions
 echo ""
@@ -25,20 +26,23 @@ echo ""
 echo "Run the following command to activate the \"${KARABINER_DRIVER_NAME}\" driver:"
 echo "    /Applications/.Karabiner-VirtualHIDDevice-Manager.app/Contents/MacOS/Karabiner-VirtualHIDDevice-Manager activate"
 echo ""
-echo "Make sure .Karabiner-VirtualHIDDevice-Manager has been activated correctly"
+echo "Verirify that \"${KARABINER_MANAGER_NAME}\" has been activated"
 echo "Under: Settings > General > Login Items & Extensions"
-echo "If it's not there, the \"{$KARABINER_DRIVER_NAME}\" driver must be uninstalled and installed again to trigger the prompt that allows it"
+echo "Check that \"${KARABINER_MANAGER_NAME}\" is listed under \"Extensions\" and that it is activated"
+echo "- If it is not listed there, the \"${KARABINER_DRIVER_NAME}\" driver must be uninstalled and installed again."
+echo "  It may be necessary to reboot between uninstall and install, to trigger the prompt that allows \"${KARABINER_MANAGER_NAME}\" in \"System Settings\""
 echo ""
 echo "Allow Kanata in macOS's TCC (Transparency, Consent and Control)"
 echo "Under: Settings > Privacy and Security > Input Monitoring"
 echo "Add the Kanata binary (from \"~/.cargo/bin/kanata\") to allow it to run as a launch daemon"
-echo "(If this is an update, the kanata binary must be removed and added again)"
+echo "- If this is an update from a previous version, the Kanata binary must be removed and added again"
 echo ""
 echo ""
 read -p "Press Enter to continue..."
+echo "Creating launch daemons..."
 
 # Create a sudoers file entry for kanata
-echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$SUDOERS_FILE" >/dev/null
+echo "$(whoami) ALL=(ALL) NOPASSWD: $KANATA_BIN_PATH" | sudo tee "$KANATA_SUDOERS_FILE" >/dev/null
 
 # Create plist files for the LaunchDaemons
 cat <<EOF | sudo tee "$KANATA_PLIST_FILE" >/dev/null
@@ -113,3 +117,5 @@ EOF
 sudo launchctl load -w "$KARABINER_MANAGER_PLIST_FILE" 2>/dev/null
 sudo launchctl load -w "$KARABINER_DAEMON_PLIST_FILE" 2>/dev/null
 sudo launchctl load -w "$KANATA_PLIST_FILE" 2>/dev/null
+
+echo "Kanata is now installed and running as a launch daemon"
