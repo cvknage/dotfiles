@@ -157,7 +157,7 @@ Configure host system for Kanata:
       <true/>
   </dict>
   </plist>
-    EOF
+  EOF
   ```
 
   ``` bash
@@ -187,7 +187,7 @@ Configure host system for Kanata:
   sudo launchctl load -w "$KANATA_PLIST_FILE"
   ```
 
-  ``` txt
+  ``` text
   How do I use `launchctl` again?
 
   TL;DR
