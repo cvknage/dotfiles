@@ -3,7 +3,7 @@ return {
   cmd = { "LspInfo", "LspInstall", "LspStart" },
   event = { "BufReadPre", "BufNewFile" },
   dependencies = {
-    { "mason-org/mason-lspconfig.nvim", dependencies = { "mason-org/mason.nvim" } },
+    { "mason-org/mason-lspconfig.nvim", version = "^1.0.0", dependencies = { "mason-org/mason.nvim" } },
   },
   opts_extend = { "ensure_installed" },
   opts = {
