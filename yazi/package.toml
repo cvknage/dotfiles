@@ -1,7 +1,7 @@
 [[plugin.deps]]
 use = "dawsers/toggle-view"
 rev = "9ae57f9"
-hash = "9d291f6cecb1f1f5542fc18177d5c107"
+hash = "b25c2acb08d9ca5ff5cf71ea764fed8d"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:chmod"
