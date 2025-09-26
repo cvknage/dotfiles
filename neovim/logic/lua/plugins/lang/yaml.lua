@@ -6,7 +6,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
-      opts.ensure_installed = { "yamlls" }
+      table.insert(opts.ensure_installed, "yamlls")
       vim.lsp.config("yamlls", {
         settings = {
           redhat = { telemetry = { enabled = false } },

@@ -12,7 +12,7 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
-      opts.ensure_installed = { "lua_ls" }
+      table.insert(opts.ensure_installed, "lua_ls")
       vim.lsp.config("lua_ls", {
         settings = {
           Lua = {
