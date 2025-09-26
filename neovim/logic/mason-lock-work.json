@@ -8,8 +8,8 @@
   "roslyn": "5.0.0-2.25458.1",
   "rust-analyzer": "2025-08-25",
   "shfmt": "v3.12.0",
-  "stylua": "v2.1.0",
+  "stylua": "v2.2.0",
   "taplo": "0.10.0",
-  "typescript-language-server": "4.4.0",
+  "typescript-language-server": "5.0.0",
   "yaml-language-server": "1.19.1"
 }
