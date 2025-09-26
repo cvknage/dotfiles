@@ -5,23 +5,20 @@ return {
   },
   {
     "neovim/nvim-lspconfig",
-    opts = {
-      ensure_installed = { "yamlls" },
-      handlers = {
-        yamlls = function()
-          require("lspconfig").yamlls.setup({
-            settings = {
-              redhat = { telemetry = { enabled = false } },
-              yaml = {
-                format = {
-                  enable = true,
-                  -- singleQuote = true,
-                },
-              },
+    opts = function(_, opts)
+      opts.ensure_installed = { "yamlls" }
+      vim.lsp.config("yamlls", {
+        settings = {
+          redhat = { telemetry = { enabled = false } },
+          yaml = {
+            format = {
+              enable = true,
+              -- singleQuote = true,
             },
-          })
-        end,
-      },
-    },
+          },
+        },
+      })
+      return opts
+    end,
   },
 }

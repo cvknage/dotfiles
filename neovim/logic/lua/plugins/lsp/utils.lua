@@ -34,8 +34,7 @@ function M.keymaps(client, bufnr)
   vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
   -- stylua: ignore end
 
-  ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
-  if client.supports_method("textDocument/inlayHint") then
+  if client:supports_method("textDocument/inlayHint") then
     -- stylua: ignore
     vim.keymap.set("n", "<leader>ci", function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr }) end, options({ desc = "Toggle Inlay Hints" }))
   end
@@ -45,8 +44,7 @@ end
 --- @param client vim.lsp.Client
 --- @param bufnr integer
 function M.inlay_hints(client, bufnr)
-  ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
-  if client.supports_method("textDocument/inlayHint") then
+  if client:supports_method("textDocument/inlayHint") then
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
 end
@@ -55,8 +53,7 @@ end
 --- @param client vim.lsp.Client
 --- @param bufnr integer
 function M.code_lens(client, bufnr)
-  ---@diagnostic disable-next-line: missing-parameter, param-type-mismatch
-  if client.supports_method("textDocument/codeLens") then
+  if client:supports_method("textDocument/codeLens") then
     vim.api.nvim_create_autocmd({
       "BufEnter",
       -- "CursorHold",

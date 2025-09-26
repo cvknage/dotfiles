@@ -18,7 +18,7 @@ return {
           -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
           ["workspace/inlayHint/refresh"] = function(_, _, ctx)
             local client = vim.lsp.get_client_by_id(ctx.client_id)
-            if client ~= nil and client.supports_method("textDocument/inlayHint") then
+            if client ~= nil and client:supports_method("textDocument/inlayHint") then
               local buffers = vim.lsp.get_buffers_by_client_id(ctx.client_id)
               for _, buf in ipairs(buffers) do
                 vim.lsp.inlay_hint.enable(vim.lsp.inlay_hint.is_enabled({ bufnr = buf }), { bufnr = buf })

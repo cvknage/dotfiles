@@ -3,12 +3,11 @@ return {
   cmd = { "LspInfo", "LspInstall", "LspStart" },
   event = { "BufReadPre", "BufNewFile" },
   dependencies = {
-    { "mason-org/mason-lspconfig.nvim", version = "^1.0.0", dependencies = { "mason-org/mason.nvim" } },
+    { "mason-org/mason-lspconfig.nvim", dependencies = { "mason-org/mason.nvim" } },
   },
   opts_extend = { "ensure_installed" },
   opts = {
     ensure_installed = {},
-    handlers = {},
     extra_capabilities = {},
   },
   config = function(_, opts)
@@ -41,19 +40,8 @@ return {
     -- Configure global diagnostic options
     lsp_utils.diagnostics()
 
-    table.insert(
-      opts.handlers,
-      -- This function is the "default handler"
-      -- it applies to every language server without a "custom handler"
-      function(server_name)
-        require("lspconfig")[server_name].setup({})
-      end
-    )
-
     require("mason-lspconfig").setup({
-      automatic_installation = false,
       ensure_installed = opts.ensure_installed,
-      handlers = opts.handlers,
     })
   end,
 }
