@@ -25,42 +25,11 @@ return {
           local join = vim.fs.joinpath
           local path = client.workspace_folders[1].name
 
-          -- Don't do anything if there is project local config
+          -- Disable lazydev if there is project local config
           if vim.uv.fs_stat(join(path, ".luarc.json")) or vim.uv.fs_stat(join(path, ".luarc.jsonc")) then
-            vim.g.lazydev_enabled = false -- also disable lazydev
+            vim.g.lazydev_enabled = false
             return
           end
-
-          --[[ handled by lazydev
-          local runtime_path = vim.split(package.path, ";")
-          table.insert(runtime_path, "lua/?.lua")
-          table.insert(runtime_path, "lua/?/init.lua")
-          ]]
-
-          local nvim_settings = {
-            --[[ handled by lazydev
-            runtime = {
-              -- Tell the language server which version of Lua you're using
-              version = "LuaJIT",
-              path = runtime_path,
-            },
-            workspace = {
-              checkThirdParty = false,
-              library = {
-                -- Make the server aware of Neovim runtime files
-                vim.env.VIMRUNTIME,
-                vim.fn.stdpath("config"),
-                "${3rd}/luv/library",
-              },
-            },
-            ]]
-            diagnostics = {
-              globals = { "vim" }, -- get the language server to recognize the `vim` global
-            },
-          }
-
-          client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, nvim_settings)
-          client:notify("workspace/didChangeConfiguration", { settings = client.config.settings })
         end,
       })
       return opts
