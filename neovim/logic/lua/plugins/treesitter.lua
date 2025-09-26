@@ -43,8 +43,6 @@ return {
         "c",
         "diff",
         "html",
-        "json",
-        "jsonc",
         "python",
         "query",
         "regex",
