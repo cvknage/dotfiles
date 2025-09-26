@@ -1,9 +1,21 @@
-vim.cmd('autocmd VimEnter * ++once silent! autocmd! FileExplorer *')
+-- Disable opening Netrw when starting nvim
+vim.cmd("autocmd VimEnter * ++once silent! autocmd! FileExplorer *")
+
+-- Disable LSP / completion for oil buffers
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "oil",
+  callback = function()
+    vim.b.lsp_disabled = true
+    if require("cmp") then
+      require("cmp").setup.buffer({ enabled = false })
+    end
+  end,
+})
 
 return {
   {
-    'stevearc/oil.nvim',
-    dependencies = { "nvim-tree/nvim-web-devicons" }, -- optional
+    "stevearc/oil.nvim",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false,
     keys = {
       { "<leader>pv", "<cmd>Oil<cr>", desc = "Project Volumes" },
@@ -31,7 +43,7 @@ return {
       use_default_keymaps = false,
       view_options = {
         show_hidden = true,
-      }
+      },
     },
     config = function(_, opts)
       local oil = require("oil")
@@ -56,7 +68,7 @@ return {
           end
           oil.open_preview({
             vertical = true,
-            split = "belowright" -- "aboveleft"|"belowright"|"topleft"|"botright"
+            split = "belowright", -- "aboveleft"|"belowright"|"topleft"|"botright"
           })
         end,
       }
@@ -70,6 +82,6 @@ return {
           break
         end
       end
-    end
-  }
+    end,
+  },
 }
