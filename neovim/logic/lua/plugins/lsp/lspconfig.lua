@@ -11,17 +11,10 @@ return {
     extra_capabilities = {},
   },
   config = function(_, opts)
-    local lsp_defaults = require("lspconfig").util.default_config
     local lsp_utils = require("plugins.lsp.utils")
 
-    -- Add extra capabilities to lspconfig
-    -- This should be executed before you configure any language server
-    -- stylua: ignore
-    lsp_defaults.capabilities = vim.tbl_deep_extend(
-      "force",
-      lsp_defaults.capabilities,
-      opts.extra_capabilities or {}
-    )
+    -- Add extra capabilities to all clients
+    vim.lsp.config("*", { capabilities = opts.extra_capabilities })
 
     -- LspAttach is where you enable features that only work
     -- if there is a language server active in the file
