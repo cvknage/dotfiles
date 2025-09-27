@@ -33,15 +33,6 @@ require("lazy").setup({
 
     -- Languages
     { import = "plugins.lang" },
-    --[[
-    { import = "plugins.lang.dotnet.roslyn" },
-    { import = "plugins.lang.javascript" },
-    { import = "plugins.lang.lua" },
-    { import = "plugins.lang.nix" },
-    { import = "plugins.lang.rust" },
-    { import = "plugins.lang.sh" },
-    { import = "plugins.lang.toml" },
-    ]]
 
     -- AI
     { import = "plugins.ai.copilot" },
