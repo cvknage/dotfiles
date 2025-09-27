@@ -4,6 +4,7 @@
   "js-debug-adapter": "v1.104.0",
   "json-lsp": "4.10.0",
   "lua-language-server": "3.15.0",
+  "markdownlint": "0.45.0",
   "nil": "2025-06-13",
   "rust-analyzer": "2025-08-25",
   "shfmt": "v3.12.0",

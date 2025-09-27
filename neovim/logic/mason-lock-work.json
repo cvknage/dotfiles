@@ -4,6 +4,7 @@
   "js-debug-adapter": "v1.104.0",
   "json-lsp": "4.10.0",
   "lua-language-server": "3.15.0",
+  "markdownlint": "0.45.0",
   "netcoredbg": "3.1.2-1054",
   "nil": "2025-06-13",
   "roslyn": "5.0.0-2.25458.1",

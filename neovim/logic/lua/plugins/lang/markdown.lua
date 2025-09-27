@@ -9,6 +9,15 @@ return {
     },
   },
   {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        -- Linter
+        "markdownlint",
+      },
+    },
+  },
+  {
     "iamcco/markdown-preview.nvim",
     enabled = false, -- Trying out live-preview.nvim instead.
     cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
@@ -39,6 +48,15 @@ return {
         below = "",
         -- Highlight for code blocks
         highlight = "none",
+      },
+    },
+  },
+  {
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = {
+      linters_by_ft = {
+        markdown = { "markdownlint" },
       },
     },
   },
