@@ -10,9 +10,20 @@ return {
     },
   },
   {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        -- LSP
+        "lua_ls",
+
+        -- Formatter
+        "stylua",
+      },
+    },
+  },
+  {
     "neovim/nvim-lspconfig",
     opts = function(_, opts)
-      table.insert(opts.ensure_installed, "lua_ls")
       vim.lsp.config("lua_ls", {
         settings = {
           Lua = {

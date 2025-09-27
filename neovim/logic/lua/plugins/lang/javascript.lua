@@ -11,10 +11,20 @@ return {
     },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = {
-      ensure_installed = { "ts_ls" },
-    },
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = function(_, opts)
+      -- LSP
+      table.insert(opts.ensure_installed, "ts_ls")
+
+      -- DAP
+      table.insert(opts.ensure_installed, "js")
+
+      -- LSP/Linter/Formatter
+      if vim.fn.executable("biome") ~= 1 then
+        table.insert(opts.ensure_installed, "biome")
+      end
+      return opts
+    end,
   },
   {
     "stevearc/conform.nvim",
@@ -38,16 +48,6 @@ return {
     },
   },
   {
-    "zapling/mason-conform.nvim",
-    optional = true,
-    opts = function(_, opts)
-      opts.ignore_install = opts.ignore_install or {}
-      if vim.fn.executable("biome") == 1 then
-        table.insert(opts.ignore_install, "biome")
-      end
-    end,
-  },
-  {
     "jay-babu/mason-nvim-dap.nvim",
     optional = true,
     dependencies = {
@@ -55,7 +55,6 @@ return {
       "mfussenegger/nvim-dap",
     },
     opts = {
-      ensure_installed = { "js" },
       handlers = {
         js = function(config)
           config.name = "pwa-node"

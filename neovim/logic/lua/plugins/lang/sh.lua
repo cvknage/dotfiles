@@ -4,8 +4,16 @@ return {
     opts = { ensure_installed = { "bash" } },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = { ensure_installed = { "bashls" } },
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        -- LSP
+        "bashls",
+
+        -- Formatter
+        "shfmt",
+      },
+    },
   },
   {
     "stevearc/conform.nvim",

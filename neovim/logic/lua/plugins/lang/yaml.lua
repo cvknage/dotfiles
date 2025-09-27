@@ -4,7 +4,12 @@ return {
     opts = { ensure_installed = { "yaml" } },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = { ensure_installed = { "yamlls" } },
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        -- LSP
+        "yamlls",
+      },
+    },
   },
 }

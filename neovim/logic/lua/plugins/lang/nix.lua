@@ -4,8 +4,13 @@ return {
     opts = { ensure_installed = { "nix" } },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = { ensure_installed = { "nil_ls" } },
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        -- LSP
+        "nil_ls",
+      },
+    },
   },
   {
     "stevearc/conform.nvim",
@@ -15,10 +20,5 @@ return {
         nix = { "alejandra" },
       },
     },
-  },
-  {
-    "zapling/mason-conform.nvim",
-    optional = true,
-    opts = { ignore_install = { "alejandra" } },
   },
 }

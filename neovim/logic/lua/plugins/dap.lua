@@ -89,9 +89,7 @@ return {
       "mfussenegger/nvim-dap",
     },
     cmd = { "DapInstall", "DapUninstall" },
-    opts_extend = { "ensure_installed" },
     opts = {
-      ensure_installed = {},
       handlers = {
         function(config)
           require("mason-nvim-dap").default_setup(config)

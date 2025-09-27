@@ -33,7 +33,7 @@ end
 
 M.debug_adapter = function()
   return {
-    ensure_installed = "coreclr",
+    adapter = "coreclr",
     dap_options = function(config)
       table.insert(config.configurations, 1, {
         type = "coreclr",

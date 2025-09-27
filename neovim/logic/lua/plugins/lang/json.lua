@@ -4,7 +4,10 @@ return {
     opts = { ensure_installed = { "json", "jsonc", "json5" } },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = { ensure_installed = { "jsonls" } },
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      -- LSP
+      ensure_installed = { "jsonls" },
+    },
   },
 }

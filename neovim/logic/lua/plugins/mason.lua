@@ -41,4 +41,24 @@ return {
         .. ".json",
     },
   },
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    dependencies = {
+      "mason-org/mason.nvim",
+      { "neovim/nvim-lspconfig", optional = true }, -- can be installed for the option to use lspconfig names instead of Mason names.
+      { "jay-babu/mason-nvim-dap.nvim", optional = true }, -- can be installed for the option to use nvim-dap names instead of Mason names.
+    },
+    cmds = {
+      "MasonToolsInstall",
+      "MasonToolsInstallSync",
+      "MasonToolsUpdate",
+      "MasonToolsUpdateSync",
+      "MasonToolsClean",
+    },
+    opts_extend = { "ensure_installed" },
+    opts = {
+      ensure_installed = {},
+      auto_update = false,
+    },
+  },
 }

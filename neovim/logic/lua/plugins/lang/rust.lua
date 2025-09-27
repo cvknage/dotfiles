@@ -4,7 +4,12 @@ return {
     opts = { ensure_installed = { "rust" } },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = { ensure_installed = { "rust_analyzer" } },
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = {
+      ensure_installed = {
+        -- LSP
+        "rust_analyzer",
+      },
+    },
   },
 }

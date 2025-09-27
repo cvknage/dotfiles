@@ -20,13 +20,7 @@ return {
     ---@module "conform"
     ---@type conform.setupOpts
     opts = {
-      formatters_by_ft = {
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
-      },
+      formatters_by_ft = {},
       default_format_opts = {
         lsp_format = "fallback",
       },
@@ -46,24 +40,6 @@ return {
         end
       end
       require("conform").setup(opts)
-
-      -- It's crucial to setup plugins in the following order: mason.nvim -> conform.nvim -> mason-conform.nvim
-      -- https://github.com/zapling/mason-conform.nvim?tab=readme-ov-file#setup
-      vim.schedule(function()
-        require("lazy").load({ plugins = { "mason-conform.nvim" } })
-      end)
     end,
-  },
-  {
-    "zapling/mason-conform.nvim",
-    dependencies = {
-      "mason-org/mason.nvim",
-      "stevearc/conform.nvim",
-    },
-    lazy = true,
-    opts_extend = { "ignore_install" },
-    opts = {
-      ignore_install = {},
-    },
   },
 }

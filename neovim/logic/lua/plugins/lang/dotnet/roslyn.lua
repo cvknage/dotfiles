@@ -6,9 +6,24 @@ return {
     opts = { ensure_installed = { "c_sharp" } },
   },
   {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    opts = function(_, opts)
+      if dotnet_utils.has_dotnet then
+        -- LSP
+        table.insert(opts.ensure_installed, "roslyn")
+
+        -- DAP
+        table.insert(opts.ensure_installed, "coreclr")
+
+        -- Formatter
+        table.insert(opts.ensure_installed, "csharpier")
+      end
+      return opts
+    end,
+  },
+  {
     "seblyng/roslyn.nvim", -- An updated fork of jmederosalvarado/roslyn.nvim: https://github.com/jmederosalvarado/roslyn.nvim/issues/39
     dependencies = { "mason-org/mason.nvim" },
-    build = ":MasonInstall roslyn",
     enabled = dotnet_utils.has_dotnet,
     ft = "cs",
     opts = function(_, opts)
@@ -96,16 +111,6 @@ return {
     },
   },
   {
-    "zapling/mason-conform.nvim",
-    optional = true,
-    opts = function(_, opts)
-      if not dotnet_utils.has_dotnet then
-        opts.ignore_install = opts.ignore_install or {}
-        table.insert(opts.ignore_install, "csharpier")
-      end
-    end,
-  },
-  {
     "nvim-neotest/neotest",
     optional = true,
     dependencies = {
@@ -128,7 +133,7 @@ return {
         if dotnet_utils.has_dotnet then
           local dap = require("dap")
           local test_dap = dotnet_utils.debug_adapter().test_dap
-          if not dap.adapters["netcoredbg"] then
+          if not dap.adapters[test_dap.adapter] then
             dap.adapters[test_dap.adapter] = test_dap.config
           end
         end
@@ -138,9 +143,8 @@ return {
       if dotnet_utils.has_dotnet then
         local debug_adapter = dotnet_utils.debug_adapter()
         vim.tbl_deep_extend("force", opts, {
-          ensure_installed = debug_adapter.ensure_installed,
           handlers = {
-            [debug_adapter.ensure_installed] = function(config)
+            [debug_adapter.adapter] = function(config)
               require("mason-nvim-dap").default_setup(debug_adapter.dap_options(config))
             end,
           },
