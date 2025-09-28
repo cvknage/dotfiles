@@ -14,7 +14,7 @@ return {
     cmd = { "ConformInfo" },
     -- stylua: ignore
     keys = {
-      { "<leader>cf", function() require("conform").format({ async = true }) end, mode = "", desc = "Format", },
+      { "<leader>cf", function() require("conform").format({ async = true }) end, mode = { "n", "x" }, desc = "Format", },
     },
     opts_extend = { "disable_format_on_save_for_ft" },
     ---@module "conform"
