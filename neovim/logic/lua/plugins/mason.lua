@@ -1,3 +1,11 @@
+-- Disable automatic newline at EOF only for Mason lockfiles
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  pattern = { "mason-lock-private.json", "mason-lock-work.json" },
+  callback = function()
+    vim.opt_local.fixendofline = false
+  end,
+})
+
 return {
   {
     "mason-org/mason.nvim",
@@ -9,13 +17,10 @@ return {
       "MasonUninstallAll",
       "MasonLog",
     },
+    opts_extend = { "registries" },
     opts = {
       registries = {
         "github:mason-org/mason-registry",
-
-        -- Add custom mason registry to allow mason to download roslyn.
-        -- Remove this config section and use "config = true" instead when mason has the roslyn package natievly.
-        "github:Crashdummyy/mason-registry",
       },
     },
     config = function(_, opts)

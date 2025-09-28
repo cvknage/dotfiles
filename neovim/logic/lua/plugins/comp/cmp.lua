@@ -1,6 +1,5 @@
 -- template from: https://lsp-zero.netlify.app/docs/guide/lazy-loading-with-lazy-nvim.html --> Expand automatic setup of LSP servers
 return {
-  -- Autocompletion
   {
     "hrsh7th/nvim-cmp",
     version = false, -- latest release (as of Nov 4 2023) was v0.0.1 (on Aug 14 2022)
@@ -103,8 +102,6 @@ return {
       }
     end,
   },
-
-  -- LSP
   {
     "neovim/nvim-lspconfig",
     dependencies = {
@@ -120,5 +117,4 @@ return {
       )
     end,
   },
-  require("plugins.lsp.lspconfig"),
 }

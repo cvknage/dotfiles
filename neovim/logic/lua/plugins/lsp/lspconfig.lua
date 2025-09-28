@@ -1,6 +1,9 @@
 return {
   {
     "neovim/nvim-lspconfig",
+    dependencies = {
+      "nvim-telescope/telescope.nvim", -- some keymaps use telescope
+    },
     cmd = { "LspInfo", "LspStart", "LspStop", "LspRestart", "LspLog" },
     opts = {
       extra_capabilities = {},
@@ -33,12 +36,12 @@ return {
     "mason-org/mason-lspconfig.nvim",
     cmd = { "LspInstall", "LspStart" },
     event = { "BufReadPre", "BufNewFile" },
-    opts = {
-      automatic_enable = true,
-    },
     dependencies = {
       "mason-org/mason.nvim",
       "neovim/nvim-lspconfig",
+    },
+    opts = {
+      automatic_enable = true,
     },
   },
 }

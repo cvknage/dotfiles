@@ -27,8 +27,8 @@ require("lazy").setup({
   spec = {
     { import = "plugins" },
 
-    -- Autocompletion & LSP
-    { import = "plugins.lsp.lsp-zero" },
+    -- Autocompletion
+    { import = "plugins.comp.cmp" },
     -- { import = "plugins.lsp.coq" },
 
     -- Languages

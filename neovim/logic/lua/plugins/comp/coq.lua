@@ -71,5 +71,4 @@ return {
     )
     end,
   },
-  require("plugins.lsp.lspconfig"),
 }

@@ -6,6 +6,15 @@ return {
     opts = { ensure_installed = { "c_sharp" } },
   },
   {
+    "mason-org/mason.nvim",
+    opts = {
+      registries = {
+        -- Add custom mason registry to allow mason to download roslyn.
+        "github:Crashdummyy/mason-registry",
+      },
+    },
+  },
+  {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
