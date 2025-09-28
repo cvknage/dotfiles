@@ -40,6 +40,19 @@ function M.keymaps(client, bufnr)
   end
 end
 
+--- Disable Nvim LSP default global keymaps
+function M.disable_global_keymaps()
+  -- When the Nvim LSP client starts it sets various default options listed here: https://neovim.io/doc/user/lsp.html#lsp-defaults
+  -- These GLOBAL keymaps are created unconditionally when Nvim starts
+  vim.keymap.del({ "n", "v" }, "gra")
+  vim.keymap.del("n", "gri")
+  vim.keymap.del("n", "grn")
+  vim.keymap.del("n", "grr")
+  vim.keymap.del("n", "grt")
+  vim.keymap.del("n", "gO")
+  vim.keymap.del("i", "<c-S>")
+end
+
 --- Enable inlay hints on supported clients
 --- @param client vim.lsp.Client
 --- @param bufnr integer

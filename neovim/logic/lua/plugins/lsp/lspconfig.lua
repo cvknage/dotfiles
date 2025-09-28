@@ -12,7 +12,16 @@ return {
       local lsp_utils = require("plugins.lsp.utils")
 
       -- Add extra capabilities to all clients
-      vim.lsp.config("*", { capabilities = opts.extra_capabilities })
+      vim.lsp.config("*", {
+        capabilities = vim.tbl_deep_extend(
+          "force",
+          vim.lsp.protocol.make_client_capabilities(),
+          opts.extra_capabilities
+        ),
+      })
+
+      --- Disable Nvim LSP default global keymaps
+      lsp_utils.disable_global_keymaps()
 
       -- LspAttach is where you enable features that only work
       -- if there is a language server active in the file
