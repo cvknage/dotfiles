@@ -22,7 +22,7 @@ return {
         table.insert(opts.ensure_installed, "roslyn")
 
         -- DAP
-        table.insert(opts.ensure_installed, "coreclr")
+        table.insert(opts.ensure_installed, "netcoredbg")
 
         -- Formatter
         table.insert(opts.ensure_installed, "csharpier")

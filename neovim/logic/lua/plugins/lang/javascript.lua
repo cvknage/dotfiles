@@ -17,7 +17,7 @@ return {
       table.insert(opts.ensure_installed, "ts_ls")
 
       -- DAP
-      table.insert(opts.ensure_installed, "js")
+      table.insert(opts.ensure_installed, "js-debug-adapter")
 
       -- LSP/Linter/Formatter
       if vim.fn.executable("biome") ~= 1 then
