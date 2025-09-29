@@ -22,7 +22,15 @@ return {
       },
     },
     opts = function()
-      local cmp = require("cmp")
+      -- Add cmp_nvim_lsp capabilities to all LSPs
+      vim.lsp.config("*", {
+        capabilities = vim.tbl_deep_extend(
+          "force",
+          vim.lsp.protocol.make_client_capabilities(),
+          require("cmp_nvim_lsp").default_capabilities()
+        ),
+      })
+
       local function cmp_format(opts)
         opts = opts or {}
         local maxwidth = opts.max_width or false
@@ -59,6 +67,7 @@ return {
         }
       end
 
+      local cmp = require("cmp")
       return {
         sources = cmp.config.sources({
           { name = "path" }, -- cmp-path
@@ -100,21 +109,6 @@ return {
           end, { "i", "s" }),
         }),
       }
-    end,
-  },
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-      { "hrsh7th/cmp-nvim-lsp" },
-    },
-    opts = function(_, opts)
-      -- Add cmp_nvim_lsp capabilities settings to lspconfig
-      -- stylua: ignore
-      opts.extra_capabilities = vim.tbl_deep_extend(
-        "force",
-        opts.extra_capabilities,
-        require("cmp_nvim_lsp").default_capabilities()
-      )
     end,
   },
 }

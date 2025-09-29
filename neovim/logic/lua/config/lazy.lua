@@ -29,7 +29,7 @@ require("lazy").setup({
 
     -- Autocompletion
     { import = "plugins.comp.cmp" },
-    -- { import = "plugins.lsp.coq" },
+    -- { import = "plugins.comp.coq" },
 
     -- Languages
     { import = "plugins.lang" },
