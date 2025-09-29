@@ -136,18 +136,6 @@ return {
   {
     "jay-babu/mason-nvim-dap.nvim",
     optional = true,
-    dependencies = {
-      "mfussenegger/nvim-dap",
-      opts = function()
-        if dotnet_utils.has_dotnet then
-          local dap = require("dap")
-          local test_dap = dotnet_utils.debug_adapter().test_dap
-          if not dap.adapters[test_dap.adapter] then
-            dap.adapters[test_dap.adapter] = test_dap.config
-          end
-        end
-      end,
-    },
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
         local debug_adapter = dotnet_utils.debug_adapter()
@@ -158,6 +146,18 @@ return {
             end,
           },
         })
+      end
+    end,
+  },
+  {
+    "mfussenegger/nvim-dap",
+    opts = function()
+      if dotnet_utils.has_dotnet then
+        local dap = require("dap")
+        local test_debug_adapter = dotnet_utils.test_debug_adapter()
+        if not dap.adapters[test_debug_adapter.adapter] then
+          dap.adapters[test_debug_adapter.adapter] = test_debug_adapter.config
+        end
       end
     end,
   },

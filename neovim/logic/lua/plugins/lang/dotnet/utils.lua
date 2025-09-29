@@ -3,7 +3,7 @@ local M = {}
 -- has dotnet installed
 M.has_dotnet = vim.fn.executable("dotnet") == 1
 
-M.test_adapter = function()
+function M.test_adapter()
   return require("neotest-dotnet")({
     -- Extra arguments for nvim-dap configuration
     -- See https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for values
@@ -31,7 +31,7 @@ M.test_adapter = function()
   })
 end
 
-M.debug_adapter = function()
+function M.debug_adapter()
   return {
     adapter = "coreclr",
     dap_options = function(config)
@@ -58,21 +58,23 @@ M.debug_adapter = function()
 
       return config
     end,
-    test_dap = {
-      -- https://github.com/Issafalcon/neotest-dotnet#debugging
-      adapter = "netcoredbg",
-      config = {
-        type = "executable",
-        -- command = require("mason-registry").get_package("netcoredbg"):get_install_path() .. "/netcoredbg",
-        command = vim.fn.exepath("netcoredbg"),
-        args = { "--interpreter=vscode" },
-      },
+  }
+end
+
+function M.test_debug_adapter()
+  return {
+    -- https://github.com/Issafalcon/neotest-dotnet#debugging
+    adapter = "netcoredbg",
+    config = {
+      type = "executable",
+      command = vim.fn.exepath("netcoredbg"),
+      args = { "--interpreter=vscode" },
     },
   }
 end
 
 -- https://github.com/mfussenegger/nvim-dap/wiki/Cookbook#making-debugging-net-easier
-M.dotnet_build_project = function()
+function M.dotnet_build_project()
   local default_path = vim.fn.getcwd() .. "/"
   if M["dotnet_last_proj_path"] ~= nil then
     default_path = M["dotnet_last_proj_path"]
@@ -91,7 +93,7 @@ M.dotnet_build_project = function()
   end
 end
 
-M.dotnet_get_dll_path = function()
+function M.dotnet_get_dll_path()
   local request = function()
     ---@diagnostic disable-next-line: redundant-parameter
     return vim.fn.input("Path to dll", vim.fn.getcwd() .. "/bin/Debug/", "file")
