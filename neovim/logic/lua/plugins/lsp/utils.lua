@@ -1,5 +1,18 @@
 local M = {}
 
+--- Configure global LSP keymaps
+function M.global_keymaps()
+  -- When the Nvim LSP client starts it sets various default options listed here: https://neovim.io/doc/user/lsp.html#lsp-defaults
+  -- These GLOBAL keymaps are created unconditionally when Nvim starts
+  vim.keymap.del({ "n", "v" }, "gra")
+  vim.keymap.del("n", "gri")
+  vim.keymap.del("n", "grn")
+  vim.keymap.del("n", "grr")
+  vim.keymap.del("n", "grt")
+  vim.keymap.del("n", "gO")
+  vim.keymap.del("i", "<c-S>")
+end
+
 --- Configure LSP keymaps
 --- @param client vim.lsp.Client
 --- @param bufnr integer
@@ -38,19 +51,6 @@ function M.keymaps(client, bufnr)
     -- stylua: ignore
     vim.keymap.set("n", "<leader>ci", function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr }) end, options({ desc = "Toggle Inlay Hints" }))
   end
-end
-
---- Disable Nvim LSP default global keymaps
-function M.disable_global_keymaps()
-  -- When the Nvim LSP client starts it sets various default options listed here: https://neovim.io/doc/user/lsp.html#lsp-defaults
-  -- These GLOBAL keymaps are created unconditionally when Nvim starts
-  vim.keymap.del({ "n", "v" }, "gra")
-  vim.keymap.del("n", "gri")
-  vim.keymap.del("n", "grn")
-  vim.keymap.del("n", "grr")
-  vim.keymap.del("n", "grt")
-  vim.keymap.del("n", "gO")
-  vim.keymap.del("i", "<c-S>")
 end
 
 --- Enable inlay hints on supported clients
@@ -93,6 +93,22 @@ function M.diagnostics()
         [vim.diagnostic.severity.INFO] = "»",
       },
     },
+  })
+end
+
+--- Configure active LSP options
+function M.lsp_attach()
+  -- LspAttach is where you enable features that only work if there is a language server active in the file
+  vim.api.nvim_create_autocmd("LspAttach", {
+    desc = "LSP actions",
+    callback = function(ev)
+      local clients = vim.lsp.get_clients({ buffer = ev.buf })
+      for _, client in pairs(clients) do
+        M.keymaps(client, ev.buf)
+        -- M.inlay_hints(client, ev.buf)
+        M.code_lens(client, ev.buf)
+      end
+    end,
   })
 end
 
