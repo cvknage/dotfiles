@@ -1,3 +1,23 @@
+vim.lsp.config("lua_ls", {
+  settings = {
+    Lua = {
+      telemetry = { enable = false }, -- disable telemetry
+      hint = { enable = true }, -- enable inlay hints
+      codeLens = { enable = true }, -- enable code lens
+    },
+  },
+  on_init = function(client)
+    local join = vim.fs.joinpath
+    local path = client.workspace_folders[1].name
+
+    -- Disable lazydev if there is project local config
+    if vim.uv.fs_stat(join(path, ".luarc.json")) or vim.uv.fs_stat(join(path, ".luarc.jsonc")) then
+      vim.g.lazydev_enabled = false
+      return
+    end
+  end,
+})
+
 return {
   {
     "nvim-treesitter/nvim-treesitter",
@@ -22,38 +42,12 @@ return {
     },
   },
   {
-    "neovim/nvim-lspconfig",
-    opts = function(_, opts)
-      vim.lsp.config("lua_ls", {
-        settings = {
-          Lua = {
-            telemetry = { enable = false }, -- disable telemetry
-            hint = { enable = true }, -- enable inlay hints
-            codeLens = { enable = true }, -- enable code lens
-          },
-        },
-        on_init = function(client)
-          local join = vim.fs.joinpath
-          local path = client.workspace_folders[1].name
-
-          -- Disable lazydev if there is project local config
-          if vim.uv.fs_stat(join(path, ".luarc.json")) or vim.uv.fs_stat(join(path, ".luarc.jsonc")) then
-            vim.g.lazydev_enabled = false
-            return
-          end
-        end,
-      })
-      return opts
-    end,
-  },
-  {
     "folke/lazydev.nvim",
     dependencies = {
       {
         "hrsh7th/nvim-cmp",
         optional = true,
         opts = function(_, opts)
-          opts.sources = opts.sources or {}
           table.insert(opts.sources, 1, {
             name = "lazydev", -- lazydev completion source for require statements and module annotations
             group_index = 0, -- set group index to 0 to skip loading LuaLS completions
