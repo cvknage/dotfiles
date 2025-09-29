@@ -23,7 +23,6 @@ return {
       if vim.fn.executable("biome") ~= 1 then
         table.insert(opts.ensure_installed, "biome")
       end
-      return opts
     end,
   },
   {

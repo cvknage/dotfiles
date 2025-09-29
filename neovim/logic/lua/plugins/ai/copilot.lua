@@ -45,7 +45,6 @@ return {
         "hrsh7th/nvim-cmp",
         optional = true,
         opts = function(_, opts)
-          opts.sources = opts.sources or {}
           table.insert(opts.sources, 1, {
             name = "copilot",
             group_index = 1,

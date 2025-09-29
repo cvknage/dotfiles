@@ -112,7 +112,7 @@ return {
       -- stylua: ignore
       opts.extra_capabilities = vim.tbl_deep_extend(
         "force",
-        opts.extra_capabilities or {},
+        opts.extra_capabilities,
         require("cmp_nvim_lsp").default_capabilities()
       )
     end,
