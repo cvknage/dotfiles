@@ -3,7 +3,11 @@ local dotnet_utils = require("plugins.lang.dotnet.utils")
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "c_sharp" } },
+    opts = function(_, opts)
+      if dotnet_utils.has_dotnet then
+        table.insert(opts.ensure_installed, "c_sharp")
+      end
+    end,
   },
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
@@ -15,24 +19,28 @@ return {
         -- Formatter
         table.insert(opts.ensure_installed, "csharpier")
       end
-      return opts
     end,
   },
   {
     "stevearc/conform.nvim",
     optional = true,
-    opts = {
-      formatters_by_ft = {
-        cs = { "csharpier" },
-      },
-      formatters = {
-        csharpier = {
-          command = "csharpier",
-          args = { "format", "$FILENAME" },
-          stdin = false,
-        },
-      },
-    },
+    opts = function(_, opts)
+      if dotnet_utils.has_dotnet then
+        opts = vim.tbl_deep_extend("force", opts, {
+          formatters_by_ft = {
+            cs = { "csharpier" },
+          },
+          formatters = {
+            csharpier = {
+              command = "csharpier",
+              args = { "format", "$FILENAME" },
+              stdin = false,
+            },
+          },
+        })
+      end
+      return opts
+    end,
   },
   {
     "nvim-neotest/neotest",
@@ -43,7 +51,6 @@ return {
     },
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
-        opts.adapters = opts.adapters or {}
         table.insert(opts.adapters, dotnet_utils.test_adapter())
       end
     end,
@@ -54,7 +61,7 @@ return {
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
         local debug_adapter = dotnet_utils.debug_adapter()
-        vim.tbl_deep_extend("force", opts, {
+        opts = vim.tbl_deep_extend("force", opts, {
           handlers = {
             [debug_adapter.adapter] = function(config)
               require("mason-nvim-dap").default_setup(debug_adapter.dap_options(config))
@@ -62,6 +69,7 @@ return {
           },
         })
       end
+      return opts
     end,
   },
   {
