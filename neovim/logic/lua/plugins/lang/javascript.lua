@@ -48,6 +48,22 @@ return {
     },
   },
   {
+    "mfussenegger/nvim-lint",
+    optional = true,
+    opts = {
+      linters_by_ft = {
+        css = { "biomejs" },
+        graphql = { "biomejs" },
+        javascript = { "biomejs" },
+        javascriptreact = { "biomejs" },
+        json = { "biomejs" },
+        jsonc = { "biomejs" },
+        typescript = { "biomejs" },
+        typescriptreact = { "biomejs" },
+      },
+    },
+  },
+  {
     "jay-babu/mason-nvim-dap.nvim",
     optional = true,
     dependencies = {
