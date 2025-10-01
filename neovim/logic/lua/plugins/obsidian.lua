@@ -1,14 +1,12 @@
 return {
-  "epwalsh/obsidian.nvim",
+  "obsidian-nvim/obsidian.nvim", -- A community fork of "epwalsh/obsidian.nvim",
   version = "*", -- recommended, use latest release instead of latest commit
-  lazy = true,
-  -- stylua: ignore
   keys = {
-    { "<leader>on", "<cmd>ObsidianNew<cr>",         desc = "New Note",        mode = "n" },
-    { "<leader>os", "<cmd>ObsidianSearch<cr>",      desc = "Search Notes",    mode = "n" },
-    { "<leader>of", "<cmd>ObsidianQuickSwitch<cr>", desc = "Find Notes",      mode = "n" },
-    { "<leader>ob", "<cmd>ObsidianBacklinks<cr>",   desc = "Show Backlinks",  mode = "n" },
-    { "<leader>ot", "<cmd>ObsidianTemplate<cr>",    desc = "Insert Template", mode = "n" },
+    { "<leader>on", "<cmd>Obsidian new<cr>", desc = "New Note", mode = "n" },
+    { "<leader>os", "<cmd>Obsidian search<cr>", desc = "Search Notes", mode = "n" },
+    { "<leader>of", "<cmd>Obsidian quick_switch<cr>", desc = "Find Notes", mode = "n" },
+    { "<leader>ob", "<cmd>Obsidian backlinks<cr>", desc = "Show Backlinks", mode = "n" },
+    { "<leader>ot", "<cmd>Obsidian template<cr>", desc = "Insert Template", mode = "n" },
   },
   ft = "markdown",
   -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
@@ -21,9 +19,11 @@ return {
   -- },
   dependencies = {
     "nvim-lua/plenary.nvim",
-    { "hrsh7th/nvim-cmp", optional = true },
   },
   opts = {
+    -- Disable legacy warning on startup
+    legacy_commands = false,
+
     -- Optional, configure additional syntax highlighting / extmarks.
     -- This requires you have `conceallevel` set to 1 or 2. See `:help conceallevel` for more details.
     ui = { enable = false }, -- set to false to disable all additional syntax features
@@ -37,43 +37,50 @@ return {
     workspaces = {
       {
         name = "notes",
-        path = "~/Notes/notes",
+        path = os.getenv("HOME") .. "/Notes/notes",
       },
     },
 
-    -- Optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
-    completion = {
-      -- Set to false to disable completion.
-      nvim_cmp = true,
-      -- Trigger completion at 2 chars.
-      min_chars = 2,
-    },
+    callbacks = {
+      -- Runs anytime you enter the buffer for a note.
+      enter_note = function(_, note)
+        -- Remove default mapping
+        vim.keymap.del("n", "<CR>", { buffer = note.bufnr })
 
-    -- Optional, configure key mappings. These are the defaults. If you don't want to set any keymappings this
-    -- way then set 'mappings = {}'.
-    mappings = {
-      -- Follow markdown/wiki links within your vault "Obsidian follow".
-      -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
-      ["<leader>og"] = {
-        action = function()
-          return require("obsidian").util.gf_passthrough()
-        end,
-        opts = { noremap = false, expr = true, buffer = true, desc = "Go To" },
-      },
-      -- Toggle check-boxes "Obsidian done".
-      ["<leader>oc"] = {
-        action = function()
-          return require("obsidian").util.toggle_checkbox()
-        end,
-        opts = { buffer = true, desc = "Toggle Checkbox" },
-      },
-      -- Smart action depending on context, either follow link or toggle checkbox.
-      ["<leader>oa"] = {
-        action = function()
-          return require("obsidian").util.smart_action()
-        end,
-        opts = { buffer = true, expr = true, desc = "Smart Action" },
-      },
+        -- Follow markdown/wiki links within your vault "Obsidian follow".
+        -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
+        vim.keymap.set("n", "gf", function()
+          if require("obsidian").util.cursor_link() then
+            return "<cmd>Obsidian follow_link<cr>"
+          else
+            return "gf"
+          end
+        end, {
+          expr = true,
+          buffer = note.bufnr,
+          desc = "Go to file under cursor",
+        })
+
+        -- Follow markdown/wiki links within your vault "Obsidian follow".
+        vim.keymap.set("n", "<leader>og", "<cmd>Obsidian follow_link<cr>", {
+          buffer = note.bufnr,
+          desc = "Go To Link",
+        })
+
+        -- Toggle check-boxes "Obsidian done".
+        vim.keymap.set("n", "<leader>oc", "<cmd>Obsidian toggle_checkbox<cr>", {
+          buffer = note.bufnr,
+          desc = "Toggle Checkbox",
+        })
+
+        -- Smart action depending on context, either follow link or toggle checkbox.
+        vim.keymap.set(
+          "n",
+          "<leader>oa",
+          require("obsidian.api").smart_action,
+          { expr = true, buffer = note.bufnr, desc = "Smart Action" }
+        )
+      end,
     },
 
     -- Optional, customize how note IDs are generated given an optional title.
@@ -119,9 +126,4 @@ return {
       substitutions = {},
     },
   },
-  config = function(_, opts)
-    local has_cmp = pcall(require, "cmp")
-    opts.completion.nvim_cmp = has_cmp
-    require("obsidian").setup(opts)
-  end,
 }
