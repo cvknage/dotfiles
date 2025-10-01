@@ -86,7 +86,7 @@ return {
     "jay-babu/mason-nvim-dap.nvim",
     dependencies = {
       { "mfussenegger/nvim-dap", opts = { linked_plugins = { "jay-babu/mason-nvim-dap.nvim" } } },
-      "mfussenegger/nvim-dap",
+      "mason-org/mason.nvim",
     },
     cmd = { "DapInstall", "DapUninstall" },
     opts = {
