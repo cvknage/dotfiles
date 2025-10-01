@@ -7,7 +7,7 @@ return {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = {
       -- LSP
-      ensure_installed = { "jsonls" },
+      ensure_installed = { "json-lsp" },
     },
   },
 }

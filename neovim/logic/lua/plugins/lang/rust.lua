@@ -8,7 +8,7 @@ return {
     opts = {
       ensure_installed = {
         -- LSP
-        "rust_analyzer",
+        "rust-analyzer",
       },
     },
   },

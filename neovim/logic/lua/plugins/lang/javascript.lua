@@ -14,7 +14,7 @@ return {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     opts = function(_, opts)
       -- LSP
-      table.insert(opts.ensure_installed, "ts_ls")
+      table.insert(opts.ensure_installed, "typescript-language-server")
 
       -- DAP
       table.insert(opts.ensure_installed, "js-debug-adapter")

@@ -8,7 +8,7 @@ return {
     opts = {
       ensure_installed = {
         -- LSP
-        "yamlls",
+        "yaml-language-server",
       },
     },
   },

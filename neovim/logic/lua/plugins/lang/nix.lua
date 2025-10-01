@@ -8,7 +8,7 @@ return {
     opts = {
       ensure_installed = {
         -- LSP
-        "nil_ls",
+        "nil",
       },
     },
   },

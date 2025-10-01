@@ -63,7 +63,7 @@ return {
       ensure_installed = {},
       auto_update = false,
       integrations = {
-        ["mason-lspconfig"] = true,
+        ["mason-lspconfig"] = false,
         ["mason-nvim-dap"] = false,
         ["mason-null-ls"] = false,
       },

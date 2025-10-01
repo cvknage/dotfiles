@@ -34,7 +34,7 @@ return {
     opts = {
       ensure_installed = {
         -- LSP
-        "lua_ls",
+        "lua-language-server",
 
         -- Formatter
         "stylua",

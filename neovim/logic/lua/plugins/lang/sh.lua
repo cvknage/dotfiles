@@ -8,7 +8,7 @@ return {
     opts = {
       ensure_installed = {
         -- LSP
-        "bashls",
+        "bash-language-server",
 
         -- Formatter
         "shfmt",
