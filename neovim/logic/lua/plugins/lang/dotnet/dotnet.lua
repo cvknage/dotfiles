@@ -29,6 +29,7 @@ return {
         opts = vim.tbl_deep_extend("force", opts, {
           formatters_by_ft = {
             cs = { "csharpier" },
+            xml = { "csharpier" },
           },
           formatters = {
             csharpier = {
