@@ -6,8 +6,18 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "oil",
   callback = function()
     vim.b.lsp_disabled = true
-    if require("cmp") then
-      require("cmp").setup.buffer({ enabled = false })
+    vim.b.completion = false
+
+    -- nvim-cmp
+    local has_cmp, cmp = pcall(require, "cmp")
+    if has_cmp then
+      cmp.setup.buffer({ enabled = false })
+    end
+
+    -- coq.nvim
+    local has_coq, coq = pcall(require, "coq")
+    if has_coq and coq.Now then
+      coq.Now("disable", vim.api.nvim_get_current_buf())
     end
   end,
 })

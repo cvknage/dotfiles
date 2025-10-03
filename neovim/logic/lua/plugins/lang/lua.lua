@@ -43,18 +43,6 @@ return {
   },
   {
     "folke/lazydev.nvim",
-    dependencies = {
-      {
-        "hrsh7th/nvim-cmp",
-        optional = true,
-        opts = function(_, opts)
-          table.insert(opts.sources, 1, {
-            name = "lazydev", -- lazydev completion source for require statements and module annotations
-            group_index = 0, -- set group index to 0 to skip loading LuaLS completions
-          })
-        end,
-      },
-    },
     ft = "lua",
     opts = {
       library = {
@@ -63,24 +51,45 @@ return {
         -- Only load luvit types when the `vim.uv` word is found
         { path = "${3rd}/luv/library", words = { "vim%.uv" } },
       },
-      integrations = {
-        -- add the cmp source for completion of:
-        -- `require "modname"`
-        -- `---@module "modname"`
-        cmp = true,
-        -- add the coq source for completion of:
-        -- `require "modname"`
-        -- `---@module "modname"`
-        coq = true,
-      },
     },
     config = function(_, opts)
       local has_cmp = pcall(require, "cmp")
       local has_coq = pcall(require, "coq")
-      opts.integrations.cmp = has_cmp
-      opts.integrations.coq = has_coq
+      opts.integrations = {
+        cmp = has_cmp,
+        coq = has_coq,
+      }
       require("lazydev").setup(opts)
     end,
+  },
+  {
+    "hrsh7th/nvim-cmp",
+    optional = true,
+    opts = function(_, opts)
+      table.insert(opts.sources, 1, {
+        name = "lazydev", -- lazydev completion source for require statements and module annotations
+        group_index = 0, -- set group index to 0 to skip loading LuaLS completions
+      })
+    end,
+  },
+  {
+    "saghen/blink.cmp",
+    optional = true,
+    opts = {
+      sources = {
+        -- default = { "lazydev" },
+        providers = {
+          lazydev = {
+            name = "LazyDev",
+            module = "lazydev.integrations.blink",
+            score_offset = 100,
+          },
+        },
+        per_filetype = {
+          lua = { inherit_defaults = true, "lazydev" },
+        },
+      },
+    },
   },
   {
     "stevearc/conform.nvim",

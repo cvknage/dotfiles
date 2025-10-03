@@ -20,6 +20,8 @@ return {
   dependencies = {
     "nvim-lua/plenary.nvim",
   },
+  ---@module 'obsidian'
+  ---@type obsidian.config
   opts = {
     -- Disable legacy warning on startup
     legacy_commands = false,
@@ -126,4 +128,18 @@ return {
       substitutions = {},
     },
   },
+  config = function(_, opts)
+    local has_cmp = pcall(require, "cmp")
+    local has_blink = pcall(require, "blink.cmp")
+
+    -- Optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
+    opts.completion = {
+      nvim_cmp = has_cmp and not has_blink,
+      blink = has_blink,
+      min_chars = 2,
+      match_case = true,
+      create_new = true,
+    }
+    require("obsidian").setup(opts)
+  end,
 }

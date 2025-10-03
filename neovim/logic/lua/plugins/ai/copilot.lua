@@ -8,6 +8,7 @@ return {
     cmd = "Copilot",
     build = ":Copilot auth",
     enabled = enabled,
+    event = "InsertEnter",
     opts = {
       suggestion = {
         enabled = false,
@@ -29,31 +30,55 @@ return {
     },
     config = function(_, opts)
       local has_cmp = pcall(require, "cmp")
-      opts.suggestion.enabled = not has_cmp
+      local has_blink = pcall(require, "blink.cmp")
+      opts.suggestion.enabled = not has_cmp and not has_blink
       require("copilot").setup(opts)
     end,
   },
 
   -- copilot cmp
   {
-    "zbirenbaum/copilot-cmp",
-    event = "InsertEnter",
-    enabled = enabled,
+    "hrsh7th/nvim-cmp",
+    optional = true,
     dependencies = {
-      { "zbirenbaum/copilot.lua" },
-      {
-        "hrsh7th/nvim-cmp",
-        optional = true,
-        opts = function(_, opts)
-          table.insert(opts.sources, 1, {
-            name = "copilot",
-            group_index = 1,
-            priority = 100,
-          })
-        end,
-      },
+      "zbirenbaum/copilot-cmp",
+      enabled = enabled,
+      opts = {},
     },
-    opts = {},
+    opts = function(_, opts)
+      if enabled then
+        table.insert(opts.sources, 1, {
+          name = "copilot",
+          group_index = 1,
+          priority = 100,
+        })
+      end
+    end,
+  },
+  {
+    "saghen/blink.cmp",
+    optional = true,
+    dependencies = {
+      "fang2hou/blink-copilot",
+      enabled = enabled,
+    },
+    opts = function(_, opts)
+      if enabled then
+        table.insert(opts.sources.default, "copilot")
+        return vim.tbl_deep_extend("force", opts, {
+          sources = {
+            providers = {
+              copilot = {
+                name = "copilot",
+                module = "blink-copilot",
+                score_offset = 100,
+                async = true,
+              },
+            },
+          },
+        })
+      end
+    end,
   },
 
   -- copilot chat

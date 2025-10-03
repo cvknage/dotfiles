@@ -28,7 +28,8 @@ require("lazy").setup({
     { import = "plugins" },
 
     -- Autocompletion
-    { import = "plugins.comp.cmp" },
+    { import = "plugins.comp.blink" },
+    -- { import = "plugins.comp.cmp" },
     -- { import = "plugins.comp.coq" },
 
     -- Languages

@@ -41,5 +41,13 @@ return {
         highlight = "none",
       },
     },
+    config = function(_, opts)
+      local has_coq = pcall(require, "coq")
+      opts.completions = {
+        lsp = { enabled = not has_coq },
+        coq = { enabled = has_coq },
+      }
+      require("render-markdown").setup(opts)
+    end,
   },
 }
