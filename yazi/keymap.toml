@@ -9,11 +9,16 @@ on = ["c", "m"]
 run = "plugin chmod"
 
 [[mgr.prepend_keymap]]
+desc = "UI toggle maximize current pane"
+on = ["u", "c"]
+run = "plugin toggle-pane max-current"
+
+[[mgr.prepend_keymap]]
 desc = "UI toggle parent"
 on = ["u", "p"]
-run = "plugin toggle-view --args=parent"
+run = "plugin toggle-pane min-parent"
 
 [[mgr.prepend_keymap]]
 desc = "UI toggle Preview"
 on = ["u", "P"]
-run = "plugin toggle-view --args=preview"
+run = "plugin toggle-pane min-preview"
