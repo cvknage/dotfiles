@@ -26,8 +26,12 @@ return {
       completion = {
         documentation = {
           auto_show = true,
+          window = {
+            winblend = 10,
+          },
         },
         menu = {
+          winblend = 10,
           draw = {
             treesitter = { "lsp" },
             columns = {
