@@ -9,20 +9,6 @@ return {
     },
   },
   {
-    "iamcco/markdown-preview.nvim",
-    enabled = false, -- Trying out live-preview.nvim instead.
-    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
-    ft = { "markdown" },
-    build = ":call mkdp#util#install()",
-  },
-  {
-    "brianhuster/live-preview.nvim",
-    cmd = { "LivePreview" },
-    dependencies = {
-      "nvim-telescope/telescope.nvim",
-    },
-  },
-  {
     "MeanderingProgrammer/render-markdown.nvim",
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
     cmd = { "RenderMarkdown" },
@@ -49,5 +35,19 @@ return {
       }
       require("render-markdown").setup(opts)
     end,
+  },
+  {
+    "iamcco/markdown-preview.nvim",
+    enabled = false, -- Trying out live-preview.nvim instead.
+    cmd = { "MarkdownPreviewToggle", "MarkdownPreview", "MarkdownPreviewStop" },
+    ft = { "markdown" },
+    build = ":call mkdp#util#install()",
+  },
+  {
+    "brianhuster/live-preview.nvim",
+    cmd = { "LivePreview" },
+    dependencies = {
+      "nvim-telescope/telescope.nvim",
+    },
   },
 }
