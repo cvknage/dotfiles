@@ -4,7 +4,7 @@ return {
     opts = { ensure_installed = { "json", "jsonc", "json5" } },
   },
   {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    "mason-org/mason.nvim",
     opts = {
       -- LSP
       ensure_installed = { "json-lsp" },

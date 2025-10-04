@@ -4,7 +4,7 @@ return {
     opts = { ensure_installed = { "bash" } },
   },
   {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    "mason-org/mason.nvim",
     opts = {
       ensure_installed = {
         -- LSP

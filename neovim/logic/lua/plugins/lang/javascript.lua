@@ -11,7 +11,7 @@ return {
     },
   },
   {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    "mason-org/mason.nvim",
     opts = function(_, opts)
       -- LSP
       table.insert(opts.ensure_installed, "typescript-language-server")

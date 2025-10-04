@@ -17,11 +17,12 @@ return {
       "MasonUninstallAll",
       "MasonLog",
     },
-    opts_extend = { "registries" },
+    opts_extend = { "registries", "ensure_installed" },
     opts = {
       registries = {
         "github:mason-org/mason-registry",
       },
+      ensure_installed = {},
     },
     config = function(_, opts)
       require("mason").setup(opts)
@@ -29,6 +30,17 @@ return {
       -- Load mason-lock after mason
       vim.schedule(function()
         require("lazy").load({ plugins = { "mason-lock.nvim" } })
+      end)
+
+      -- Install tools from ensure_installed
+      vim.schedule(function()
+        local registry = require("mason-registry")
+        for _, tool in ipairs(opts.ensure_installed) do
+          local pkg = registry.get_package(tool)
+          if not pkg:is_installed() then
+            pkg:install()
+          end
+        end
       end)
     end,
   },
@@ -44,29 +56,6 @@ return {
         .. "/mason-lock"
         .. (require("utils").is_private_config and "-private" or require("utils").is_work_config and "-work" or "")
         .. ".json",
-    },
-  },
-  {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
-    dependencies = {
-      "mason-org/mason.nvim",
-    },
-    cmds = {
-      "MasonToolsInstall",
-      "MasonToolsInstallSync",
-      "MasonToolsUpdate",
-      "MasonToolsUpdateSync",
-      "MasonToolsClean",
-    },
-    opts_extend = { "ensure_installed" },
-    opts = {
-      ensure_installed = {},
-      auto_update = false,
-      integrations = {
-        ["mason-lspconfig"] = false,
-        ["mason-nvim-dap"] = false,
-        ["mason-null-ls"] = false,
-      },
     },
   },
 }
