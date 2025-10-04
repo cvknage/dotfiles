@@ -29,8 +29,8 @@ return {
       },
     },
     config = function(_, opts)
-      local has_cmp = pcall(require, "cmp")
-      local has_blink = pcall(require, "blink.cmp")
+      local has_cmp = require("lazy.core.config").plugins["nvim-cmp"] ~= nil
+      local has_blink = require("lazy.core.config").plugins["blink.cmp"] ~= nil
       opts.suggestion.enabled = not has_cmp and not has_blink
       require("copilot").setup(opts)
     end,

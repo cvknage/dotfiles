@@ -1,23 +1,28 @@
 -- Disable opening Netrw when starting nvim
 vim.cmd("autocmd VimEnter * ++once silent! autocmd! FileExplorer *")
 
--- Disable LSP / completion for oil buffers
+-- Disable LSP & Completion for oil buffers
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "oil",
   callback = function()
     vim.b.lsp_disabled = true
     vim.b.completion = false
 
-    -- nvim-cmp
-    local has_cmp, cmp = pcall(require, "cmp")
-    if has_cmp then
-      cmp.setup.buffer({ enabled = false })
+    local cmp_plugin = require("lazy.core.config").plugins["nvim-cmp"]
+    if cmp_plugin and cmp_plugin._.loaded then
+      local ok, cmp = pcall(require, "cmp")
+      if ok then
+        cmp.setup.buffer({ enabled = false })
+      end
     end
 
-    -- coq.nvim
-    local has_coq, coq = pcall(require, "coq")
-    if has_coq and coq.Now then
-      coq.Now("disable", vim.api.nvim_get_current_buf())
+    local coq_plugin = require("lazy.core.config").plugins["coq_nvim"]
+    if coq_plugin and coq_plugin._.loaded then
+      local ok, coq = pcall(require, "coq")
+      if ok and coq.Now then
+        local buf = vim.api.nvim_get_current_buf()
+        pcall(coq.Now, "disable", buf)
+      end
     end
   end,
 })

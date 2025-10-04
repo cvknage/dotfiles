@@ -22,8 +22,8 @@ return {
       },
     },
     config = function(_, opts)
-      local has_cmp = pcall(require, "cmp")
-      local has_blink = pcall(require, "blink.cmp")
+      local has_cmp = require("lazy.core.config").plugins["nvim-cmp"] ~= nil
+      local has_blink = require("lazy.core.config").plugins["blink.cmp"] ~= nil
       opts.enable_cmp_source = has_cmp
       opts.virtual_text = {
         enabled = not has_cmp and not has_blink,

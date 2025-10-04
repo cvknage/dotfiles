@@ -28,7 +28,7 @@ return {
       },
     },
     config = function(_, opts)
-      local has_coq = pcall(require, "coq")
+      local has_coq = require("lazy.core.config").plugins["coq_nvim"] ~= nil
       opts.completions = {
         lsp = { enabled = not has_coq },
         coq = { enabled = has_coq },

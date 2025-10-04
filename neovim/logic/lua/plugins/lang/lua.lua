@@ -53,8 +53,8 @@ return {
       },
     },
     config = function(_, opts)
-      local has_cmp = pcall(require, "cmp")
-      local has_coq = pcall(require, "coq")
+      local has_cmp = require("lazy.core.config").plugins["nvim-cmp"] ~= nil
+      local has_coq = require("lazy.core.config").plugins["coq_nvim"] ~= nil
       opts.integrations = {
         cmp = has_cmp,
         coq = has_coq,

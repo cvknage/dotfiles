@@ -130,8 +130,8 @@ return {
     },
   },
   config = function(_, opts)
-    local has_cmp = pcall(require, "cmp")
-    local has_blink = pcall(require, "blink.cmp")
+    local has_cmp = require("lazy.core.config").plugins["nvim-cmp"] ~= nil
+    local has_blink = require("lazy.core.config").plugins["blink.cmp"] ~= nil
 
     -- Optional, completion of wiki links, local markdown links, and tags using nvim-cmp.
     opts.completion = {
