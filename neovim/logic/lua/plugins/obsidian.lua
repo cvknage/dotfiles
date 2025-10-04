@@ -1,6 +1,7 @@
 return {
   "obsidian-nvim/obsidian.nvim", -- A community fork of "epwalsh/obsidian.nvim",
   version = "*", -- recommended, use latest release instead of latest commit
+  cmd = { "Obsidian" },
   keys = {
     { "<leader>on", "<cmd>Obsidian new<cr>", desc = "New Note", mode = "n" },
     { "<leader>os", "<cmd>Obsidian search<cr>", desc = "Search Notes", mode = "n" },
