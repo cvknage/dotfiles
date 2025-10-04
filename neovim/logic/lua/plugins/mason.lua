@@ -17,6 +17,12 @@ return {
       "MasonUninstallAll",
       "MasonLog",
     },
+    init = function()
+      -- Load telescope for ui-select before Mason
+      if not package.loaded["telescope"] then
+        require("lazy").load({ plugins = { "telescope.nvim" } })
+      end
+    end,
     opts_extend = { "registries", "ensure_installed" },
     opts = {
       registries = {
