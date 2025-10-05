@@ -74,15 +74,29 @@ return {
             ["<C-Up>"] = actions.cycle_history_prev,
             ["<C-f>"] = actions.preview_scrolling_down,
             ["<C-b>"] = actions.preview_scrolling_up,
+            ["<C-Space>"] = actions.toggle_selection,
+            ["<Tab>"] = actions.move_selection_previous,
+            ["<S-Tab>"] = actions.move_selection_next,
           },
           n = {
             ["q"] = actions.close,
+            ["<Space>"] = actions.toggle_selection,
+            ["<Tab>"] = actions.move_selection_previous,
+            ["<S-Tab>"] = actions.move_selection_next,
           },
         },
       },
       extensions = {
         ["ui-select"] = {
-          require("telescope.themes").get_dropdown(),
+          require("telescope.themes").get_dropdown({
+            attach_mappings = function(_, map)
+              map("i", "<Tab>", actions.move_selection_next)
+              map("i", "<S-Tab>", actions.move_selection_previous)
+              map("n", "<Tab>", actions.move_selection_next)
+              map("n", "<S-Tab>", actions.move_selection_previous)
+              return true
+            end,
+          }),
         },
       },
     }
