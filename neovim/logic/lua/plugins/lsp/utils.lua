@@ -64,12 +64,13 @@ function M.keymaps(client, bufnr)
     return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
   end
 
-  -- stylua: ignore start
   vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
   MAP.format("n", "<leader>cf", options({ desc = "Format" }))
   vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, options({ desc = "Rename" }))
   vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, options({ desc = "Code Action" }))
-  vim.keymap.set("n", "<leader>cA", function() vim.lsp.buf.code_action({ context = { only = { "source" }, diagnostics = {} } }) end, options({ desc = "Source Action" }))
+  vim.keymap.set("n", "<leader>cA", function()
+    vim.lsp.buf.code_action({ context = { only = { "source" }, diagnostics = {} } })
+  end, options({ desc = "Source Action" }))
   MAP.definitions("n", "gd", options({ desc = "Goto Definition" }))
   MAP.references("n", "gr", options({ desc = "References" }))
   vim.keymap.set("n", "gD", vim.lsp.buf.declaration, options({ desc = "Goto Declaration" }))
@@ -78,11 +79,11 @@ function M.keymaps(client, bufnr)
   vim.keymap.set("n", "K", vim.lsp.buf.hover, options({ desc = "Hover" }))
   vim.keymap.set("n", "gK", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
   vim.keymap.set("i", "<c-k>", vim.lsp.buf.signature_help, options({ desc = "Signature Help" }))
-  -- stylua: ignore end
 
   if client:supports_method("textDocument/inlayHint") then
-    -- stylua: ignore
-    vim.keymap.set("n", "<leader>ci", function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr }) end, options({ desc = "Toggle Inlay Hints" }))
+    vim.keymap.set("n", "<leader>ci", function()
+      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+    end, options({ desc = "Toggle Inlay Hints" }))
   end
 end
 
@@ -117,7 +118,10 @@ end
 --- Configure global diagnostic options
 function M.diagnostics()
   vim.diagnostic.config({
+    update_in_insert = true,
+    underline = true,
     virtual_text = true,
+    virtual_lines = false,
     signs = {
       text = {
         [vim.diagnostic.severity.ERROR] = "✘",
