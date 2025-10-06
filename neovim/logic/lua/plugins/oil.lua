@@ -35,6 +35,8 @@ return {
     keys = {
       { "<leader>pv", "<cmd>Oil<cr>", desc = "Project Volumes" },
     },
+    ---@module 'oil'
+    ---@type oil.SetupOpts
     opts = {
       default_file_explorer = false,
       keymaps = {
