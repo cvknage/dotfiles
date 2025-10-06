@@ -70,14 +70,11 @@ return {
     "mason-org/mason.nvim",
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
+        -- Add custom registry for Roslyn
+        -- https://github.com/Crashdummyy/mason-registry
+        -- https://github.com/Crashdummyy/roslynLanguageServer
         table.insert(opts.registries, "github:Crashdummyy/mason-registry")
-      end
-    end,
-  },
-  {
-    "mason-org/mason.nvim",
-    opts = function(_, opts)
-      if dotnet_utils.has_dotnet then
+
         -- LSP
         table.insert(opts.ensure_installed, "roslyn")
       end
