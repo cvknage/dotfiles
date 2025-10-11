@@ -5,7 +5,15 @@ lsp_utils.diagnostics()
 lsp_utils.lsp_attach()
 
 return {
-  "neovim/nvim-lspconfig",
+  {
+    "neovim/nvim-lspconfig",
+    cmd = {
+      "LspInfo",
+      "LspStart",
+      "LspStop",
+      "LspRestart",
+    },
+  },
   {
     "mason-org/mason-lspconfig.nvim",
     cmd = { "LspInstall", "LspStart" },

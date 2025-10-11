@@ -1,8 +1,10 @@
 {
   "bash-language-server": "5.6.0",
   "csharpier": "1.1.2",
+  "harper-ls": "v0.66.0",
   "js-debug-adapter": "v1.104.0",
   "json-lsp": "4.10.0",
+  "ltex-ls-plus": "18.5.1",
   "lua-language-server": "3.15.0",
   "netcoredbg": "3.1.2-1054",
   "nil": "2025-06-13",
