@@ -26,7 +26,6 @@
     };
     mac-app-util.url = "github:hraban/mac-app-util";
     tuxedo-nixos.url = "github:sylvesterroos/tuxedo-nixos";
-    ghostty.url = "github:ghostty-org/ghostty";
   };
 
   outputs = inputs @ {

@@ -1,5 +1,4 @@
 {
-  # inputs,
   lib,
   pkgs,
   user,
@@ -52,7 +51,6 @@ in {
 
     # Developer Tools
     pkgs.ghostty # perfer ghostty from its own repo
-    # inputs.ghostty.packages.${pkgs.system}.default
     pkgs.postman
     pkgs.biome
 
