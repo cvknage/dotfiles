@@ -137,6 +137,7 @@ in {
   };
 
   home.sessionVariables = {
+    HOMEMANAGER_CONFIG_SCOPE = "work";
     # DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
   };
 }

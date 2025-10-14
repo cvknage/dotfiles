@@ -34,4 +34,8 @@
       ${builtins.readFile ../../../shell/common}
     '';
   };
+
+  home.sessionVariables = {
+    HOMEMANAGER_CONFIG_SCOPE = "private";
+  };
 }
