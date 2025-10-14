@@ -1,9 +1,12 @@
 {
-  inputs,
+  # inputs,
   lib,
   pkgs,
   user,
   ...
+}:
+# Install dotnet globally
+/*
 }: let
   # Create combined package of dotnet SDKs
   combinedDotNetSDKs = pkgs.buildEnv {
@@ -13,12 +16,13 @@
         with pkgs.dotnetCorePackages;
           combinePackages [
             sdk_9_0
-            sdk_7_0
           ]
       )
     ];
   };
 in {
+*/
+{
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = user;
@@ -50,24 +54,31 @@ in {
     pkgs.ghostty # perfer ghostty from its own repo
     # inputs.ghostty.packages.${pkgs.system}.default
     pkgs.postman
-    pkgs.azure-cli
-    pkgs.kubelogin
-    pkgs.kubectl
-    pkgs.kind
-    pkgs.kubernetes-helm
-    pkgs.go-task
-    pkgs.k9s
-    pkgs.mirrord
-    pkgs.gh
-    pkgs.k6
     pkgs.biome
 
     # SDKs
-    combinedDotNetSDKs
-    pkgs.python3
     pkgs.corepack
     pkgs.bun
     pkgs.deno
+
+    # General Work Tooling
+    # Moved work related tooling in to nix profiles and nix devshell that the whole team can use
+
+    # nix profile install "github:secomea-dev/recipes?dir=dev-tools/core"
+    # pkgs.azure-cli
+    # pkgs.kubelogin
+    # pkgs.kubectl
+    # pkgs.kind
+    # pkgs.kubernetes-helm
+    # pkgs.go-task
+    # pkgs.k9s
+    # pkgs.mirrord
+    # pkgs.gh
+    # pkgs.k6
+    # pkgs.python3
+
+    # nix profile install "github:secomea-dev/recipes?dir=dev-tools/dotnet"
+    # combinedDotNetSDKs
   ];
 
   programs.bash = {
@@ -128,6 +139,6 @@ in {
   };
 
   home.sessionVariables = {
-    DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
+    # DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
   };
 }
