@@ -27,9 +27,6 @@
     pkgs.gitui
     pkgs.jq
     pkgs.gnused
-
-    # SDKs
-    pkgs.nodejs_latest
   ];
 
   programs.neovim = {

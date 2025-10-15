@@ -21,6 +21,9 @@
     # Developer Tools
     pkgs.hugo
     pkgs.ollama
+
+    # SDKs
+    pkgs.nodejs_latest
   ];
 
   programs.zsh = {
@@ -36,6 +39,6 @@
   };
 
   home.sessionVariables = {
-    HOMEMANAGER_CONFIG_SCOPE = "private";
+    HOME_CONFIGUTATION_CONTEXT = "private";
   };
 }

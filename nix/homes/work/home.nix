@@ -4,8 +4,8 @@
   user,
   ...
 }:
-# Install dotnet globally
 /*
+# Global .NET installation
 }: let
   # Create combined package of dotnet SDKs
   combinedDotNetSDKs = pkgs.buildEnv {
@@ -50,19 +50,12 @@ in {
     pkgs.easyeffects
 
     # Developer Tools
-    pkgs.ghostty # perfer ghostty from its own repo
+    pkgs.ghostty
     pkgs.postman
-    pkgs.biome
 
-    # SDKs
-    pkgs.corepack
-    pkgs.bun
-    pkgs.deno
-
-    # General Work Tooling
-    # Moved work related tooling in to nix profiles and nix devshell that the whole team can use
-
-    # nix profile install "github:secomea-dev/recipes?dir=dev-tools/core"
+    # General work tooling is moved to nix profiles and nix devShell
+    # Globally installed tools
+    # `nix profile install "github:secomea-dev/recipes?dir=dev-tools/core"`
     # pkgs.azure-cli
     # pkgs.kubelogin
     # pkgs.kubectl
@@ -75,7 +68,16 @@ in {
     # pkgs.k6
     # pkgs.python3
 
-    # nix profile install "github:secomea-dev/recipes?dir=dev-tools/dotnet"
+    # Globally installed .NET - if desired/needed
+    # `nix profile install "github:secomea-dev/recipes?dir=dev-tools/dotnet"`
+    # combinedDotNetSDKs
+
+    # nix devShell (with direnv)
+    # pkgs.corepack
+    # pkgs.bun
+    # pkgs.deno
+    # pkgs.biome
+    # pkgs.nodejs_latest
     # combinedDotNetSDKs
   ];
 
@@ -137,7 +139,7 @@ in {
   };
 
   home.sessionVariables = {
-    HOMEMANAGER_CONFIG_SCOPE = "work";
+    HOME_CONFIGUTATION_CONTEXT = "work";
     # DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
   };
 }
