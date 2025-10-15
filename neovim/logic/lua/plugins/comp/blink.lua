@@ -13,6 +13,8 @@ return {
         ["<C-Space>"] = { "show" },
         ["<Esc>"] = { "hide", "fallback" },
         ["<CR>"] = { "accept", "fallback" },
+        ["<Up>"] = { "select_prev", "fallback" },
+        ["<Down>"] = { "select_next", "fallback" },
         ["<Tab>"] = { "select_next", "fallback" },
         ["<S-Tab>"] = { "select_prev", "fallback" },
         ["<C-p>"] = { "select_prev", "fallback_to_mappings" },
