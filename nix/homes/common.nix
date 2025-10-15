@@ -27,6 +27,7 @@
     pkgs.gitui
     pkgs.jq
     pkgs.gnused
+    pkgs.posting
   ];
 
   programs.neovim = {
