@@ -18,7 +18,7 @@ return {
     require("catppuccin").setup(opts)
     vim.cmd.colorscheme("catppuccin")
     vim.opt.pumblend = 10 -- Enables pseudo-transparency for the |popup-menu|
-    vim.opt.winblend = 10 -- Enables pseudo-transparency for a floaring window
+    vim.opt.winblend = 10 -- Enables pseudo-transparency for a floating window
   end,
   opts = {
     flavour = "auto", -- latte, frappe, macchiato, mocha
@@ -28,14 +28,16 @@ return {
     },
     transparent_background = true, -- disables setting the background color
     float = {
-      transparent = false, -- enable transparent floating windows
+      transparent = true, -- enable transparent floating windows
+      solid = false, -- use solid styling for floating windows, see |winborder|
     },
     custom_highlights = function(colors)
       -- STYLE GUIDE: https://github.com/catppuccin/catppuccin/blob/main/docs/style-guide.md
       -- DEFAULT SETTINGS: https://github.com/catppuccin/nvim/blob/main/lua/catppuccin/groups/editor.lua
       -- local U = require("catppuccin.utils.colors") -- utility functions
       return {
-        NormalFloat = { bg = colors.base }, -- floaring windows like :Mason and :Lazy
+        NormalFloat = { bg = colors.base }, -- floating windows like :Mason and :Lazy
+        FloatBorder = { bg = colors.base }, -- floating window borders like completion menu
         Pmenu = { bg = colors.base }, -- Pmenu
         Comment = { fg = colors.overlay1 }, -- code comments
         Visual = { bg = colors.surface2 }, -- visual mode selection
@@ -43,7 +45,8 @@ return {
         LineNr = { fg = colors.pink }, -- line numbers
         CursorLineNr = { fg = colors.rosewater }, -- line number on cursor line
         TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.base }, -- treesitter context line numbers
-        -- CursorLine = { bg = color.base }, -- crusor line
+        TelescopeBorder = { fg = colors.mauve, bg = colors.base },
+        -- CursorLine = { bg = colors.base }, -- crusor line
         -- https://github.com/catppuccin/nvim/discussions/448#discussioncomment-5560230
         --[[
         CursorLine = {
@@ -56,37 +59,5 @@ return {
       }
     end,
     auto_integrations = true,
-    integrations = {
-      treesitter = true,
-      mason = true,
-      telescope = {
-        enabled = true,
-      },
-      native_lsp = {
-        enabled = true,
-        virtual_text = {
-          errors = { "italic" },
-          hints = { "italic" },
-          warnings = { "italic" },
-          information = { "italic" },
-        },
-        underlines = {
-          errors = { "underline" },
-          hints = { "underline" },
-          warnings = { "underline" },
-          information = { "underline" },
-        },
-        inlay_hints = {
-          background = true,
-        },
-      },
-      cmp = true,
-      which_key = true,
-      illuminate = {
-        enabled = true,
-        lsp = false,
-      },
-      render_markdown = true,
-    },
   },
 }
