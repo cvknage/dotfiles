@@ -17,7 +17,7 @@ return {
         table.insert(opts.ensure_installed, "netcoredbg")
 
         -- Formatter
-        table.insert(opts.ensure_installed, "csharpier")
+        -- table.insert(opts.ensure_installed, "csharpier")
       end
     end,
   },
@@ -32,11 +32,20 @@ return {
             xml = { "csharpier" },
           },
           formatters = {
+            -- csharpier from dotnet tools and dotnet only in nix devShell
+            csharpier = {
+              command = "dotnet",
+              args = { "csharpier", "format", "$FILENAME" },
+              stdin = false,
+            },
+            --[[
+            -- csharpier from mason and a global dotnet
             csharpier = {
               command = "csharpier",
               args = { "format", "$FILENAME" },
               stdin = false,
             },
+            ]]
           },
         })
       end

@@ -1,6 +1,5 @@
 {
   "bash-language-server": "5.6.0",
-  "csharpier": "1.1.2",
   "harper-ls": "v0.66.0",
   "js-debug-adapter": "v1.104.0",
   "json-lsp": "4.10.0",
