@@ -52,6 +52,9 @@
 
         # nix code formatter for conform.nvim
         pkgs.alejandra
+
+        # needed for copilot.lua
+        pkgs.nodejs_latest
       ]
       ++ lib.optionals (!pkgs.stdenv.isDarwin) [
         # needed for nvim to install nvim-treesitter and fzf-native
