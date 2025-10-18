@@ -76,7 +76,6 @@
 
       # Developer Tools
       "ghostty"
-      "wezterm"
       "raspberry-pi-imager"
       "cyberduck"
       "utm"
