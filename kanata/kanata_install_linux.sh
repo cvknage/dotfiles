@@ -2,7 +2,7 @@
 
 # Variables
 RULES_FILE="/etc/udev/rules.d/99-input.rules"
-SERVICE_FILE="$HOME/.config/systemd/user/kanata.service"
+SERVICE_FILE="$XDG_CONFIG_HOME/systemd/user/kanata.service"
 . ./kanata_variables.sh
 
 # If the uinput group does not exist, create a new group
@@ -23,7 +23,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 sudo modprobe uinput
 
 # Create and enable a systemd daemon service
-mkdir -p ~/.config/systemd/user
+mkdir -p $XDG_CONFIG_HOME/systemd/user
 touch "$SERVICE_FILE"
 
 cat <<EOF | sudo tee "$SERVICE_FILE" >/dev/null

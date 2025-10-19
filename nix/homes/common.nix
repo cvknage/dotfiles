@@ -3,7 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
+in {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
   # introduces backwards incompatible changes.
@@ -119,20 +121,18 @@
     #  "foo".source = config.lib.file.mkOutOfStoreSymlink ./bar;
     # would upon activation create a symlink '~/foo' that points to the
     # absolute path of the 'bar' file relative the configuration file.
-    # ('mkOutOfStoreSymlink' only works as expected for me when supplying the absolute path of the source file aka. './bar' in the example above)
-    ".config/btop".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/btop";
-    ".config/direnv/direnv.toml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/direnv/direnv.toml";
-    ".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/ghostty";
-    ".config/git".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/git";
-    ".config/gitui".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/gitui";
-    ".config/k9s".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/k9s";
-    ".config/kanata".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/kanata";
-    ".config/nvim".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/neovim/logic";
-    ".config/starship.toml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/starship/starship.toml";
-    ".tmux".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/tmux/tmux";
-    ".tmux.conf".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/tmux/tmux.conf";
-    ".config/wezterm".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/wezterm";
-    ".config/yazi".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/yazi";
+    "${config.xdg.configHome}/btop".source = "${dotfiles}/btop";
+    "${config.xdg.configHome}/direnv/direnv.toml".source = "${dotfiles}/direnv/direnv.toml";
+    "${config.xdg.configHome}/ghostty".source = "${dotfiles}/ghostty";
+    "${config.xdg.configHome}/git".source = "${dotfiles}/git";
+    "${config.xdg.configHome}/gitui".source = "${dotfiles}/gitui";
+    "${config.xdg.configHome}/k9s".source = "${dotfiles}/k9s";
+    "${config.xdg.configHome}/kanata".source = "${dotfiles}/kanata";
+    "${config.xdg.configHome}/nvim".source = "${dotfiles}/neovim/logic";
+    "${config.xdg.configHome}/starship.toml".source = "${dotfiles}/starship/starship.toml";
+    "${config.xdg.configHome}/tmux".source = "${dotfiles}/tmux";
+    "${config.xdg.configHome}/wezterm".source = "${dotfiles}/wezterm";
+    "${config.xdg.configHome}/yazi".source = "${dotfiles}/yazi";
   };
 
   # Home Manager can also manage your environment variables through
@@ -149,6 +149,7 @@
     EDITOR = "nvim";
     VISUAL = "nvim";
     TERMINAL = "ghostty";
+    XDG_CONFIG_HOME = "${config.xdg.configHome}";
   };
 
   # Let Home Manager install and manage itself.

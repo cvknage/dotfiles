@@ -2,8 +2,8 @@
 
 if [ ! -d "$(pwd)/tmux" ]; then
   # Install tmux package manager
-  git clone https://github.com/tmux-plugins/tpm "$(pwd)/tmux/plugins/tpm"
+  git clone https://github.com/tmux-plugins/tpm "$(pwd)/plugins/tpm"
 
   # Install tmux plugins
-  bash "$HOME/.tmux/plugins/tpm/bin/install_plugins" % >/dev/null
+  bash "$XDG_CONFIG_HOME/tmux/plugins/tpm/bin/install_plugins" % >/dev/null
 fi

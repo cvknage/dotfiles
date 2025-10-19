@@ -81,7 +81,7 @@ Configure host system for Kanata:
   Now is a good time to test if everything works correctly:  
   While the daemon is running, open a new terminal window and run:
   ``` bash
-  sudo kanata --cfg ~/.config/kanata/kanata.kbd
+  sudo kanata --cfg $XDG_CONFIG_HOME/kanata/kanata.kbd
   ```
   If it doen't work, fix it before continuing
 
@@ -93,7 +93,7 @@ Configure host system for Kanata:
   Define shell variables (paste these in the shell)
   ``` bash
   KANATA_BIN_PATH="$HOME/.cargo/bin/kanata"
-  KANATA_CONFIG_PATH="$HOME/.config/kanata/kanata.kbd"
+  KANATA_CONFIG_PATH="$XDG_CONFIG_HOME/kanata/kanata.kbd"
   KANATA_SUDOERS_FILE="/etc/sudoers.d/kanata"
   KANATA_PLIST_FILE="/Library/LaunchDaemons/com.jtroo.kanata.plist"
   KARABINER_DAEMON_PLIST_FILE="/Library/LaunchDaemons/com.pqrs-org.karabiner-vhiddaemon.plist"
@@ -245,7 +245,7 @@ Configure host system for Kanata:
 
   Now is a good time to test if everything works correctly:
   ``` bash
-  sudo kanata --cfg ~/.config/kanata/kanata.kbd
+  sudo kanata --cfg $XDG_CONFIG_HOME/kanata/kanata.kbd
   ```
   If it doen't work, fix it before continuing
 
@@ -255,7 +255,7 @@ Configure host system for Kanata:
   #### Run Kanata on startup
   Create and enable a systemd daemon service
   ``` bash
-  mkdir -p ~/.config/systemd/user
+  mkdir -p $XDG_CONFIG_HOME/systemd/user
   touch "$SERVICE_FILE"
   ```
 
