@@ -28,6 +28,7 @@
     pkgs.jq
     pkgs.gnused
     pkgs.posting
+    pkgs.btop
   ];
 
   programs.neovim = {
@@ -119,6 +120,7 @@
     # would upon activation create a symlink '~/foo' that points to the
     # absolute path of the 'bar' file relative the configuration file.
     # ('mkOutOfStoreSymlink' only works as expected for me when supplying the absolute path of the source file aka. './bar' in the example above)
+    ".config/btop".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/btop";
     ".config/direnv/direnv.toml".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/direnv/direnv.toml";
     ".config/ghostty".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/ghostty";
     ".config/git".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles/git";
