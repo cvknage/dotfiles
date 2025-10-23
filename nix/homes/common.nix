@@ -55,13 +55,14 @@ in {
     withNodeJs = true;
     withPython3 = true;
     extraPackages = neovimExtraPackages;
-    extraWrapperArgs = lib.concatLists (map (pkg: [
+    extraWrapperArgs =
+      lib.concatMap (pkg: [
         "--prefix" # Prefix extraPackages to PATH for consistent behavior if a system level equivalent is available
         "PATH"
         ":"
         (lib.makeBinPath [pkg])
       ])
-      neovimExtraPackages);
+      neovimExtraPackages;
   };
 
   programs.fzf = {
