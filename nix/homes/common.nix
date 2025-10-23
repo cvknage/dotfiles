@@ -5,6 +5,31 @@
   ...
 }: let
   dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
+  neovimExtraPackages =
+    [
+      # Needed by lazy.nvim package manager to support luarocks
+      pkgs.lua5_1
+      pkgs.luajitPackages.luarocks
+
+      # Needed by mason.nvim package manager
+      pkgs.unzip
+      pkgs.wget
+
+      # Needed by nvim-treesitter to install some languages
+      pkgs.gnused
+
+      # Needed by telescope.nvim to do "find" and "live grep"
+      pkgs.fd
+      pkgs.ripgrep
+
+      # nix code formatter for conform.nvim
+      pkgs.alejandra
+    ]
+    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+      # Needed to install some native dependencies like: nvim-treesitter and fzf-native
+      pkgs.gcc
+      pkgs.gnumake
+    ];
 in {
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -36,34 +61,17 @@ in {
   programs.neovim = {
     enable = true;
     vimAlias = true;
-    extraPackages =
-      [
-        # needed for lazy.nvim package manager to work corerctly
-        pkgs.lua5_1
-        pkgs.luajitPackages.luarocks
-
-        # needed for mason.nvim package manager to work correctly
-        pkgs.unzip
-        pkgs.wget
-
-        # needed for nvim-treesitter to install some languages
-        pkgs.gnused
-
-        # needed for telescope.nvim to do "find" and "live grep"
-        pkgs.fd
-        pkgs.ripgrep
-
-        # nix code formatter for conform.nvim
-        pkgs.alejandra
-
-        # needed for copilot.lua
-        pkgs.nodejs_latest
-      ]
-      ++ lib.optionals (!pkgs.stdenv.isDarwin) [
-        # needed for nvim to install nvim-treesitter and fzf-native
-        pkgs.gcc
-        pkgs.gnumake
-      ];
+    withRuby = true;
+    withNodeJs = true;
+    withPython3 = true;
+    extraPackages = neovimExtraPackages;
+    extraWrapperArgs = lib.concatLists (map (pkg: [
+        "--prefix" # Prefix extraPackages to PATH for consistent behavior if a system level equivalent is available
+        "PATH"
+        ":"
+        (lib.makeBinPath [pkg])
+      ])
+      neovimExtraPackages);
   };
 
   programs.fzf = {

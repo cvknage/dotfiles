@@ -21,9 +21,6 @@
     # Developer Tools
     pkgs.hugo
     pkgs.ollama
-
-    # SDKs
-    pkgs.nodejs_latest
   ];
 
   programs.zsh = {
