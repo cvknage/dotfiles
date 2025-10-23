@@ -56,13 +56,14 @@ in {
     withPython3 = true;
     extraPackages = neovimExtraPackages;
     extraWrapperArgs =
-      lib.concatMap (pkg: [
-        "--prefix" # Prefix extraPackages to PATH for consistent behavior if a system level equivalent is available
-        "PATH"
-        ":"
-        (lib.makeBinPath [pkg])
-      ])
-      neovimExtraPackages;
+      lib.optionals (pkgs.stdenv.isDarwin)
+      (lib.concatMap (pkg: [
+          "--prefix"
+          "PATH"
+          ":"
+          (lib.makeBinPath [pkg])
+        ])
+        neovimExtraPackages);
   };
 
   programs.fzf = {
