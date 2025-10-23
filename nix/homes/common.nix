@@ -123,6 +123,7 @@ in {
     # absolute path of the 'bar' file relative the configuration file.
     "${config.xdg.configHome}/btop".source = "${dotfiles}/btop";
     "${config.xdg.configHome}/direnv/direnv.toml".source = "${dotfiles}/direnv/direnv.toml";
+    "${config.xdg.configHome}/direnv/direnvrc".source = "${dotfiles}/direnv/direnvrc";
     "${config.xdg.configHome}/ghostty".source = "${dotfiles}/ghostty";
     "${config.xdg.configHome}/git".source = "${dotfiles}/git";
     "${config.xdg.configHome}/gitui".source = "${dotfiles}/gitui";
