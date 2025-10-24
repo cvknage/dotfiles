@@ -56,6 +56,10 @@ return {
 
     -- ui
     { "<leader>uC", builtin("colorscheme", { enable_preview = true }), desc = "Colorscheme with preview" },
+
+    -- spell
+    -- stylua: ignore
+    { "z=", function() require("telescope").extensions.spell_suggest() end, desc = "Spelling suggestions" },
   },
   opts = function()
     local actions = require("telescope.actions")
@@ -108,5 +112,34 @@ return {
     -- load_extension, somewhere after setup function:
     telescope.load_extension("fzf")
     telescope.load_extension("ui-select")
+
+    -- Spell suggestion integration
+    telescope.extensions.spell_suggest = function()
+      local word = vim.fn.expand("<cword>")
+      local suggestions = vim.fn.spellsuggest(word)
+      if #suggestions == 0 then
+        vim.notify("No suggestions found for: " .. word, vim.log.levels.INFO)
+        return
+      end
+
+      local choices = {}
+      for index, suggestion in ipairs(suggestions) do
+        table.insert(choices, {
+          display = string.format("%2d: %s", index, suggestion),
+          value = suggestion,
+        })
+      end
+
+      vim.ui.select(choices, {
+        prompt = "Replace '" .. word .. "' with:",
+        format_item = function(choice)
+          return choice.display
+        end,
+      }, function(choice)
+        if choice then
+          vim.cmd("normal! ciw" .. choice.value)
+        end
+      end)
+    end
   end,
 }
