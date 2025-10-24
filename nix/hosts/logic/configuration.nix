@@ -83,6 +83,9 @@
       # Notes
       "obsidian"
 
+      # Messaging
+      "signal"
+
       # Creative
       "gimp"
       "imageoptim"
@@ -102,11 +105,14 @@
       "Amphetamine" = 937984704;
       "The Unarchiver" = 425424353;
       "BetterSnapTool" = 417375580;
-      "EasyFind" = 411673888;
 
       # Safari Extensions
       "Surfingkeys" = 1609752330;
       "Dark Reader for Safari" = 1438243180;
+
+      # File Management
+      "EasyFind" = 411673888;
+      "LocalSend" = 1661733229;
 
       # Developer Tools
       "Xcode" = 497799835;
