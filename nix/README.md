@@ -7,7 +7,7 @@ Unofficial [NixOS & Flakes Book](https://nixos-and-flakes.thiscute.world/introdu
 
 Install Nix with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer)
 
-On MacOS; bootstrap [`nix-darwin`](https://github.com/LnL7/nix-darwin) with the following command:
+On macOS; bootstrap [`nix-darwin`](https://github.com/LnL7/nix-darwin) with the following command:
 ``` bash
 nix run nix-darwin -- switch --flake .
 ```
@@ -21,7 +21,7 @@ nix run home-manager/master -- switch --flake .
 
 Update the configuration, and build a new version.
 
-On MacOS:
+On macOS:
 ``` bash
 darwin-rebuild switch --flake .
 ```
@@ -47,7 +47,7 @@ nix search nixpkgs firefox
 
 For home-manager options; use [Home Manager Options Search](https://home-manager-options.extranix.com/)
 
-Alternatively; use [Searchix](https://searchix.alanpearce.eu/all/search) for all your package needs - although it is unclear which version of nixpkgs is being serached
+Alternatively; use [Searchix](https://searchix.alanpearce.eu/all/search) for all your package needs - although it is unclear which version of nixpkgs is being searched
 
 ### Update
 
@@ -71,7 +71,7 @@ To install an old version of a package, the easiest way may be to add the `nixpk
 ``` bash
 nixpkgs_2211.url = "nixpkgs/release-22.11";
 ```
-or add a specific `nixpkgs` reference from a commit on `https://github.com/NixOS/nixpkgs`, that containt the version yuo want, like this:
+or add a specific `nixpkgs` reference from a commit on `https://github.com/NixOS/nixpkgs`, that contains the version you want, like this:
 ``` bash
 nixpkgs_tmux33a.url = "github:NixOS/nixpkgs/10b813040df67c4039086db0f6eaf65c536886c6";
 ```
@@ -95,7 +95,7 @@ nix-collect-garbage
 ```
 ## Uninstall
 
-On MacOS; [`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
+On macOS; [`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
 ``` bash
 nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller
 ```
