@@ -33,6 +33,7 @@ in {
 
     # specific to home
     ../../modules/AnotherRedisDesktopManager/another-redis-desktop-manager.nix
+    ../../modules/OutlookPWA/outlook.nix
   ];
 
   # The home.packages option allows you to install Nix packages into your
