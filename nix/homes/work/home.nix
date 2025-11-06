@@ -95,6 +95,8 @@ in {
       if [ -f "$CUSTOM_VARIABLES" ]; then
         . "$CUSTOM_VARIABLES"
       fi
+      alias mnotes='gocryptfs ~/Notes.encrypted ~/Notes'
+      alias unotes='fusermount -u ~/Notes'
     '';
     profileExtra = ''
     '';

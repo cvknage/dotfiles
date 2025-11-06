@@ -46,6 +46,7 @@ in {
     pkgs.gnused
     pkgs.posting
     pkgs.btop
+    pkgs.gocryptfs
   ];
 
   programs.neovim = {
