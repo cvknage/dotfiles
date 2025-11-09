@@ -1,4 +1,6 @@
 {
+  config,
+  inputs,
   lib,
   pkgs,
   user,
@@ -34,6 +36,21 @@ in {
     # specific to home
     ../../modules/AnotherRedisDesktopManager/another-redis-desktop-manager.nix
     ../../modules/OutlookPWA/outlook.nix
+    (args:
+      inputs.secrets.homeManagerModules.default {
+        sops-nix = inputs.sops-nix;
+        keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
+        secrets =
+          {
+            mutation_strings = {};
+          }
+          // inputs.nixpkgs.lib.genAttrs [
+            "docker_registry_hostname"
+            "github_user"
+            "github_token"
+            "gh_token"
+          ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
+      })
   ];
 
   # The home.packages option allows you to install Nix packages into your
@@ -91,10 +108,14 @@ in {
 
       ${builtins.readFile ../../../shell/common}
 
-      CUSTOM_VARIABLES="$HOME/.custom-variables"
-      if [ -f "$CUSTOM_VARIABLES" ]; then
-        . "$CUSTOM_VARIABLES"
-      fi
+      export DOCKER_REGISTRY_HOSTNAME="$(cat ${config.sops.secrets.docker_registry_hostname.path})"
+      export GITHUB_USER="$(cat ${config.sops.secrets.github_user.path})"
+      export GITHUB_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
+      export GH_TOKEN="$(cat ${config.sops.secrets.gh_token.path})"
+      export GITHUB_PAT="$GH_TOKEN"
+      export GITHUB_REPO_PAT="$GITHUB_TOKEN"
+      export NIX_CONFIG="access-tokens = github.com/secomea-dev=$GITHUB_TOKEN"
+
       alias mnotes='gocryptfs ~/Notes.encrypted ~/Notes'
       alias unotes='fusermount -u ~/Notes'
     '';

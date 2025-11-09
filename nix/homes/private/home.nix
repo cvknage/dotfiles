@@ -1,4 +1,6 @@
 {
+  config,
+  inputs,
   pkgs,
   user,
   ...
@@ -13,6 +15,15 @@
     ../common.nix
 
     # specific to home
+    (
+      inputs.secrets.homeManagerModules.default {
+        sops-nix = inputs.sops-nix;
+        keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
+        secrets = {
+          mutation_strings = {};
+        };
+      }
+    )
   ];
 
   # The home.packages option allows you to install Nix packages into your
@@ -32,6 +43,9 @@
     '';
     profileExtra = ''
       ${builtins.readFile ../../../shell/common}
+      if [ -f "${config.sops.secrets.mutation_strings.path}" ]; then
+        export MUTATION_STRINGS="$(cat ${config.sops.secrets.mutation_strings.path})"
+      fi
     '';
   };
 

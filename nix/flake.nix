@@ -11,6 +11,14 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    secrets = {
+      url = "github:cvknage/dotfiles-secrets";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
@@ -65,10 +73,19 @@
           # arguments to home.nix
           home-manager.extraSpecialArgs = extraArgs;
 
-          # (Nix) Utilities for Mac App launcher
-          # https://github.com/hraban/mac-app-util
           home-manager.sharedModules = [
+            # (Nix) Utilities for Mac App launcher
+            # https://github.com/hraban/mac-app-util
             mac-app-util.homeManagerModules.default
+
+            (args:
+              inputs.secrets.homeManagerModules.default {
+                sops-nix = inputs.sops-nix;
+                keyFile = inputs.nixpkgs.lib.mkDefault "${args.config.xdg.configHome}/sops/age/keys.txt";
+                secrets = {
+                  sheet_music = {};
+                };
+              })
           ];
         }
 
@@ -118,6 +135,8 @@
           # Optionally, use home-manager.extraSpecialArgs to pass
           # arguments to home.nix
           home-manager.extraSpecialArgs = extraArgs;
+
+          home-manager.sharedModules = [];
         }
         tuxedo-nixos.nixosModules.default
         {
