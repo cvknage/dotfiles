@@ -1,4 +1,5 @@
 {
+  inputs,
   config,
   lib,
   pkgs,
@@ -41,7 +42,8 @@ in {
     # Developer Tools
     pkgs.tmux
     pkgs.git
-    pkgs.gitui
+    # pkgs.gitui
+    inputs.nixpkgs_gitui0_26_3.legacyPackages.${pkgs.system}.gitui
     pkgs.jq
     pkgs.gnused
     pkgs.posting
