@@ -33,7 +33,6 @@
       url = "github:homebrew/homebrew-bundle";
       flake = false;
     };
-    mac-app-util.url = "github:hraban/mac-app-util";
     tuxedo-nixos.url = "github:sylvesterroos/tuxedo-nixos";
   };
 
@@ -42,7 +41,6 @@
     nix-darwin,
     nixpkgs,
     home-manager,
-    mac-app-util,
     tuxedo-nixos,
     nix-homebrew,
     homebrew-core,
@@ -75,10 +73,6 @@
           home-manager.extraSpecialArgs = extraArgs;
 
           home-manager.sharedModules = [
-            # (Nix) Utilities for Mac App launcher
-            # https://github.com/hraban/mac-app-util
-            mac-app-util.homeManagerModules.default
-
             (args:
               inputs.secrets.homeManagerModules.default {
                 sops-nix = inputs.sops-nix;
@@ -89,10 +83,6 @@
               })
           ];
         }
-
-        # (Nix) Utilities for Mac App launcher
-        # https://github.com/hraban/mac-app-util
-        mac-app-util.darwinModules.default
 
         # Install Homebrew - packages are declared in darwinConfiguration
         nix-homebrew.darwinModules.nix-homebrew
