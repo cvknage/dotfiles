@@ -93,6 +93,29 @@ Use the command [`nix-collect-garbage`](https://nix.dev/manual/nix/2.24/command-
 ``` bash
 nix-collect-garbage
 ```
+
+### Clean generations
+
+Use the command [nix-env --list-generations](https://nix.dev/manual/nix/2.24/command-ref/nix-env/list-generations) to list all generations
+``` bash
+nix-env --list-generations
+```
+
+Use the command [nix-env --delete-generations](https://nix.dev/manual/nix/2.24/command-ref/nix-env/delete-generations) to delete a specified amount of generations
+``` bash
+nix-env --delete-generations +3
+```
+
+Use the command [nix-collect-garbage](https://nix.dev/manual/nix/2.24/command-ref/nix-collect-garbage) with `sudo` and the `-d` flag to delete all generations from the EFI Boot Menu
+``` bash
+sudo nix-collect-garbage -d
+```
+
+To update the boot menu, rebuild the system eg. for NixOS:
+``` bash
+sudo nixos-rebuild switch --flake .
+```
+
 ## Uninstall
 
 On macOS; [`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
