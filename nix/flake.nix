@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs_gitui0_26_3.url = "github:NixOS/nixpkgs/c792c60b8a97daa7efe41a6e4954497ae410e0c1";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -60,6 +60,13 @@
       system = darwinArchitecture;
       specialArgs = extraArgs // {inherit self;} // {hostPlatform = darwinArchitecture;};
       modules = [
+        {
+          nixpkgs = {
+            overlays = [
+              (import ./overlays {inherit inputs;}).stable-packages
+            ];
+          };
+        }
         ./hosts/logic/configuration.nix
         home-manager.darwinModules.home-manager
         {
@@ -115,6 +122,13 @@
       system = linuxArchitecture;
       specialArgs = extraArgs // {inherit owner;} // {hostPlatform = linuxArchitecture;};
       modules = [
+        {
+          nixpkgs = {
+            overlays = [
+              (import ./overlays {inherit inputs;}).stable-packages
+            ];
+          };
+        }
         ./hosts/penguin-tuxedo/configuration.nix
         home-manager.nixosModules.home-manager
         {
