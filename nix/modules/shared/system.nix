@@ -1,4 +1,4 @@
 {...}: {
-  # Necessary for using flakes on this system.
+  nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = ["nix-command" "flakes"];
 }

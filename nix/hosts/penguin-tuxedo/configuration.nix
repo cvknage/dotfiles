@@ -24,12 +24,6 @@ in {
     # Include the results of the hardware scan.
     ./hardware-configuration.nix
 
-    # Enable flakes
-    ../flakes.nix
-
-    # Allow unfree packages
-    ../../allow-unfree.nix
-
     # Include setup for Kanata
     ../../../kanata/kanata_install_nixos.nix
   ];

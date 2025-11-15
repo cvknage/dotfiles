@@ -1,124 +1,208 @@
 # `nix`
 
 Configuration for [`nix`](https://nixos.org/learn/)  
-Unofficial [NixOS & Flakes Book](https://nixos-and-flakes.thiscute.world/introduction/)
+
+
+- [Nix Reference Manual](https://nix.dev/manual/nix/rolling)
+- [Nixpkgs Reference Manual](https://nixos.org/manual/nixpkgs/unstable/)
+- [NixOS Manual](https://nixos.org/manual/nixos/unstable/)
+- Unofficial - [NixOS & Flakes Book](https://nixos-and-flakes.thiscute.world/introduction/)
 
 ## Install
 
-Install Nix with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer)
+Install Nix with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer).
 
-On macOS; bootstrap [`nix-darwin`](https://github.com/LnL7/nix-darwin) with the following command:
-``` bash
+**macOS:** bootstrap [`nix-darwin`](https://github.com/LnL7/nix-darwin) with:
+
+```bash
 nix run nix-darwin -- switch --flake .
 ```
 
-On Gnu/Linux (Not NixOS); bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with the following command:
-``` bash
+**GNU/Linux (not NixOS):** bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with:
+
+```bash
 nix run home-manager/master -- switch --flake .
 ```
 
 ## Usage
 
-Update the configuration, and build a new version.
+Update the configuration and rebuild the system.
 
-On macOS:
-``` bash
-darwin-rebuild switch --flake .
+**macOS:**
+
+```bash
+sudo darwin-rebuild switch --flake .
 ```
 
-On Gnu/Linux (Not NixOS):
-``` bash
+**GNU/Linux (not NixOS):**
+
+```bash
 home-manager switch --flake .
 ```
 
-On NixOS:
-``` bash
+**NixOS:**
+
+```bash
 sudo nixos-rebuild switch --flake .
 ```
 
 ### Search for packages
 
-As specified in the [documentation](https://nixos.wiki/wiki/Searching_packages):  
-The easiest way to search for packages is to use the [search.nixos.org website](https://search.nixos.org/packages)  
-Or use this command: 
-``` bash
-nix search nixpkgs firefox
-```
+- nixpkgs: [NixOS Search - Packages](https://search.nixos.org/packages)  
+    - Command line: `nix search nixpkgs <PACKAGE>`  
+- NixOS options: [NixOS Search - Options](https://search.nixos.org/options)  
+- Home Manager options: [Home Manager Options Search](https://home-manager-options.extranix.com/)  
 
-For home-manager options; use [Home Manager Options Search](https://home-manager-options.extranix.com/)
+Alternatively; use [Searchix](https://searchix.alanpearce.eu/all/search) for all your package needs
 
-Alternatively; use [Searchix](https://searchix.alanpearce.eu/all/search) for all your package needs - although it is unclear which version of nixpkgs is being searched
+### Update Flakes
 
-### Update
+Update `flake.lock`:
 
-With Flakes, updating the system is straightforward. Simply execute the following commands.
-
-#### Update flake.lock
-``` bash
+```bash
 nix flake update --flake .
 ```
 
-#### Or replace only the specific input, such as home-manager:
-``` bash
+Update a specific input (e.g., Home Manager):
+
+```bash
 nix flake update home-manager --flake .
 ```
 
-Then apply the updates.
+Then rebuild the system.
 
 ### Install old versions of packages
 
-To install an old version of a package, the easiest way may be to add the `nixpkgs` channel that contains the version you want to the inputs in the flake like this:
-``` bash
+Add a channel or commit reference in your flake inputs:
+
+```bash
 nixpkgs_2211.url = "nixpkgs/release-22.11";
-```
-or add a specific `nixpkgs` reference from a commit on `https://github.com/NixOS/nixpkgs`, that contains the version you want, like this:
-``` bash
 nixpkgs_tmux33a.url = "github:NixOS/nixpkgs/10b813040df67c4039086db0f6eaf65c536886c6";
 ```
 
-Then use the input when installing a package like this:
-``` bash
+Use the input when installing a package:
+
+```bash
 home.packages = [
+  inputs.nixpkgs_2211.legacyPackages.${pkgs.system}.git
   inputs.nixpkgs_tmux33a.legacyPackages.${pkgs.system}.tmux
 ];
 ```
 
-Finding the git commit hash for a specific `nixpkgs`, can be done by searching for the package you want on one of there sites:
+Find the git commit hash for a specific `nixpkgs`, by searching for the desired package on one of there sites:
 - [Nixhub](https://www.nixhub.io/)  
 - [Nix package versions](https://lazamar.co.uk/nix-versions/)  
 
-### Clean store
+### Generations Explained
 
-Use the command [`nix-collect-garbage`](https://nix.dev/manual/nix/2.24/command-ref/nix-collect-garbage.html) to delete unreachable store objects
-``` bash
+Nix keeps **system and user generations** as snapshots of the system or profile state. This affects cleaning and garbage collection.
+
+- **System generations**:  
+  Created by `nixos-rebuild switch` or `darwin-rebuild switch`. Stored under `/nix/var/nix/profiles/system`. Includes the system state and, if Home Manager is used as a module, also Home Manager state.
+
+- **User generations**:  
+  Created by `nix-env` or standalone Home Manager (`home-manager switch`). Stored under `/nix/var/nix/profiles/per-user/$USER/`. These only affect the user’s profile and packages.
+
+- **Home Manager generations**:  
+  - **Module mode**: Included in system generations. No separate cleanup required.  
+  - **Standalone mode**: Maintains its own generations under `/nix/var/nix/profiles/per-user/$USER/home-manager`. Needs user-level cleanup.
+
+### Clean store and generations
+
+Nix stores all packages and build outputs in `/nix/store`. Old system states (“generations”) keep store paths alive until deleted. Cleaning involves:
+
+1. Removing old generations
+2. Running garbage collection
+
+#### Clean store only
+
+To remove unreferenced store paths:
+
+```bash
 nix-collect-garbage
 ```
 
-### Clean generations
+#### Clean generations and free disk space
 
-Use the command [nix-env --list-generations](https://nix.dev/manual/nix/2.24/command-ref/nix-env/list-generations) to list all generations
-``` bash
-nix-env --list-generations
+**NixOS**
+
+List system generations:
+
+```bash
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 ```
 
-Use the command [nix-env --delete-generations](https://nix.dev/manual/nix/2.24/command-ref/nix-env/delete-generations) to delete a specified amount of generations
-``` bash
-nix-env --delete-generations +3
+Delete older generations while keeping the last 3:
+
+```bash
+sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system +3
 ```
 
-Use the command [nix-collect-garbage](https://nix.dev/manual/nix/2.24/command-ref/nix-collect-garbage) with `sudo` and the `-d` flag to delete all generations from the EFI Boot Menu
-``` bash
-sudo nix-collect-garbage -d
+Run garbage collection:
+
+```bash
+sudo nix-collect-garbage
 ```
 
-To update the boot menu, rebuild the system eg. for NixOS:
-``` bash
+Rebuild the boot menu:
+
+```bash
 sudo nixos-rebuild switch --flake .
 ```
 
+> Avoid `sudo nix-collect-garbage -d` if you want to keep the last 3 generations. That deletes all old generations.
+
+**macOS (nix-darwin)**
+
+List generations:
+
+```bash
+sudo darwin-rebuild --list-generations
+```
+
+Delete older generations while keeping the last 3:
+
+```bash
+sudo darwin-rebuild switch --delete-generations +3
+```
+
+Run garbage collection:
+
+```bash
+sudo nix-collect-garbage
+```
+
+> `nix-collect-garbage -d` without `sudo` only affects your user profile.
+
+#### Home Manager
+
+**Module mode (NixOS / macOS)**
+
+- State is included in system generations.
+- Cleanup happens with system GC (`sudo nix-collect-garbage`).
+
+**Standalone mode**
+
+Profile at `/nix/var/nix/profiles/per-user/$USER/home-manager`
+
+List generations:
+
+```bash
+home-manager generations
+```
+
+Delete old generations:
+
+```bash
+nix-collect-garbage
+```
+
+> `sudo` is not needed in standalone mode.
+
 ## Uninstall
 
-On macOS; [`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
+**macOS:**  
+[`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer/blob/main/docs/quirks.md#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
 ``` bash
 nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller
 ```
@@ -126,8 +210,9 @@ nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uni
 /nix/nix-installer uninstall
 ```
 
-On Gnu/Linux (Not NixOS); uninstall `nix` with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
-``` bash
+**GNU/Linux (not NixOS):**  
+Uninstall `nix` with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
+```bash
 /nix/nix-installer uninstall
 ```
 

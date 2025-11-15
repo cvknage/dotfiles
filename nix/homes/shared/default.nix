@@ -1,7 +1,9 @@
 {
+  inputs,
   config,
   lib,
   pkgs,
+  user,
   ...
 }: let
   dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
@@ -32,13 +34,24 @@
     ];
 in {
   imports = [
-    # shared between all
-    ../../rust
+    ../../../rust
+    (args:
+      inputs.secrets.homeManagerModules.default {
+        sops-nix = inputs.sops-nix;
+        keyFile = inputs.nixpkgs.lib.mkDefault "${args.config.xdg.configHome}/sops/age/keys.txt";
+        secrets = {
+          sheet_music = {};
+        };
+      })
   ];
 
-  # The home.packages option allows you to install Nix packages into your environment.
+  home.username = lib.mkDefault user;
+  home.homeDirectory = lib.mkDefault (
+    if pkgs.stdenv.isDarwin
+    then "/Users/${user}"
+    else "/home/${user}"
+  );
   home.packages = [
-    # Developer Tools
     pkgs.tmux
     pkgs.git
     pkgs.stable.gitui

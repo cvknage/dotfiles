@@ -38,14 +38,11 @@
 
   outputs = inputs @ {
     self,
-    nix-darwin,
     nixpkgs,
     home-manager,
-    tuxedo-nixos,
+    nix-darwin,
     nix-homebrew,
-    homebrew-core,
-    homebrew-cask,
-    homebrew-bundle,
+    tuxedo-nixos,
     ...
   }: let
     owner = "Christophe Knage";
@@ -53,114 +50,66 @@
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
     extraArgs = {inherit inputs user;};
+    sharedModules = [
+      ./modules/shared
+    ];
+    nixosModules = [
+      home-manager.nixosModules.home-manager
+    ];
+    darwinModules = [
+      home-manager.darwinModules.home-manager
+      nix-homebrew.darwinModules.nix-homebrew
+      ./modules/darwin
+    ];
   in {
-    # Build darwin flake using:
-    # $ darwin-rebuild build --flake .#logic
-    darwinConfigurations."logic" = nix-darwin.lib.darwinSystem {
-      system = darwinArchitecture;
-      specialArgs = extraArgs // {inherit self;} // {hostPlatform = darwinArchitecture;};
-      modules = [
-        {
-          nixpkgs = {
-            overlays = [
-              (import ./overlays {inherit inputs;}).stable-packages
-            ];
-          };
-        }
-        ./hosts/logic/configuration.nix
-        home-manager.darwinModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = "hm-backup";
-          home-manager.users.${user} = import ./homes/private/home.nix;
-
-          # Optionally, use home-manager.extraSpecialArgs to pass
-          # arguments to home.nix
-          home-manager.extraSpecialArgs = extraArgs;
-
-          home-manager.sharedModules = [
-            (args:
-              inputs.secrets.homeManagerModules.default {
-                sops-nix = inputs.sops-nix;
-                keyFile = inputs.nixpkgs.lib.mkDefault "${args.config.xdg.configHome}/sops/age/keys.txt";
-                secrets = {
-                  sheet_music = {};
-                };
-              })
-          ];
-        }
-
-        # Install Homebrew - packages are declared in darwinConfiguration
-        nix-homebrew.darwinModules.nix-homebrew
-        {
-          nix-homebrew = {
-            # Install Homebrew under the default prefix
-            enable = true;
-
-            # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
-            enableRosetta = false;
-
-            # User owning the Homebrew prefix
-            inherit user;
-
-            # Declarative tap management
-            taps = {
-              "homebrew/homebrew-core" = homebrew-core;
-              "homebrew/homebrew-cask" = homebrew-cask;
-              "homebrew/homebrew-bundle" = homebrew-bundle;
-            };
-
-            # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
-            mutableTaps = false;
-          };
-        }
-      ];
+    darwinConfigurations = {
+      logic = nix-darwin.lib.darwinSystem {
+        system = darwinArchitecture;
+        specialArgs = extraArgs // {inherit self;} // {hostPlatform = darwinArchitecture;};
+        modules =
+          [
+            ./hosts/logic/configuration.nix
+            {
+              home-manager = {
+                users.${user} = import ./homes/private;
+                extraSpecialArgs = extraArgs;
+              };
+            }
+          ]
+          ++ sharedModules
+          ++ darwinModules;
+      };
     };
 
-    nixosConfigurations."penguin-tuxedo" = nixpkgs.lib.nixosSystem {
-      system = linuxArchitecture;
-      specialArgs = extraArgs // {inherit owner;} // {hostPlatform = linuxArchitecture;};
-      modules = [
-        {
-          nixpkgs = {
-            overlays = [
-              (import ./overlays {inherit inputs;}).stable-packages
-            ];
-          };
-        }
-        ./hosts/penguin-tuxedo/configuration.nix
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = "hm-backup";
-          home-manager.users.${user} = import ./homes/work/home.nix;
-
-          # Optionally, use home-manager.extraSpecialArgs to pass
-          # arguments to home.nix
-          home-manager.extraSpecialArgs = extraArgs;
-
-          home-manager.sharedModules = [];
-        }
-        tuxedo-nixos.nixosModules.default
-        {
-          hardware.tuxedo-control-center.enable = true;
-          hardware.tuxedo-control-center.package = tuxedo-nixos.packages.${linuxArchitecture}.default;
-        }
-      ];
+    nixosConfigurations = {
+      penguin-tuxedo = nixpkgs.lib.nixosSystem {
+        system = linuxArchitecture;
+        specialArgs = extraArgs // {inherit owner;} // {hostPlatform = linuxArchitecture;};
+        modules =
+          [
+            ./hosts/penguin-tuxedo/configuration.nix
+            {
+              home-manager = {
+                users.${user} = import ./homes/work;
+                extraSpecialArgs = extraArgs;
+              };
+            }
+            tuxedo-nixos.nixosModules.default
+            {
+              hardware.tuxedo-control-center = {
+                enable = true;
+                package = tuxedo-nixos.packages.${linuxArchitecture}.default;
+              };
+            }
+          ]
+          ++ sharedModules
+          ++ nixosModules;
+      };
     };
 
     homeConfigurations."${user}@full-tuxedo" = home-manager.lib.homeManagerConfiguration {
-      # Home-Manager requires 'pkgs' instance
       pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
-
-      # Specify your home configuration modules here, for example,
-      # the path to your home.nix.
-      modules = [./homes/work/home.nix];
-
-      # Optionally use extraSpecialArgs
-      # to pass through arguments to home.nix
+      modules = [./homes/work];
       extraSpecialArgs = extraArgs;
     };
   };

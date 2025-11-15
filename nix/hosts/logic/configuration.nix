@@ -5,13 +5,7 @@
   hostPlatform,
   ...
 }: {
-  imports = [
-    # Enable flakes
-    ../flakes.nix
-
-    # Allow unfree packages
-    ../../allow-unfree.nix
-  ];
+  imports = [];
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
@@ -104,7 +98,6 @@
       # Core Tools
       "Amphetamine" = 937984704;
       "The Unarchiver" = 425424353;
-      "BetterSnapTool" = 417375580;
 
       # Safari Extensions
       "Surfingkeys" = 1609752330;

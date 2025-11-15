@@ -3,7 +3,7 @@
   version = "1.7.1";
   SHA = "0m64isixgv6yx7h69x81nq97lx732dvvcdj1c7l9llp1qs7bir2y";
 
-  # Build XnViewMP from AppImage
+  # Build AnotherRedisDesktopManager from AppImage
   another-redis-desktop-manager = pkgs.appimageTools.wrapType2 {
     pname = "AnotherRedisDesktopManager";
     version = "${version}";
@@ -47,7 +47,7 @@
       convert $src $out/share/icons/hicolor/512x512/apps/another-redis-desktop-manager.png
     '';
 in {
-  home.packages = with pkgs; [
+  home.packages = [
     another-redis-desktop-manager
   ];
 }

@@ -3,13 +3,10 @@
   inputs,
   lib,
   pkgs,
-  user,
   ...
 }:
 /*
-# Global .NET installation
 }: let
-  # Create combined package of dotnet SDKs
   combinedDotNetSDKs = pkgs.buildEnv {
     name = "combinedDotNetSDKs";
     paths = [
@@ -24,18 +21,9 @@
 in {
 */
 {
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
-  home.username = user;
-  home.homeDirectory = "/home/${user}";
-
   imports = [
-    # shared between all
-    ../common.nix
-
-    # specific to home
-    ../../modules/AnotherRedisDesktopManager/another-redis-desktop-manager.nix
-    ../../modules/OutlookPWA/outlook.nix
+    ../../modules/home/another-redis-desktop-manager
+    ../../modules/home/outlook
     (args:
       inputs.secrets.homeManagerModules.default {
         sops-nix = inputs.sops-nix;
@@ -53,27 +41,19 @@ in {
       })
   ];
 
-  # The home.packages option allows you to install Nix packages into your
-  # environment.
   home.packages = [
-    # Gnome extensions
     pkgs.gnomeExtensions.auto-move-windows
     pkgs.gnomeExtensions.appindicator
     pkgs.gnomeExtensions.easyeffects-preset-selector
 
-    # Office Tools
     pkgs.slack
     pkgs.teams-for-linux
     pkgs.buttercup-desktop
     pkgs.easyeffects
 
-    # Developer Tools
     pkgs.ghostty
     pkgs.postman
 
-    # General work tooling is moved to nix profiles and nix devShell
-    # Globally installed tools
-    # `nix profile install "github:secomea-dev/recipes?dir=dev-tools/core"`
     # pkgs.azure-cli
     # pkgs.kubelogin
     # pkgs.kubectl
@@ -86,17 +66,13 @@ in {
     # pkgs.k6
     # pkgs.python3
 
-    # Globally installed .NET - if desired/needed
-    # `nix profile install "github:secomea-dev/recipes?dir=dev-tools/dotnet"`
     # combinedDotNetSDKs
 
-    # nix devShell (with direnv)
     # pkgs.corepack
     # pkgs.bun
     # pkgs.deno
     # pkgs.biome
     # pkgs.nodejs_latest
-    # combinedDotNetSDKs
   ];
 
   programs.bash = {
@@ -153,7 +129,7 @@ in {
   };
 
   home.sessionVariables = {
-    HOME_CONFIGUTATION_CONTEXT = "work";
+    HOME_CONFIGURATION_CONTEXT = "work";
     # DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
   };
 }
