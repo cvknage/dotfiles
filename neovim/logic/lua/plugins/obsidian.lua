@@ -1,3 +1,10 @@
+local workspaces = {}
+
+local notes_path = (os.getenv("HOME")) .. "/Notes/notes"
+if vim.fn.isdirectory(notes_path) == 1 then
+  table.insert(workspaces, { name = "notes", path = notes_path })
+end
+
 return {
   "obsidian-nvim/obsidian.nvim", -- A community fork of "epwalsh/obsidian.nvim",
   version = "*", -- recommended, use latest release instead of latest commit
@@ -9,6 +16,9 @@ return {
     { "<leader>ob", "<cmd>Obsidian backlinks<cr>", desc = "Show Backlinks", mode = "n" },
     { "<leader>ot", "<cmd>Obsidian template<cr>", desc = "Insert Template", mode = "n" },
   },
+  cond = function()
+    return not vim.tbl_isempty(workspaces)
+  end,
   ft = "markdown",
   -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
   -- event = {
@@ -37,12 +47,7 @@ return {
     -- When obsidian.nvim is loaded by your plugin manager, it will automatically set
     -- the workspace to the first workspace in the list whose `path` is a parent of the
     -- current markdown file being edited.
-    workspaces = {
-      {
-        name = "notes",
-        path = os.getenv("HOME") .. "/Notes/notes",
-      },
-    },
+    workspaces = workspaces,
 
     callbacks = {
       -- Runs anytime you enter the buffer for a note.
