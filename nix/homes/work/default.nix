@@ -4,23 +4,7 @@
   lib,
   pkgs,
   ...
-}:
-/*
-}: let
-  combinedDotNetSDKs = pkgs.buildEnv {
-    name = "combinedDotNetSDKs";
-    paths = [
-      (
-        with pkgs.dotnetCorePackages;
-          combinePackages [
-            sdk_9_0
-          ]
-      )
-    ];
-  };
-in {
-*/
-{
+}: {
   imports = [
     ../../modules/home/another-redis-desktop-manager
     ../../modules/home/outlook
@@ -39,6 +23,7 @@ in {
             "gh_token"
           ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
       })
+    # ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
   ];
 
   home.packages = [
@@ -53,26 +38,6 @@ in {
 
     pkgs.ghostty
     pkgs.postman
-
-    # pkgs.azure-cli
-    # pkgs.kubelogin
-    # pkgs.kubectl
-    # pkgs.kind
-    # pkgs.kubernetes-helm
-    # pkgs.go-task
-    # pkgs.k9s
-    # pkgs.mirrord
-    # pkgs.gh
-    # pkgs.k6
-    # pkgs.python3
-
-    # combinedDotNetSDKs
-
-    # pkgs.corepack
-    # pkgs.bun
-    # pkgs.deno
-    # pkgs.biome
-    # pkgs.nodejs_latest
   ];
 
   programs.bash = {
@@ -130,6 +95,5 @@ in {
 
   home.sessionVariables = {
     HOME_CONFIGURATION_CONTEXT = "work";
-    # DOTNET_ROOT = "${combinedDotNetSDKs}/share/dotnet/";
   };
 }
