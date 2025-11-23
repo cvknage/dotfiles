@@ -40,10 +40,7 @@ return {
     opts_extend = { "ensure_installed" },
     opts = {
       ensure_installed = {
-        "c",
         "diff",
-        "html",
-        "python",
         "query",
         "regex",
         "vim",
