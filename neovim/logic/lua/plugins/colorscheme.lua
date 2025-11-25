@@ -44,6 +44,7 @@ return {
         VisualNOS = { bg = colors.surface2 }, -- visual mode selection when vim is "Not Owning the Selection".
         LineNr = { fg = colors.pink }, -- line numbers
         CursorLineNr = { fg = colors.rosewater }, -- line number on cursor line
+        TreesitterContext = { bg = colors.mantle }, -- treesitter context
         TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.base }, -- treesitter context line numbers
         TelescopeBorder = { fg = colors.mauve, bg = colors.base },
         -- CursorLine = { bg = colors.base }, -- crusor line
