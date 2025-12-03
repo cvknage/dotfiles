@@ -38,6 +38,7 @@
 
     pkgs.ghostty
     pkgs.postman
+    pkgs.git-cliff
   ];
 
   programs.bash = {
