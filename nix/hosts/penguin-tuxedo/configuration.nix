@@ -26,6 +26,9 @@ in {
 
     # Include setup for Kanata
     ../../../kanata/kanata_install_nixos.nix
+
+    # FHS env for Check Point Harmony installer
+    ./checkpoint-harmony-endpoint-env.nix
   ];
 
   # Enable Thunderbolt
@@ -155,6 +158,7 @@ in {
     nvtopPackages.full # NVTOP stands for Neat Videocard TOP, a (h)top like task monitor for GPUs and accelerators.
     nvitop # An interactive NVIDIA-GPU process viewer and beyond.
     # displaylink # DisplayLink Drivers - this is actually rather annoying, as rebuilds fail becaus a you need to run a command to prefetch the driver.
+    # steam-run # Run commands in the same FHS environment that is used for Steam - Useful for installing stubborn non NixOS packaged software.
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
