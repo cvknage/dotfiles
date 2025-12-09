@@ -13,8 +13,7 @@ if [ -L $DOTFILES_DIR ] || [ ! -d $DOTFILES_DIR ]; then
 fi
 
 if ! command -v nix >/dev/null; then
-  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix |
-    sh -s -- install
+  curl -fsSL https://install.determinate.systems/nix | sh -s -- install --prefer-upstream-nix
 
   # The determinate systems nix installer finishes with the line below:
   # To get started using Nix, open a new shell or run `. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`
