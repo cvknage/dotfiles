@@ -66,6 +66,10 @@
   };
 
   programs.firefox.enable = true;
+  programs.chromium = {
+    enable = true;
+    package = pkgs.stable.ungoogled-chromium;
+  };
 
   # Configure GNOME desktop settings using dconf
   dconf = {
