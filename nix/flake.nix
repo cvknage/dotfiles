@@ -55,6 +55,7 @@
     ];
     nixosModules = [
       home-manager.nixosModules.home-manager
+      ./modules/nixos
     ];
     darwinModules = [
       home-manager.darwinModules.home-manager
