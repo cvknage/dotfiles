@@ -95,6 +95,10 @@
           "eepresetselector@ulville.github.io"
         ];
       };
+      "org/gnome/desktop/background" = {
+        picture-uri = "file://${config.home.homeDirectory}/.dotfiles/wallpapers/sun.jpg";
+        picture-uri-dark = "file://${config.home.homeDirectory}/.dotfiles/wallpapers/moon.jpg";
+      };
     };
   };
 
