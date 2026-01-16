@@ -4,6 +4,13 @@ Configuration for [kanata](https://github.com/jtroo/kanata)
 
 ## Install `kanata` binary
 
+### Nix Install
+
+The Nix install will install Kanata with Nix and set it up as system daemon
+
+- NixOS: import `./kanata_install_nixos.nix` in `configuration.nix`
+- macOS with nix-darwin: import `./kanata_install_darwin.nix` in `configuration.nix`
+
 ### Scripted Install
 
 The scripted install will install Kanata with Cargo and set it up as system daemon
@@ -63,6 +70,12 @@ Configure host system for Kanata:
     <img width="450" alt="Login Items & Extensions 2" src="./doc/login_items_and_extensions_2.png" style="vertical-align: middle;" />
   </p>
 
+  Sometimes `.Karabiner-VirtualHIDDevice-Manager` is not listed under the "By App" view, but can then be found under the "By Category" view  
+  <p align="center">
+    <img width="450" alt="Login Items & Extensions 3" src="./doc/login_items_and_extensions_3.png" style="vertical-align: middle;" />
+    <img width="450" alt="Login Items & Extensions 4" src="./doc/login_items_and_extensions_4.png" style="vertical-align: middle;" />
+  </p>
+
   To uninstall it:
   ``` bash
   bash '/Library/Application Support/org.pqrs/Karabiner-DriverKit-VirtualHIDDevice/scripts/uninstall/deactivate_driver.sh'
@@ -114,7 +127,6 @@ Configure host system for Kanata:
   <dict>
       <key>Label</key>
       <string>com.jtroo.kanata</string>
-
       <key>ProgramArguments</key>
       <array>
           <string>$KANATA_BIN_PATH</string>
@@ -122,16 +134,12 @@ Configure host system for Kanata:
           <string>$KANATA_CONFIG_PATH</string>
           <string>-n</string>
       </array>
-
       <key>RunAtLoad</key>
       <true/>
-
       <key>KeepAlive</key>
       <true/>
-
       <key>StandardOutPath</key>
       <string>/Library/Logs/Kanata/kanata.out.log</string>
-
       <key>StandardErrorPath</key>
       <string>/Library/Logs/Kanata/kanata.err.log</string>
   </dict>
@@ -207,7 +215,7 @@ Configure host system for Kanata:
 </details>
 
 <details>
-  <summary>For Gnu/Linux</summary>
+  <summary>For Gnu/Linux (systemd)</summary>
 
   Basically follow the guide desribed [here](https://github.com/jtroo/kanata/blob/main/docs/setup-linux.md):
 

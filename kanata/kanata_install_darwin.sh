@@ -52,7 +52,6 @@ cat <<EOF | sudo tee "$KANATA_PLIST_FILE" >/dev/null
 <dict>
     <key>Label</key>
     <string>com.jtroo.kanata</string>
-
     <key>ProgramArguments</key>
     <array>
         <string>$KANATA_BIN_PATH</string>
@@ -60,16 +59,12 @@ cat <<EOF | sudo tee "$KANATA_PLIST_FILE" >/dev/null
         <string>$KANATA_CONFIG_PATH</string>
         <string>-n</string>
     </array>
-
     <key>RunAtLoad</key>
     <true/>
-
     <key>KeepAlive</key>
     <true/>
-
     <key>StandardOutPath</key>
     <string>/Library/Logs/Kanata/kanata.out.log</string>
-
     <key>StandardErrorPath</key>
     <string>/Library/Logs/Kanata/kanata.err.log</string>
 </dict>

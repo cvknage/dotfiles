@@ -61,7 +61,7 @@ for dir in ./*/; do
   fi
 done
 
-if ! command -v kanata >/dev/null && $OS -ne "NixOS"; then
+if ! command -v kanata >/dev/null && [ "$OS" != "NixOS" ] && [ "$OS" != "Darwin" ]; then
   pushd ./kanata &>/dev/null
   bash ./kanata_install.sh
   popd &>/dev/null

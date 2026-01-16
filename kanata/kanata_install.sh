@@ -32,8 +32,13 @@ case $OS in
     bash ./kanata_install_linux.sh
     ;;
   "Darwin")
-    install-kanata-binary
-    bash ./kanata_install_macos.sh
+    if command -v darwin-rebuild >/dev/null; then
+      echo "Prefer to install Kanata on Darwin with nix-darwin:"
+      echo "import './kanata_install_darwin.nix' in configuration.nix"
+    else
+      install-kanata-binary
+      bash ./kanata_install_darwin.sh
+    fi
     ;;
   *)
     echo "Installation of Kanata not supported for ${OS}"

@@ -5,7 +5,9 @@
   hostPlatform,
   ...
 }: {
-  imports = [];
+  imports = [
+    ../../../kanata/kanata_install_darwin.nix
+  ];
 
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
