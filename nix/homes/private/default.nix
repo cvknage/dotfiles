@@ -23,6 +23,7 @@
 
   programs.zsh = {
     enable = true;
+    dotDir = "${config.xdg.configHome}/zsh";
     initContent = ''
       # ''${builtins.readFile ../../../shell/zsh/PS1}
       ${builtins.readFile ../../../shell/zsh/config}
