@@ -1,9 +1,92 @@
 {pkgs, ...}: let
   nixAppsDirectory = "/Applications/Nix Apps";
+
+  # Define Kanata.app for better macOS's TCC (Transparency, Consent and Control) management
+  kanataVersion = pkgs.kanata.version;
+  kanataIconSvg = "${pkgs.kanata}/share/icons/hicolor/scalable/apps/kanata.svg";
+  kanataApp = pkgs.stdenv.mkDerivation {
+    pname = "Kanata";
+    version = kanataVersion;
+    nativeBuildInputs = [
+      pkgs.imagemagick
+      pkgs.libicns
+      pkgs.librsvg
+    ];
+    buildCommand = ''
+      set -euo pipefail
+
+      APP="$out/Kanata.app"
+      ICONSET="$out/kanata.iconset"
+
+      # ---- App Layout ----
+      mkdir -p \
+        "$APP/Contents/MacOS" \
+        "$APP/Contents/Resources" \
+        "$ICONSET"
+
+      # ---- App Icon : SVG → PNG ----
+      for size in 16 32 64 128 256 512; do
+        pad=$((size * 138 / 100))
+        rsvg-convert -w $size -h $size "${kanataIconSvg}" \
+          | magick - -background none -gravity center \
+            -extent "$pad"x"$pad" \
+            -resize "$size"x"$size" \
+            "$ICONSET/icon_""$size""x""$size"".png"
+      done
+
+      # ---- App Icon: PNG → ICNS ----
+      png2icns "$APP/Contents/Resources/Kanata.icns" \
+        "$ICONSET/icon_16x16.png" \
+        "$ICONSET/icon_32x32.png" \
+        "$ICONSET/icon_64x64.png" \
+        "$ICONSET/icon_128x128.png" \
+        "$ICONSET/icon_256x256.png" \
+        "$ICONSET/icon_512x512.png"
+
+      # ---- Info.plist ----
+      cat > "$APP/Contents/Info.plist" <<EOF
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+       "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>CFBundleName</key>
+        <string>Kanata</string>
+        <key>CFBundleDisplayName</key>
+        <string>Kanata</string>
+        <key>CFBundleIdentifier</key>
+        <string>com.jtroo.kanata</string>
+        <key>CFBundleExecutable</key>
+        <string>kanata</string>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleShortVersionString</key>
+        <string>${kanataVersion}</string>
+        <key>CFBundleVersion</key>
+        <string>${kanataVersion}</string>
+        <key>CFBundleIconFile</key>
+        <string>Kanata</string>
+      </dict>
+      </plist>
+      EOF
+
+      # ---- Copy binary ----
+      cp ${pkgs.kanata}/bin/kanata \
+         "$APP/Contents/MacOS/kanata"
+      chmod +x "$APP/Contents/MacOS/kanata"
+    '';
+  };
 in {
   environment.systemPackages = [
-    # Symlink the kanata binary in "/run/current-system/sw/bin" folder.
-    # Allow kanata in macOS's TCC (Transparency, Consent and Control)
+    # Install the Kanata.app
+    # This is a hack that allows TCC to keep track of kanata properly so it permissions for Input Monitoring persist between updates.
+    # Allow Kanata.app in macOS's TCC (Transparency, Consent and Control)
+    # Under: Settings > Privacy and Security > Input Monitoring
+    kanataApp
+
+    # Symlink the kanata binary in "/run/current-system/sw/bin" folder to make the kanata command available.
+    # DON'T ADD THIS TO TCC IF YOU ADDED Kanata.app - This info is only kept here in case I need it again at some point.
+    # Allow kanata binary in macOS's TCC (Transparency, Consent and Control)
     # Under: Settings > Privacy and Security > Input Monitoring
     # By adding the symlink to TCC (Settings > Privacy and Security > Input Monitoring).
     # The full nix path will be added, so kanata needs to be re added for every version.
@@ -62,8 +145,13 @@ in {
   };
 
   launchd.daemons.kanata = {
-    command = "${pkgs.kanata}/bin/kanata --cfg ${./kanata_us.kbd}";
+    # command = "${pkgs.kanata}/bin/kanata --cfg ${./kanata_us.kbd}";
     serviceConfig = {
+      ProgramArguments = [
+        "${nixAppsDirectory}/Kanata.app/Contents/MacOS/kanata"
+        "--cfg"
+        "${./kanata_us.kbd}"
+      ];
       Label = "com.jtroo.kanata";
       ProcessType = "Interactive";
       RunAtLoad = true;
@@ -74,6 +162,14 @@ in {
   };
 
   system.activationScripts.postActivation.text = ''
+    # Update Kanata.app
+    set -e
+    mkdir -p "${nixAppsDirectory}"
+    rm -rf "${nixAppsDirectory}/Kanata.app"
+    cp -R "${kanataApp}/Kanata.app" "${nixAppsDirectory}/Kanata.app"
+    chmod -R u+w "${nixAppsDirectory}/Kanata.app"
+
+    # Restart the daemons
     launchctl kickstart -k system/com.pqrs-org.karabiner-vhiddaemon
     launchctl kickstart -k system/com.jtroo.kanata
   '';
