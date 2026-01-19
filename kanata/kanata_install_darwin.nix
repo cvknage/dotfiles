@@ -1,7 +1,7 @@
 {pkgs, ...}: let
   nixAppsDirectory = "/Applications/Nix Apps";
 
-  # Define Kanata.app for better macOS's TCC (Transparency, Consent and Control) management
+  # Define Kanata.app for better macOS TCC (Transparency, Consent and Control) management.
   kanataVersion = pkgs.kanata.version;
   kanataIconSvg = "${pkgs.kanata}/share/icons/hicolor/scalable/apps/kanata.svg";
   kanataApp = pkgs.stdenv.mkDerivation {
@@ -57,7 +57,9 @@
         <key>CFBundleIdentifier</key>
         <string>com.jtroo.kanata</string>
         <key>CFBundleExecutable</key>
-        <string>kanata</string>
+        <string>kanata-permissions</string>
+        <key>LSUIElement</key>
+        <true/>
         <key>CFBundlePackageType</key>
         <string>APPL</string>
         <key>CFBundleShortVersionString</key>
@@ -70,10 +72,36 @@
       </plist>
       EOF
 
-      # ---- Copy binary ----
+      # ---- Copy kanata binary ----
       cp ${pkgs.kanata}/bin/kanata \
          "$APP/Contents/MacOS/kanata"
       chmod +x "$APP/Contents/MacOS/kanata"
+
+      # ---- Permissions dialog ----
+      cat > "$APP/Contents/MacOS/kanata-permissions" <<'EOF'
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      APP_NAME="kanata-permissions"
+      SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+      osascript <<OSA
+      display dialog "Kanata requires Input Monitoring permission to function.
+
+      Please enable it in:
+      System Settings → Privacy & Security → Input Monitoring." \
+      buttons {"Open System Settings", "Quit"} \
+      default button "Open System Settings" \
+      with icon caution \
+      with title "Kanata Permissions"
+
+      if the button returned of the result is "Open System Settings" then
+        do shell script "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent'"
+      end if
+      OSA
+      EOF
+
+      chmod +x "$APP/Contents/MacOS/kanata-permissions"
     '';
   };
 in {
