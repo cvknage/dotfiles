@@ -29,7 +29,6 @@
   home.packages = [
     pkgs.gnomeExtensions.auto-move-windows
     pkgs.gnomeExtensions.appindicator
-    pkgs.gnomeExtensions.easyeffects-preset-selector
 
     pkgs.slack
     pkgs.teams-for-linux
@@ -71,6 +70,14 @@
     package = pkgs.stable.ungoogled-chromium;
   };
 
+  # Chromium stopped generating its own desktop icon, so add it manually
+  xdg.desktopEntries.chromium = {
+    name = "Chromium";
+    exec = "chromium %U";
+    icon = "chromium";
+    categories = ["Network" "WebBrowser"];
+  };
+
   # Configure GNOME desktop settings using dconf
   dconf = {
     settings = {
@@ -92,7 +99,6 @@
         enabled-extensions = [
           "appindicatorsupport@rgcjonas.gmail.com"
           "auto-move-windows@gnome-shell-extensions.gcampax.github.com"
-          "eepresetselector@ulville.github.io"
         ];
       };
       "org/gnome/desktop/background" = {

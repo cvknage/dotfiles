@@ -7,9 +7,12 @@
   pkgs,
   modulesPath,
   hostPlatform,
+  inputs,
   ...
 }: {
+  disabledModules = ["hardware/tuxedo-drivers.nix"]; # use stable version of tuxedo-drivers
   imports = [
+    "${inputs.nixpkgs-stable}/nixos/modules/hardware/tuxedo-drivers.nix" # use stable version of tuxedo-drivers
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
@@ -49,7 +52,12 @@
   };
 
   # Enable Keyboard and hardware I/O driver for TUXEDO Computers laptops.
-  hardware.tuxedo-drivers.enable = true;
+  # hardware.tuxedo-drivers.enable = true; # tuxedo-control-center enables this.
+
+  hardware.tuxedo-control-center = {
+    enable = true;
+    # package = inputs.tuxedo-nixos.packages.${hostPlatform}.default; # use package versions specifies in the module.
+  };
 
   # Enable OpenGL
   hardware.graphics = {

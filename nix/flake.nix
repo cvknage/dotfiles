@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
     nix-darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -33,7 +33,10 @@
       url = "github:homebrew/homebrew-bundle";
       flake = false;
     };
-    tuxedo-nixos.url = "github:sylvesterroos/tuxedo-nixos";
+    tuxedo-nixos = {
+      url = "github:KalokaK/tuxedo-nixos";
+      inputs.nixpkgs.follows = "nixpkgs-stable";
+    };
   };
 
   outputs = inputs @ {
@@ -96,12 +99,6 @@
               };
             }
             tuxedo-nixos.nixosModules.default
-            {
-              hardware.tuxedo-control-center = {
-                enable = true;
-                package = tuxedo-nixos.packages.${linuxArchitecture}.default;
-              };
-            }
           ]
           ++ sharedModules
           ++ nixosModules;

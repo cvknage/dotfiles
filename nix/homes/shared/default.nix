@@ -54,7 +54,7 @@ in {
   home.packages = [
     pkgs.tmux
     pkgs.git
-    pkgs.stable.gitui
+    pkgs.gitui
     pkgs.jq
     pkgs.gnused
     pkgs.posting
