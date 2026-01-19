@@ -86,17 +86,28 @@
       SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
       osascript <<OSA
-      display dialog "Kanata requires Input Monitoring permission to function.
+      display dialog ¬
+        "Kanata requires Input Monitoring permission.
+          Ensure \"Kanata.app\" is enable in:
+          System Settings → Privacy & Security → Input Monitoring.
 
-      Please enable it in:
-      System Settings → Privacy & Security → Input Monitoring." \
-      buttons {"Open System Settings", "Quit"} \
-      default button "Open System Settings" \
-      with icon caution \
-      with title "Kanata Permissions"
+      Kanata requires a Virtual HID device system extension.
+          Ensure \"Karabiner-VirtualHIDDevice-Manager\" is enabled in:
+          System Setings → General → Login Items & Extensio
 
-      if the button returned of the result is "Open System Settings" then
+      If \"Kanata.app\" was updated, it may be necessary to remove \"Kanata.app\" from Input Monitoring, add it again and then Restart Kanata." buttons {"Input Monitoring", "Login Items & Extensions", "Restart Kanata"} ¬
+        default button ¬
+        "Restart Kanata" with icon caution ¬
+        with title "Kanata Permissions"
+
+      set choice to button returned of the result
+
+      if choice is "Input Monitoring" then
         do shell script "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent'"
+      else if choice is "Login Items & Extensions" then
+        do shell script "open 'x-apple.systempreferences:com.apple.LoginItems-Settings.extension'"
+      else if choice is "Restart Kanata" then
+        do shell script "launchctl kickstart -k system/com.jtroo.kanata" with administrator privileges
       end if
       OSA
       EOF
@@ -107,18 +118,17 @@
 in {
   environment.systemPackages = [
     # Install the Kanata.app
-    # This is a hack that allows TCC to keep track of kanata properly so it permissions for Input Monitoring persist between updates.
-    # Allow Kanata.app in macOS's TCC (Transparency, Consent and Control)
-    # Under: Settings > Privacy and Security > Input Monitoring
+    # This is a hack that allows macOS TCC (Transparency, Consent and Control) to better track Input Monitoring permissions.
+    # Because Kanata.app has a BundleIdentifier TCC will track it properly, unlike the kanata binary in the nix store.
     kanataApp
 
-    # Symlink the kanata binary in "/run/current-system/sw/bin" folder to make the kanata command available.
-    # DON'T ADD THIS TO TCC IF YOU ADDED Kanata.app - This info is only kept here in case I need it again at some point.
-    # Allow kanata binary in macOS's TCC (Transparency, Consent and Control)
-    # Under: Settings > Privacy and Security > Input Monitoring
-    # By adding the symlink to TCC (Settings > Privacy and Security > Input Monitoring).
-    # The full nix path will be added, so kanata needs to be re added for every version.
-    # The kanata binary from nix will NOT be visible under Input Monitoring in the UI.
+    # Make kanata command available.
+    ## DON'T ADD THIS TO TCC, ADD Kanata.app INSTEAD - Keeping info here for reference.
+    ## Allow kanata binary in macOS's TCC (Transparency, Consent and Control)
+    ## Under: Settings > Privacy and Security > Input Monitoring
+    ## By adding the kanata symlink "/run/current-system/sw/bin/kanata" to Input Monitoring.
+    ## The symlink will evaluate to the full nix path, so it needs to be re added for every version.
+    ## The kanata binary from nix will NOT be visible under Input Monitoring in the UI after you added it, though it will be added to TCC.
     pkgs.kanata
 
     # To see all kanata binaries added to TCC, run:
@@ -190,7 +200,7 @@ in {
   };
 
   system.activationScripts.postActivation.text = ''
-    # Update Kanata.app
+    # Copy Kanata.app to /Applications/Nix Apps
     set -e
     mkdir -p "${nixAppsDirectory}"
     rm -rf "${nixAppsDirectory}/Kanata.app"
