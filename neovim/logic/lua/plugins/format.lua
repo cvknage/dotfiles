@@ -7,6 +7,25 @@ local function contains(tbl, value)
   return false
 end
 
+vim.api.nvim_create_user_command("FormatDisable", function(args)
+  if args.bang then
+    -- FormatDisable! will disable formatting just for this buffer
+    vim.b.disable_autoformat = true
+  else
+    vim.g.disable_autoformat = true
+  end
+end, {
+  desc = "Disable autoformat-on-save",
+  bang = true,
+})
+
+vim.api.nvim_create_user_command("FormatEnable", function()
+  vim.b.disable_autoformat = false
+  vim.g.disable_autoformat = false
+end, {
+  desc = "Re-enable autoformat-on-save",
+})
+
 return {
   {
     "stevearc/conform.nvim",
@@ -32,12 +51,16 @@ return {
     end,
     config = function(_, opts)
       opts.format_on_save = function(bufnr)
-        local filetype = vim.bo[bufnr].filetype
-        if not contains(opts.disable_format_on_save_for_ft, filetype) then
-          return {
-            timeout_ms = 500,
-          }
+        if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+          return
         end
+        local filetype = vim.bo[bufnr].filetype
+        if contains(opts.disable_format_on_save_for_ft, filetype) then
+          return
+        end
+        return {
+          timeout_ms = 500,
+        }
       end
       require("conform").setup(opts)
     end,
