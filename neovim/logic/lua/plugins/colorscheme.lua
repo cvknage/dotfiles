@@ -17,8 +17,9 @@ return {
 
     require("catppuccin").setup(opts)
     vim.cmd.colorscheme("catppuccin")
-    vim.opt.pumblend = 10 -- Enables pseudo-transparency for the |popup-menu|
     vim.opt.winblend = 10 -- Enables pseudo-transparency for a floating window
+    vim.opt.pumblend = 10 -- Enables pseudo-transparency for the |popup-menu|
+    -- Enable real transparency on floating window and popup-menu: Set winblend and pumblend to 0 and set hl group NormalFloat and Pmenu to bg = "NONE".
   end,
   opts = {
     flavour = "auto", -- latte, frappe, macchiato, mocha
@@ -45,7 +46,7 @@ return {
         LineNr = { fg = colors.pink }, -- line numbers
         CursorLineNr = { fg = colors.rosewater }, -- line number on cursor line
         TreesitterContext = { bg = colors.mantle }, -- treesitter context
-        TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.base }, -- treesitter context line numbers
+        TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.mantle }, -- treesitter context line numbers
         TelescopeBorder = { fg = colors.mauve, bg = colors.base },
         -- CursorLine = { bg = colors.base }, -- crusor line
         -- https://github.com/catppuccin/nvim/discussions/448#discussioncomment-5560230
