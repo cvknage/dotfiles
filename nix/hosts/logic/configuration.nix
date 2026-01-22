@@ -1,8 +1,8 @@
 {
   config,
+  hostPlatform,
   self,
   user,
-  hostPlatform,
   ...
 }: {
   imports = [
@@ -93,6 +93,8 @@
       # Audio & Video Tools
       "iina"
       "xld"
+      "blackhole-2ch"
+      # "au-lab" # AU Lab from homebrew is intel binary, get apple silicon binary: See equaliser/au-lab/README.md
     ];
 
     # Applications to install from Mac App Store using mas.
