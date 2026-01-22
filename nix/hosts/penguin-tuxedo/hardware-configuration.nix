@@ -65,7 +65,13 @@
   };
 
   # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = ["nvidia"];
+  services.xserver.videoDrivers = [
+    # For offloading, `modesetting` is needed additionally,
+    # otherwise the X-server will be running permanently on nvidia,
+    # thus keeping the GPU always on (see `nvidia-smi`).
+    "modesetting"
+    "nvidia"
+  ];
   # ++
   # Enable DisplayLink - https://wiki.nixos.org/wiki/Displaylink
   # ["displaylink" "modesetting"];
@@ -75,19 +81,24 @@
   #   ${lib.getBin pkgs.xorg.xrandr}/bin/xrandr --setprovideroutputsource 2 0
   # '';
 
+  # Enable NVIDIA GPU
+  # https://wiki.nixos.org/wiki/NVIDIA
   hardware.nvidia = {
-    # Modesetting is required.
+    # Modesetting is required on wayland.
     modesetting.enable = true;
 
     # Nvidia power management. Experimental, and can cause sleep/suspend to fail.
     # Enable this if you have graphical corruption issues or application crashes after waking
     # up from sleep. This fixes it by saving the entire VRAM memory to /tmp/ instead
     # of just the bare essentials.
-    powerManagement.enable = false;
+    powerManagement = {
+      enable = false; # disabled as even with finegrained = true it has no beneficial effect on power draw.
 
-    # Fine-grained power management. Turns off GPU when not in use.
-    # Experimental and only works on modern Nvidia GPUs (Turing or newer).
-    powerManagement.finegrained = false;
+      # Fine-grained power management. Turns off GPU when not in use.
+      # Experimental and only works on modern Nvidia GPUs (Turing or newer).
+      # The GPU in this machine (RTX 4060) qualifies.
+      finegrained = false;
+    };
 
     # Use the NVidia open source kernel module (not to be confused with the
     # independent third-party "nouveau" open source driver).
@@ -107,17 +118,41 @@
   };
 
   # Enable Nvidia Optimus PRIME
+  ## PRIME and Wayland
+  ## PRIME sync and reverse sync modes are X11-only and do not work under Wayland.
+  ## PRIME offload works under Wayland, but application offloading may behave differently depending on the compositor.
   hardware.nvidia.prime = {
-    sync.enable = true;
+    sync.enable = false;
+    reverseSync.enable = false;
 
-    /*
+    # To determine if offload is working, run:
+    # nix-shell -p mesa-demos --run "glxinfo -B"
+    # nix-shell -p mesa-demos --run "nvidia-offload glxinfo -B"
     offload = {
       enable = true;
-      enableOffloadCmd = true;
+      enableOffloadCmd = true; # Start applications with "nvidia-offload" to use the dGPU.
     };
-    */
 
-    intelBusId = "PCI:0:2:0";
-    nvidiaBusId = "PCI:1:0:0";
+    # To understand what uses which GPU, use the commands:
+    # nvidia-smi
+    # nvtop
+    # nvitop
+
+    # To determine IDs, run: nix shell nixpkgs#pciutils -c lspci -D -d ::03xx
+    # Before putting them into your configuration, however, they must first be reformatted
+    # assuming the bus address is <domain>:<bus>:<device>.<func>, convert all numbers from hexadecimal to decimal,
+    # then the formatted string is PCI:<bus>@<domain>:<device>:<func>.
+    intelBusId = "PCI:0@0:2:0";
+    nvidiaBusId = "PCI:1@0:0:0";
   };
+
+  # When the hardware.nvidia.powerManagement.enable option is enabled, the driver saves video memory to /tmp by default.
+  # If /tmp is backed by tmpfs (RAM) and the GPU VRAM usage exceeds the available space, the system will not resume and you will see a blank screen instead.
+  # To resolve this, redirect the temporary file to a storage location with sufficient capacity (e.g., /var/tmp) using kernel parameters:
+  boot.kernelParams = ["nvidia.NVreg_TemporaryFilePath=/var/tmp"];
+
+  # Hardware specific packages installed in system profile.
+  environment.systemPackages = with pkgs; [
+    nvitop # An interactive NVIDIA-GPU process viewer and beyond.
+  ];
 }

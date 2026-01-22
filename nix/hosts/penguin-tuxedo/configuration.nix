@@ -152,11 +152,9 @@ in {
   environment.systemPackages = with pkgs; [
     # vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     # git # Install git here to clone dotfiles, then remove it again as git will be installed with home-manager.
-    # gnome-tweaks $ Tweak gnome with dconf instead.
     wl-clipboard # Wayland clipboard utilities
-    lshw # (List Hardware) - use "sudo lshw -c display" to setup NVIDIA GPU: https://nixos.wiki/wiki/Nvidia
     nvtopPackages.full # NVTOP stands for Neat Videocard TOP, a (h)top like task monitor for GPUs and accelerators.
-    nvitop # An interactive NVIDIA-GPU process viewer and beyond.
+    powertop # Analyze power consumption on Intel-based laptops.
     # displaylink # DisplayLink Drivers - this is actually rather annoying, as rebuilds fail becaus a you need to run a command to prefetch the driver.
     # steam-run # Run commands in the same FHS environment that is used for Steam - Useful for installing stubborn non NixOS packaged software.
   ];
