@@ -37,17 +37,6 @@ return {
       -- DEFAULT SETTINGS: https://github.com/catppuccin/nvim/blob/main/lua/catppuccin/groups/editor.lua
       -- local U = require("catppuccin.utils.colors") -- utility functions
       return {
-        NormalFloat = { bg = colors.base }, -- floating windows like :Mason and :Lazy
-        FloatBorder = { bg = colors.base }, -- floating window borders like completion menu
-        Pmenu = { bg = colors.base }, -- Pmenu
-        Comment = { fg = colors.overlay1 }, -- code comments
-        Visual = { bg = colors.surface2 }, -- visual mode selection
-        VisualNOS = { bg = colors.surface2 }, -- visual mode selection when vim is "Not Owning the Selection".
-        LineNr = { fg = colors.pink }, -- line numbers
-        CursorLineNr = { fg = colors.rosewater }, -- line number on cursor line
-        TreesitterContext = { bg = colors.mantle }, -- treesitter context
-        TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.mantle }, -- treesitter context line numbers
-        TelescopeBorder = { fg = colors.mauve, bg = colors.base },
         -- CursorLine = { bg = colors.base }, -- crusor line
         -- https://github.com/catppuccin/nvim/discussions/448#discussioncomment-5560230
         --[[
@@ -58,6 +47,35 @@ return {
           ),
         },
         ]]
+        CursorLineNr = { fg = colors.rosewater },
+        LineNr = { fg = colors.pink },
+        NormalFloat = { bg = colors.base }, -- floating windows like :Mason and :Lazy
+        FloatBorder = { bg = colors.base }, -- floating window borders like completion menu
+        Pmenu = { bg = colors.base },
+        Comment = { fg = colors.overlay1 },
+        Visual = { bg = colors.surface2 }, -- visual mode selection
+        VisualNOS = { bg = colors.surface2 }, -- visual mode selection when vim is "Not Owning the Selection".
+
+        -- Treesitter
+        TreesitterContext = { bg = colors.mantle },
+        TreesitterContextLineNumber = { fg = colors.yellow, bg = colors.mantle },
+
+        -- Telescope
+        TelescopeBorder = { fg = colors.mauve, bg = colors.base },
+
+        -- EasyDotnet
+        EasyDotnetTestRunnerPassed = { fg = colors.green, style = { "bold" } },
+        EasyDotnetTestRunnerFailed = { fg = colors.red, style = { "bold" } },
+        EasyDotnetTestRunnerRunning = { fg = colors.yellow, style = { "italic" } },
+        EasyDotnetTestRunnerSolution = { fg = colors.mauve, style = { "bold" } },
+        EasyDotnetTestRunnerProject = { fg = colors.lavender },
+        EasyDotnetTestRunnerDir = { fg = colors.blue },
+        EasyDotnetTestRunnerPackage = { fg = colors.teal },
+        EasyDotnetTestRunnerTest = { fg = colors.text },
+        EasyDotnetTestRunnerSubcase = { fg = colors.overlay1 },
+        EasyDotnetDebuggerFloatVariable = { fg = colors.flamingo },
+        EasyDotnetDebuggerVirtualVariable = { fg = colors.rosewater, style = { "italic" } },
+        EasyDotnetDebuggerVirtualException = { fg = colors.red, style = { "bold" } },
       }
     end,
     auto_integrations = true,

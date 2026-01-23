@@ -7,6 +7,14 @@
   ...
 }: let
   dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
+  easy-dotnet-server = pkgs.buildDotnetGlobalTool {
+    pname = "easy-dotnet-server";
+    version = "2.3.63 ";
+    nugetName = "EasyDotnet";
+    nugetHash = "sha256-8ywDdEWxDZUtggvY/2d4Revk09+qb3llymru0Ptpp5c=";
+    executables = ["dotnet-easydotnet"];
+    dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+  };
   neovimExtraPackages =
     [
       # Needed by lazy.nvim package manager to support luarocks
@@ -31,6 +39,10 @@
       # Needed to install some native dependencies like: nvim-treesitter and fzf-native
       pkgs.gcc
       pkgs.gnumake
+    ]
+    ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work") [
+      # Needed by easy-dotnet.nvim
+      easy-dotnet-server
     ];
 in {
   imports = [
