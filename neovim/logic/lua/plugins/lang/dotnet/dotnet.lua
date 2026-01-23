@@ -1,4 +1,5 @@
 local dotnet_utils = require("plugins.lang.dotnet.utils")
+local use_vstest = true
 
 return {
   {
@@ -56,12 +57,23 @@ return {
     "nvim-neotest/neotest",
     optional = true,
     dependencies = {
-      "Issafalcon/neotest-dotnet",
-      enabled = dotnet_utils.has_dotnet,
+      {
+        "Issafalcon/neotest-dotnet",
+        enabled = not use_vstest and dotnet_utils.has_dotnet,
+      },
+      {
+        "nsidorenco/neotest-vstest",
+        enabled = use_vstest and dotnet_utils.has_dotnet,
+        dependencies = { "nvim-neotest/neotest" },
+      },
     },
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
-        table.insert(opts.adapters, dotnet_utils.test_adapter())
+        if use_vstest then
+          table.insert(opts.adapters, dotnet_utils.neotest_vstest_adapter())
+        else
+          table.insert(opts.adapters, dotnet_utils.neotest_dotnet_adapter()) -- trying out neotest-vstest
+        end
       end
     end,
   },
@@ -86,9 +98,9 @@ return {
     "mfussenegger/nvim-dap",
     optional = true,
     opts = function()
-      if dotnet_utils.has_dotnet then
+      if not use_vstest and dotnet_utils.has_dotnet then
         local dap = require("dap")
-        local test_debug_adapter = dotnet_utils.test_debug_adapter()
+        local test_debug_adapter = dotnet_utils.neotest_dotnet_debug_adapter()
         if not dap.adapters[test_debug_adapter.adapter] then
           dap.adapters[test_debug_adapter.adapter] = test_debug_adapter.config
         end
