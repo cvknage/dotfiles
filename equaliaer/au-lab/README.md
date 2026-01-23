@@ -1,6 +1,14 @@
 # AU Lab
 
-Presets for Apple AU Lab
+> [!INFO]
+> Use [Hosting AU](https://ju-x.com/hostingau.html) instead of AU Lab.
+> Load `.hosting` files in Hosting AU.
+> Hosting AU uses the same `.aupreset` files.
+> Hosting AU installs without issues.
+> Hosting AU is more stable for longer sessions.
+> AU Lab accumulates buffer drift over time and you start hearing static, cracks and pops after about 20 minutes.
+
+## Presets for Apple AU Lab
 
 1. Place `.aupreset` files in `~/Library/Audio/Presets/Apple/AUGraphicEQ`
 2. Load `.trak` files in AU Lab
@@ -30,5 +38,4 @@ Presets for Apple AU Lab
 > ``` sh
 > sudo killall coreaudiod
 > ```
-
 
