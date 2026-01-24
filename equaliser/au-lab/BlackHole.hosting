@@ -28,10 +28,10 @@
 	<integer>0</integer>
 	<integer>-2</integer>
 	<integer>0</integer>
+	<integer>12</integer>
+	<integer>1851942257</integer>
 	<integer>5</integer>
 	<integer>1735550321</integer>
-	<integer>-1</integer>
-	<integer>0</integer>
 	<integer>-1</integer>
 	<integer>0</integer>
 	<integer>-1</integer>
@@ -53,7 +53,7 @@
 	<real>0.5</real>
 	<real>0.5</real>
 	<real>0.5</real>
-	<integer>2</integer>
+	<integer>1</integer>
 	<false/>
 	<false/>
 	<false/>
@@ -103,7 +103,7 @@
 	<true/>
 	<true/>
 	<false/>
-	<false/>
+	<true/>
 	<true/>
 	<true/>
 	<true/>
@@ -112,28 +112,5 @@
 	<false/>
 	<integer>0</integer>
 	<integer>0</integer>
-	<dict>
-		<key>Num EQ Bands</key>
-		<integer>31</integer>
-		<key>data</key>
-		<data>
-		AAAAAAAAAAAAAAAgAAAAAECgAAAAAAABQKAAAAAAAAJAoAAAAAAAA0CQAAAA
-		AAAEQIAAAAAAAAVAYAAAAAAABkBAAAAAAAAHQAAAAAAAAAg/gAAAAAAACQAA
-		AAAAAAAKv4AAAAAAAAvAAAAAAAAADMAgAAAAAAANwAAAAAAAAA6/wAAAAAAA
-		D7+AAAAAAAAQvwAAAAAAABEAAAAAAAAAEj8AAAAAAAATPwAAAAAAABRAAAAA
-		AAAAFUAgAAAAAAAWQCAAlgAAABc////7AAAAGEAgAAAAAAAZQCAAAAAAABo/
-		wAAAAAAAG0AAAAAAAAAcP8AAAAAAAB0/gAAAAAAAHj8AAAAAACcQP4AAAA==
-		</data>
-		<key>manufacturer</key>
-		<integer>1634758764</integer>
-		<key>name</key>
-		<string>heavy</string>
-		<key>subtype</key>
-		<integer>1735550321</integer>
-		<key>type</key>
-		<integer>1635083896</integer>
-		<key>version</key>
-		<integer>0</integer>
-	</dict>
 </array>
 </plist>
