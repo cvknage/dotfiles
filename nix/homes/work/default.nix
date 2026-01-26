@@ -4,7 +4,21 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  easyeffectsWrapped = pkgs.symlinkJoin {
+    name = "easyeffects-wrapped";
+    paths = [pkgs.easyeffects];
+    nativeBuildInputs = [pkgs.makeWrapper];
+
+    postBuild = ''
+      gtk3Schemas="$(echo ${pkgs.gtk3}/share/gsettings-schemas/*)"
+      gsdSchemas="$(echo ${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/*)"
+
+      wrapProgram $out/bin/easyeffects \
+        --prefix XDG_DATA_DIRS : "$gtk3Schemas:$gsdSchemas"
+    '';
+  };
+in {
   imports = [
     ../../modules/home/another-redis-desktop-manager
     ../../modules/home/outlook
@@ -33,7 +47,7 @@
     pkgs.slack
     pkgs.teams-for-linux
     pkgs.buttercup-desktop
-    pkgs.easyeffects
+    easyeffectsWrapped # pkgs.easyeffects
 
     pkgs.ghostty
     pkgs.postman

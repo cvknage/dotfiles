@@ -34,7 +34,7 @@ aggressive EQ (e.g. distortion or odd tonal artifacts).
 ```
 
 - `_Genre` is optional and mainly used for custom tunings.
-_ `_Source` is optional and only used for non custom tunings.
+- `_Source` is optional and only used for non custom tunings.
 - `_EqType` is optional used to denote the EQ type used.
 
 Examples:
@@ -43,8 +43,12 @@ Examples:
 
 ## Notes
 
-Applications:  
+**Applications**:  
+
+Linux:  
 * [EasyEffects](https://wwmm.github.io/easyeffects/)
+
+macOS:  
 * [AU Lab](https://www.apple.com/apple-music/apple-digital-masters/)
 * [Hosting AU](https://ju-x.com/hostingau.html)
 * [Vizzdom Analyzer with EQ](https://www.krisdigital.com/en/blog/2018/08/23/vizzdom-mac-system-audio-spectrum-level-analyzer/)
