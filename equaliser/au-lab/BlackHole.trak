@@ -29,7 +29,7 @@
 		<key>Aggregate Input UID</key>
 		<string>BlackHole2ch_UID</string>
 		<key>Aggregate Output UID</key>
-		<string>AppleUSBAudioEngine:FiiO:FiiO KA5:FiiO KA5:1</string>
+		<string>BuiltInSpeakerDevice</string>
 		<key>Bus Name</key>
 		<string>Master Out</string>
 		<key>Color</key>
@@ -46,7 +46,7 @@
 			<integer>1</integer>
 		</array>
 		<key>device ID</key>
-		<integer>146</integer>
+		<integer>163</integer>
 		<key>isCollapsed</key>
 		<false/>
 	</dict>
@@ -65,7 +65,7 @@
 			<key>io num frames</key>
 			<integer>512</integer>
 			<key>name</key>
-			<string>BlackHole 2ch/FiiO KA5</string>
+			<string>BlackHole 2ch/MacBook Pro Speakers</string>
 			<key>out channels</key>
 			<integer>2</integer>
 			<key>out channels map</key>
@@ -172,7 +172,7 @@
 								<key>manufacturer</key>
 								<integer>1634758764</integer>
 								<key>name</key>
-								<string>heavy</string>
+								<string>DT900ProX_Custom_MelodicMetal_AUGraphicEQ</string>
 								<key>subtype</key>
 								<integer>1735550321</integer>
 								<key>type</key>
@@ -312,7 +312,7 @@
 			<integer>1</integer>
 		</dict>
 		<key>Window Frame</key>
-		<string>{{37, 187}, {360, 550}}</string>
+		<string>{{81, 151}, {360, 550}}</string>
 		<key>Window Max</key>
 		<string>{2560, 1632}</string>
 		<key>Window Min</key>
@@ -344,11 +344,7 @@
 						<true/>
 					</array>
 					<array>
-						<string>heavy</string>
-						<false/>
-					</array>
-					<array>
-						<string>flat</string>
+						<string>DT900ProX_Custom_MelodicMetal_AUGraphicEQ</string>
 						<false/>
 					</array>
 				</array>
@@ -359,7 +355,7 @@
 				<key>kAUInspectorStateKey_WindowLevel</key>
 				<integer>9223372036854775807</integer>
 				<key>kAUInspectorStateKey_WindowRect</key>
-				<string>{{475, 122}, {758, 414}}</string>
+				<string>{{548, 226}, {758, 414}}</string>
 			</dict>
 		</array>
 	</dict>
