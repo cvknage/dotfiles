@@ -127,6 +127,45 @@ in {
     nix-direnv.enable = true;
   };
 
+  programs.opencode = {
+    enable = true;
+    settings = {
+      theme = "catppuccin-macchiato";
+      model = "anthropic/claude-opus-4-5";
+      autoupdate = true;
+      share = "manual";
+      permission = {
+        bash = "ask";
+      };
+      formatter = {
+        nixfmt.disabled = true;
+        alejandra = {
+          command = ["alejandra" "$FILE"];
+          extensions = [".nix"];
+        };
+        stylua = {
+          command = ["stylua" "$FILE"];
+          extensions = [".lua"];
+        };
+        shfmt = {
+          command = ["shfmt" "-i" "2" "-ci" "-w" "$FILE"];
+          extensions = [".sh" ".bash" ".zsh"];
+        };
+        taplo = {
+          command = ["taplo" "format" "$FILE"];
+          extensions = [".toml"];
+        };
+        csharpier = {
+          command = ["dotnet" "csharpier" "format" "$FILE"];
+          extensions = [".cs" ".xml"];
+        };
+      };
+    };
+    rules = ''
+      - Never push to remote without explicit user approval
+    '';
+  };
+
   # Enable management of XDG base directories.
   xdg.enable = true;
 
