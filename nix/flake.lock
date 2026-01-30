@@ -209,11 +209,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1763020912,
-        "narHash": "sha256-bjpzIRpGlzbZOdXrjrktqDUzd+eGSSNaGrCaxBpAg7Y=",
+        "lastModified": 1769803008,
+        "narHash": "sha256-WPQhFj8YEPNbHaJapICbL5NMdvU0PvL5G2QuEUBFhWk=",
         "owner": "cvknage",
         "repo": "dotfiles-secrets",
-        "rev": "2aa0f0e6bf626a4a5e8cd935cdd5e5b8152039b7",
+        "rev": "ac2a0f011b2eac63fb2b75ec6863d309568e7e1c",
         "type": "github"
       },
       "original": {

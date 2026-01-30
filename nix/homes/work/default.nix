@@ -35,6 +35,7 @@ in {
             "github_user"
             "github_token"
             "gh_token"
+            "github_mcp_token"
           ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
       })
     # ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
@@ -67,6 +68,7 @@ in {
       export GITHUB_USER="$(cat ${config.sops.secrets.github_user.path})"
       export GITHUB_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
       export GH_TOKEN="$(cat ${config.sops.secrets.gh_token.path})"
+      export GITHUB_MCP_TOKEN="$(cat ${config.sops.secrets.github_mcp_token.path})"
       export GITHUB_PAT="$GH_TOKEN"
       export GITHUB_REPO_PAT="$GITHUB_TOKEN"
       export NIX_CONFIG="access-tokens = github.com/secomea-dev=$GITHUB_TOKEN"

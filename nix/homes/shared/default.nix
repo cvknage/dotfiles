@@ -47,6 +47,7 @@
 in {
   imports = [
     ../../../rust
+    ../../modules/home/mcp
     (args:
       inputs.secrets.homeManagerModules.default {
         sops-nix = inputs.sops-nix;
@@ -129,6 +130,7 @@ in {
 
   programs.opencode = {
     enable = true;
+    enableMcpIntegration = true;
     settings = {
       theme = "catppuccin-macchiato";
       model = "anthropic/claude-opus-4-5";
