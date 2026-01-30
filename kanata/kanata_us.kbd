@@ -26,6 +26,7 @@
   default (layer-switch default)
   programmer (layer-switch programmer)
   ctrlmod (layer-while-held control)
+  keys-disabled (layer-switch keys-disabled)
 
   ;; home row mods
   escctrl (tap-hold $tap-time $hold-time esc lctl)
@@ -53,12 +54,14 @@
   )
 )
 
-(defsrc
-  IntlBackslash Digit2 Digit4 Digit6 Digit7 Digit8 Digit9 Digit0 Minus Equal
-  BracketLeft BracketRight
-  caps a s d f j k l Semicolon Quote Backslash
-  lsft Backquote Comma Period Slash rsft
-  ControlLeft
+;; defsrc is required
+(defsrc)
+
+(platform (linux)
+  (deflayermap (linux-disabled)
+    ControlLeft @ctrlmod
+    ___ XX
+  )
 )
 
 (deflayermap (programmer)
@@ -75,9 +78,14 @@
 
 (deflayermap (control)
   r lrld p @programmer
-  d @default
+  d @default l @keys-disabled
   Semicolon RA-Quote Quote RA-o BracketLeft RA-a ;; Quick Access æÆ øØ åÅ
   lsft lsft rsft rsft
+  ___ XX
+)
+
+(deflayermap (keys-disabled)
+  ControlLeft @ctrlmod
   ___ XX
 )
 
