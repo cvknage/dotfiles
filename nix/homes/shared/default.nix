@@ -133,11 +133,57 @@ in {
     enableMcpIntegration = true;
     settings = {
       theme = "catppuccin-macchiato";
-      model = "anthropic/claude-opus-4-5";
       autoupdate = true;
       share = "manual";
       permission = {
-        bash = "ask";
+        external_directory = {
+          "*" = "deny";
+          "$HOME/.dotfiles/**" = "allow";
+          "$HOME/code/**" = "allow";
+          "$HOME/Code/**" = "allow";
+        };
+        bash = {
+          "*" = "deny";
+          "* ./*" = "allow";
+          "* ./**/*" = "allow";
+
+          "git *" = "allow";
+          "git branch *" = "ask";
+          "git checkout *" = "ask";
+          "git clean *" = "ask";
+          "git merge *" = "ask";
+          "git pull *" = "ask";
+          "git push *" = "ask";
+          "git rebase *" = "ask";
+          "git reset *" = "ask";
+          "git switch *" = "ask";
+          "git tag *" = "ask";
+          "git clone *" = "deny";
+          "git config *" = "deny";
+          "git init *" = "deny";
+          "git worktree *" = "deny";
+
+          "pwd" = "allow";
+          "date" = "allow";
+          "ls" = "allow";
+          "ls -la" = "ask";
+          "which *" = "allow";
+          "type *" = "allow";
+          "echo *" = "allow";
+
+          "task *" = "allow";
+          "dotnet *" = "allow";
+          "dotnet new *" = "ask";
+          "dotnet run *" = "ask";
+          "dotnet publish *" = "deny";
+          "dotnet store *" = "deny";
+          "dotnet workload *" = "deny";
+          "dotnet tool install *" = "deny";
+          "dotnet tool uninstall *" = "deny";
+
+          "ps" = "ask";
+          "jobs" = "ask";
+        };
       };
       formatter = {
         nixfmt.disabled = true;
@@ -164,7 +210,15 @@ in {
       };
     };
     rules = ''
-      - Never push to remote without explicit user approval
+      - Never run `git push`, or any command that modifies a remote repository unless the user explicitly says to do so in the current conversation.
+
+      - Prefer MCP servers and their tools over ad-hoc web searches, curl, or manual parsing when an MCP server is available and relevant to the task.
+        Use MCP servers directly when they provide authoritative context (e.g. GitHub MCP for repository access, Azure MCP for Log Analytics).
+        Do not probe, crawl, or explore MCP servers beyond what is necessary to fulfill the current user request.
+
+      - Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
+
+      - Always use NixOS MCP when working with *.nix files without me having to explicitly ask.
     '';
   };
 

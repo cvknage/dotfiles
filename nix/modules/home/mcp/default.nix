@@ -4,70 +4,84 @@
   pkgs,
   ...
 }: let
-  mcpRuntimeDeps = [
-    pkgs.nodejs
-    # pkgs.uv
-    # pkgs.python3
-  ];
-  mkMcpWrapper = name: command:
+  /*
+  mkPythonCmd = name: command:
     pkgs.writeShellApplication {
       name = "mcp-${name}";
-      runtimeInputs = mcpRuntimeDeps;
+      runtimeInputs = [
+        pkgs.python3
+        pkgs.uv
+      ];
       text = ''
         exec ${command} "$@"
       '';
     };
-  icuLibraryPath = lib.makeLibraryPath [pkgs.icu];
-  mkMcpWrapperWithIcu = name: command:
+  */
+  mkNpxCmd = name:
     pkgs.writeShellApplication {
       name = "mcp-${name}";
-      runtimeInputs = mcpRuntimeDeps;
+      runtimeInputs = [pkgs.nodejs];
       text = ''
-        export LD_LIBRARY_PATH="${icuLibraryPath}:''${LD_LIBRARY_PATH:-}"
-        exec ${command} "$@"
+        exec npx "$@"
       '';
     };
-  mcpContext7 = mkMcpWrapper "context7" "npx";
-  mcpKubernetes = mkMcpWrapper "kubernetes" "npx";
-  mcpFilesystem = mkMcpWrapper "filesystem" "npx";
-  mcpAzure = mkMcpWrapperWithIcu "azure-mcp" "npx";
-  filesystemRoots =
-    [
-      "${config.home.homeDirectory}/.dotfiles"
-    ]
-    ++ lib.optionals pkgs.stdenv.isDarwin [
-      "${config.home.homeDirectory}/Code"
-    ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
-      "${config.home.homeDirectory}/code"
-    ];
+  mkAzureCmd = name:
+    pkgs.writeShellApplication {
+      name = "mcp-${name}";
+      runtimeInputs = [
+        pkgs.nodejs
+        pkgs.azure-cli
+      ];
+      text = ''
+        export LD_LIBRARY_PATH="${lib.makeLibraryPath [pkgs.icu]}:''${LD_LIBRARY_PATH:-}"
+        exec npx "$@"
+      '';
+    };
+  isWorkContext = config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work";
 in {
   programs.mcp = {
     enable = true;
     servers = {
-      github = {
-        type = "https";
+      filesystem = {
+        type = "local";
+        command = lib.getExe (mkNpxCmd "filesystem");
+        args =
+          ["-y" "@modelcontextprotocol/server-filesystem"]
+          ++ [
+            "${config.home.homeDirectory}/.dotfiles"
+          ]
+          ++ lib.optionals pkgs.stdenv.isDarwin [
+            "${config.home.homeDirectory}/Code"
+          ]
+          ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+            "${config.home.homeDirectory}/code"
+          ];
+      };
+      nixos = {
+        type = "local";
+        command = "nix";
+        args = ["run" "github:utensils/mcp-nixos" "--"];
+      };
+      context7 = {
+        type = "local";
+        command = lib.getExe (mkNpxCmd "context7");
+        args = ["-y" "@upstash/context7-mcp"];
+      };
+      github = lib.mkIf isWorkContext {
+        type = "remote";
         url = "https://api.githubcopilot.com/mcp/";
         headers = {
           Authorization = "Bearer {env:GITHUB_MCP_TOKEN}";
         };
       };
-      context7 = {
-        command = "${mcpContext7}/bin/mcp-context7";
-        args = ["-y" "@upstash/context7-mcp"];
-      };
-      kubernetes = {
-        command = "${mcpKubernetes}/bin/mcp-kubernetes";
+      kubernetes = lib.mkIf isWorkContext {
+        type = "local";
+        command = lib.getExe (mkNpxCmd "kubernetes");
         args = ["-y" "kubernetes-mcp-server@latest"];
       };
-      filesystem = {
-        command = "${mcpFilesystem}/bin/mcp-filesystem";
-        args =
-          ["-y" "@modelcontextprotocol/server-filesystem"]
-          ++ filesystemRoots;
-      };
-      azure-mcp = {
-        command = "${mcpAzure}/bin/mcp-azure-mcp";
+      azure = lib.mkIf isWorkContext {
+        type = "local";
+        command = lib.getExe (mkAzureCmd "azure");
         args = ["-y" "@azure/mcp@latest" "server" "start"];
         env = {
           AZURE_TOKEN_CREDENTIALS = "dev";
