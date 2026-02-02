@@ -87,6 +87,11 @@ in {
           AZURE_TOKEN_CREDENTIALS = "dev";
         };
       };
+      atlassian = lib.mkIf isWorkContext {
+        type = "local";
+        command = lib.getExe (mkNpxCmd "atlassian");
+        args = ["-y" "mcp-remote" "https://mcp.atlassian.com/v1/mcp"];
+      };
     };
   };
 }
