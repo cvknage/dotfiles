@@ -209,17 +209,6 @@ in {
         };
       };
     };
-    rules = ''
-      - Never run `git push`, or any command that modifies a remote repository unless the user explicitly says to do so in the current conversation.
-
-      - Prefer MCP servers and their tools over ad-hoc web searches, curl, or manual parsing when an MCP server is available and relevant to the task.
-        Use MCP servers directly when they provide authoritative context (e.g. GitHub MCP for repository access, Azure MCP for Log Analytics).
-        Do not probe, crawl, or explore MCP servers beyond what is necessary to fulfill the current user request.
-
-      - Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
-
-      - Always use NixOS MCP when working with *.nix files without me having to explicitly ask.
-    '';
   };
 
   # Enable management of XDG base directories.
@@ -254,6 +243,10 @@ in {
     "${config.xdg.configHome}/k9s".source = "${dotfiles}/k9s";
     "${config.xdg.configHome}/kanata".source = "${dotfiles}/kanata";
     "${config.xdg.configHome}/nvim".source = "${dotfiles}/neovim/logic";
+    "${config.xdg.configHome}/opencode/AGENTS.md".source = "${dotfiles}/opencode/AGENTS.md";
+    "${config.xdg.configHome}/opencode/agent".source = "${dotfiles}/opencode/agent";
+    "${config.xdg.configHome}/opencode/commands".source = "${dotfiles}/opencode/commands";
+    "${config.xdg.configHome}/opencode/skills".source = "${dotfiles}/opencode/skills";
     "${config.xdg.configHome}/starship.toml".source = "${dotfiles}/starship/starship.toml";
     "${config.xdg.configHome}/tmux".source = "${dotfiles}/tmux";
     "${config.xdg.configHome}/wezterm".source = "${dotfiles}/wezterm";
