@@ -66,6 +66,9 @@
       ./modules/darwin
     ];
   in {
+    formatter.${darwinArchitecture} = nixpkgs.legacyPackages.${darwinArchitecture}.alejandra;
+    formatter.${linuxArchitecture} = nixpkgs.legacyPackages.${linuxArchitecture}.alejandra;
+
     darwinConfigurations = {
       logic = nix-darwin.lib.darwinSystem {
         system = darwinArchitecture;

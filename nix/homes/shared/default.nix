@@ -48,6 +48,7 @@ in {
   imports = [
     ../../../rust
     ../../modules/home/mcp
+    ../../modules/home/opencode
     (args:
       inputs.secrets.homeManagerModules.default {
         sops-nix = inputs.sops-nix;
@@ -126,89 +127,6 @@ in {
     enableZshIntegration = true;
     enableBashIntegration = true;
     nix-direnv.enable = true;
-  };
-
-  programs.opencode = {
-    enable = true;
-    enableMcpIntegration = true;
-    settings = {
-      theme = "catppuccin-macchiato";
-      autoupdate = true;
-      share = "manual";
-      permission = {
-        external_directory = {
-          "*" = "deny";
-          "$HOME/.dotfiles/**" = "allow";
-          "$HOME/code/**" = "allow";
-          "$HOME/Code/**" = "allow";
-        };
-        bash = {
-          "*" = "deny";
-          "* ./*" = "allow";
-          "* ./**/*" = "allow";
-
-          "git *" = "allow";
-          "git branch *" = "ask";
-          "git checkout *" = "ask";
-          "git clean *" = "ask";
-          "git merge *" = "ask";
-          "git pull *" = "ask";
-          "git push *" = "ask";
-          "git rebase *" = "ask";
-          "git reset *" = "ask";
-          "git switch *" = "ask";
-          "git tag *" = "ask";
-          "git clone *" = "deny";
-          "git config *" = "deny";
-          "git init *" = "deny";
-          "git worktree *" = "deny";
-
-          "pwd" = "allow";
-          "date" = "allow";
-          "ls" = "allow";
-          "ls -la" = "ask";
-          "which *" = "allow";
-          "type *" = "allow";
-          "echo *" = "allow";
-
-          "task *" = "allow";
-          "dotnet *" = "allow";
-          "dotnet new *" = "ask";
-          "dotnet run *" = "ask";
-          "dotnet publish *" = "deny";
-          "dotnet store *" = "deny";
-          "dotnet workload *" = "deny";
-          "dotnet tool install *" = "deny";
-          "dotnet tool uninstall *" = "deny";
-
-          "ps" = "ask";
-          "jobs" = "ask";
-        };
-      };
-      formatter = {
-        nixfmt.disabled = true;
-        alejandra = {
-          command = ["alejandra" "$FILE"];
-          extensions = [".nix"];
-        };
-        stylua = {
-          command = ["stylua" "$FILE"];
-          extensions = [".lua"];
-        };
-        shfmt = {
-          command = ["shfmt" "-i" "2" "-ci" "-w" "$FILE"];
-          extensions = [".sh" ".bash" ".zsh"];
-        };
-        taplo = {
-          command = ["taplo" "format" "$FILE"];
-          extensions = [".toml"];
-        };
-        csharpier = {
-          command = ["dotnet" "csharpier" "format" "$FILE"];
-          extensions = [".cs" ".xml"];
-        };
-      };
-    };
   };
 
   # Enable management of XDG base directories.
