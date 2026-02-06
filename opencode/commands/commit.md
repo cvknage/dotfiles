@@ -7,10 +7,10 @@ subtask: true
 Recent commit style reference:
 !`git log -n 10 --oneline`
 
-Current staged work:
+Current staged work (from `git diff --stat --staged`):
 !`git diff --stat --staged`
 
-Based on the context above, follow these steps:
-1. If there are no staged changes, reply exactly with "No staged changes." and do nothing else.
-2. Otherwise, produce a concise single-line commit title that mirrors the verbs and tone shown in the recent commit log. Return only the title—no bullets, quotes, fences, or trailing punctuation.
-3. After responding with the title, run `git commit -m "$RESPONSE"` and then `git status -sb` to confirm the working tree.
+Instructions:
+1. If no staged changes, reply exactly: "No staged changes."
+2. Otherwise, draft a concise commit message that matches the log style and commit the staged changes.
+3. Determine staged state using `git diff --stat --staged`.
