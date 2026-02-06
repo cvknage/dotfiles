@@ -57,8 +57,6 @@ in {
             "git log" = "allow";
             "git log *" = "allow";
             "git show *" = "allow";
-
-            "git -C *" = "deny";
             "git branch *" = "ask";
             "git checkout *" = "ask";
             "git clean *" = "ask";
@@ -69,10 +67,38 @@ in {
             "git reset *" = "ask";
             "git switch *" = "ask";
             "git tag *" = "ask";
+            "git -C *" = "deny";
             "git clone *" = "deny";
             "git config *" = "deny";
             "git init *" = "deny";
             "git worktree *" = "deny";
+
+            "gh --version" = "allow";
+            "gh version" = "allow";
+            "gh help" = "allow";
+            "gh auth status" = "allow";
+            "gh status" = "allow";
+            "gh repo view" = "allow";
+            "gh repo view *" = "allow";
+            "gh repo list" = "allow";
+            "gh repo list *" = "allow";
+            "gh pr view" = "allow";
+            "gh pr view *" = "allow";
+            "gh pr list" = "allow";
+            "gh pr list *" = "allow";
+            "gh issue view" = "allow";
+            "gh issue view *" = "allow";
+            "gh issue list" = "allow";
+            "gh issue list *" = "allow";
+            "gh search *" = "allow";
+            "gh api *" = "ask";
+            "gh pr *" = "ask";
+            "gh issue *" = "ask";
+            "gh repo *" = "ask";
+            "gh release *" = "ask";
+            "gh workflow *" = "ask";
+            "gh run *" = "ask";
+            "gh auth *" = "ask";
 
             "pwd" = "allow";
             "date" = "allow";
