@@ -4,6 +4,7 @@ return {
   {
     "GustavEikaas/easy-dotnet.nvim",
     enabled = dotnet_utils.has_dotnet,
+    ft = "cs",
     dependencies = { "nvim-lua/plenary.nvim" },
     config = function()
       local dotnet = require("easy-dotnet")
