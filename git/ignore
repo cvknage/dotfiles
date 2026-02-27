@@ -66,3 +66,6 @@ $RECYCLE.BIN/
 
 # Vim Sessions
 Session.vim
+
+# Agents
+**/.claude/settings.local.json

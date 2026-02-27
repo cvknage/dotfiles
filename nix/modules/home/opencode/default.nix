@@ -1,20 +1,8 @@
 {
-  config,
   lib,
-  pkgs,
+  repoScopes,
   ...
 }: let
-  repoScopes =
-    [
-      "${config.home.homeDirectory}/.dotfiles"
-    ]
-    ++ lib.optionals pkgs.stdenv.isDarwin [
-      "${config.home.homeDirectory}/Code"
-    ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
-      "${config.home.homeDirectory}/code"
-    ];
-
   scopedPathRules =
     lib.foldl' lib.recursiveUpdate
     {

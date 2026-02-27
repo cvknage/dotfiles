@@ -7,6 +7,16 @@
   ...
 }: let
   dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
+  repoScopes =
+    [
+      "${config.home.homeDirectory}/.dotfiles"
+    ]
+    ++ lib.optionals pkgs.stdenv.isDarwin [
+      "${config.home.homeDirectory}/Code"
+    ]
+    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+      "${config.home.homeDirectory}/code"
+    ];
   easy-dotnet-server = pkgs.buildDotnetGlobalTool {
     pname = "easy-dotnet-server";
     version = "2.3.63 ";
@@ -45,10 +55,13 @@
       easy-dotnet-server
     ];
 in {
+  _module.args.repoScopes = repoScopes;
+
   imports = [
     ../../../rust
     ../../modules/home/mcp
     ../../modules/home/opencode
+    ../../modules/home/claude-code
     (args:
       inputs.secrets.homeManagerModules.default {
         sops-nix = inputs.sops-nix;

@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  repoScopes,
   ...
 }: let
   /*
@@ -47,15 +48,7 @@ in {
         command = lib.getExe (mkNpxCmd "filesystem");
         args =
           ["-y" "@modelcontextprotocol/server-filesystem"]
-          ++ [
-            "${config.home.homeDirectory}/.dotfiles"
-          ]
-          ++ lib.optionals pkgs.stdenv.isDarwin [
-            "${config.home.homeDirectory}/Code"
-          ]
-          ++ lib.optionals (!pkgs.stdenv.isDarwin) [
-            "${config.home.homeDirectory}/code"
-          ];
+          ++ repoScopes;
       };
       nixos = {
         type = "local";
