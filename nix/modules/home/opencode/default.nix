@@ -22,9 +22,7 @@
       "${dir}/**" = "allow";
     })
     repoScopes);
-
 in {
-
   programs.opencode = {
     enable = true;
     enableMcpIntegration = true;
@@ -170,10 +168,6 @@ in {
             "which *" = "allow";
             "type *" = "allow";
             "echo *" = "allow";
-
-            "cp ./**" = "ask";
-            "mv ./**" = "ask";
-            "rm ./**" = "ask";
 
             "task *" = "allow";
             "curl *" = "ask";
