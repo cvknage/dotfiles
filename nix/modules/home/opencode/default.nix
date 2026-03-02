@@ -4,19 +4,9 @@
   ...
 }: let
   sharedPermissions = import ../agents/command-permissions.nix;
+  permissionsLib = import ../agents/permissions-lib.nix {inherit lib;};
 
-  scopedPathRules =
-    lib.foldl' lib.recursiveUpdate
-    {
-      "* ." = "allow";
-      "* ./**" = "allow";
-    }
-    (map
-      (dir: {
-        "* ${dir}" = "allow";
-        "* ${dir}/**" = "allow";
-      })
-      repoScopes);
+  scopedPathRules = permissionsLib.mkOpencodeScopedPathRules repoScopes;
 
   externalDirectoryRules = lib.foldl' lib.recursiveUpdate {"*" = "deny";} (map
     (dir: {
@@ -109,27 +99,7 @@ in {
         external_directory = externalDirectoryRules;
         bash =
           lib.recursiveUpdate
-          (lib.recursiveUpdate
-            (lib.listToAttrs (map (pattern: {
-                name = pattern;
-                value = "allow";
-              })
-              sharedPermissions.bash.allow))
-            (lib.recursiveUpdate
-              (lib.listToAttrs (map (pattern: {
-                  name = pattern;
-                  value = "ask";
-                })
-                sharedPermissions.bash.ask))
-              (lib.recursiveUpdate
-                {
-                  "*" = "deny";
-                }
-                (lib.listToAttrs (map (pattern: {
-                    name = pattern;
-                    value = "deny";
-                  })
-                  sharedPermissions.bash.deny)))))
+          (permissionsLib.mkOpencodeBashPermissions sharedPermissions)
           scopedPathRules;
       };
       formatter = {

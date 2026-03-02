@@ -5,14 +5,9 @@
   ...
 }: let
   sharedPermissions = import ../agents/command-permissions.nix;
+  permissionsLib = import ../agents/permissions-lib.nix {inherit lib;};
 
-  bashRules = patterns: map (pattern: "Bash(${pattern})") patterns;
-
-  scopedPathRules = lib.flatten (map (dir: [
-      "Bash(* ${dir})"
-      "Bash(* ${dir}/**)"
-    ])
-    repoScopes);
+  scopedPathRules = permissionsLib.mkClaudeScopedPathRules repoScopes;
 
   fileAccessRules = lib.flatten (map (dir: [
       "Read(${dir}/**)"
@@ -165,11 +160,11 @@
 
   permissions = {
     allow =
-      (bashRules sharedPermissions.bash.allow)
+      (permissionsLib.mkClaudeBashPermissions sharedPermissions).allow
       ++ scopedPathRules
       ++ fileAccessRules;
-    ask = bashRules sharedPermissions.bash.ask;
-    deny = bashRules sharedPermissions.bash.deny;
+    ask = (permissionsLib.mkClaudeBashPermissions sharedPermissions).ask;
+    deny = (permissionsLib.mkClaudeBashPermissions sharedPermissions).deny;
     additionalDirectories = repoScopes;
   };
 in {

@@ -83,6 +83,15 @@
     ];
 
     deny = [
+      "cd"
+      "cd *"
+      "pushd *"
+      "popd"
+      "popd *"
+      "dirs"
+      "dirs *"
+      "*../*"
+
       "git -C *"
       "git clone *"
       "git config *"
