@@ -42,6 +42,8 @@
       "nix fmt *"
 
       "dotnet *"
+      "swift *"
+      "xcode *"
     ];
 
     ask = [
