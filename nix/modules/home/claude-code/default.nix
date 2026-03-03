@@ -173,7 +173,7 @@ in {
     enableMcpIntegration = true;
     settings = {
       "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-      defaultMode = "dontAsk";
+      # defaultMode = "dontAsk";
       hooks = {
         PreToolUse = [
           {

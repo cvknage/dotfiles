@@ -10,6 +10,7 @@
   repoScopes =
     [
       "${config.home.homeDirectory}/.dotfiles"
+      "${config.home.homeDirectory}/.claude"
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       "${config.home.homeDirectory}/Code"
