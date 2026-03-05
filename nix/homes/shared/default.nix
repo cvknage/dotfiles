@@ -51,6 +51,9 @@
       # Needed to install some native dependencies like: nvim-treesitter and fzf-native
       pkgs.gcc
       pkgs.gnumake
+
+      # Swift LSP
+      pkgs.sourcekit-lsp
     ]
     ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work") [
       # Needed by easy-dotnet.nvim
