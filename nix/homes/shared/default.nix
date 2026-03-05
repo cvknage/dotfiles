@@ -38,6 +38,7 @@
 
       # Needed by nvim-treesitter to install some languages
       pkgs.gnused
+      pkgs.tree-sitter
 
       # Needed by telescope.nvim to do "find" and "live grep"
       pkgs.fd
