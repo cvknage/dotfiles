@@ -53,7 +53,7 @@
       pkgs.gnumake
 
       # Swift LSP
-      pkgs.sourcekit-lsp
+      # pkgs.sourcekit-lsp
     ]
     ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work") [
       # Needed by easy-dotnet.nvim

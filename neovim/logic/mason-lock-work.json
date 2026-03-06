@@ -13,9 +13,10 @@
   "netcoredbg": "3.1.2-1054",
   "nil": "2025-06-13",
   "roslyn": "5.3.0-2.25571.4",
-  "rust-analyzer": "2025-11-24",
+  "rust-analyzer": "2026-01-26",
   "shfmt": "v3.12.0",
   "stylua": "v2.3.1",
+  "swiftformat": "0.60.0",
   "taplo": "0.10.0",
   "typescript-language-server": "5.1.3",
   "yaml-language-server": "1.19.2"
