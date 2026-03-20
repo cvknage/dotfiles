@@ -21,6 +21,7 @@
 in {
   imports = [
     ../../modules/home/another-redis-desktop-manager
+    ../../modules/home/claude-desktop
     ../../modules/home/outlook
     (args:
       inputs.secrets.homeManagerModules.default {
@@ -46,7 +47,7 @@ in {
     pkgs.gnomeExtensions.appindicator
 
     pkgs.slack
-    pkgs.teams-for-linux
+    pkgs.stable.teams-for-linux
     pkgs.buttercup-desktop
     easyeffectsWrapped # pkgs.easyeffects
 

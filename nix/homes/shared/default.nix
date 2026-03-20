@@ -20,9 +20,9 @@
     ];
   easy-dotnet-server = pkgs.buildDotnetGlobalTool {
     pname = "easy-dotnet-server";
-    version = "2.3.63 ";
+    version = "3.0.8";
     nugetName = "EasyDotnet";
-    nugetHash = "sha256-8ywDdEWxDZUtggvY/2d4Revk09+qb3llymru0Ptpp5c=";
+    nugetHash = "sha256-PZHgCom5rB1h8/2T/h1PADbmp0/EF0xu4vEWAIFVyJE=";
     executables = ["dotnet-easydotnet"];
     dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
   };
@@ -100,6 +100,9 @@ in {
     withRuby = true;
     withNodeJs = true;
     withPython3 = true;
+    initLua = ''
+      dofile(vim.fn.expand("$HOME/.dotfiles/neovim/logic/init.lua"))
+    '';
     extraPackages = neovimExtraPackages;
     extraWrapperArgs =
       lib.optionals (pkgs.stdenv.isDarwin)
@@ -178,7 +181,11 @@ in {
     "${config.xdg.configHome}/gitui".source = "${dotfiles}/gitui";
     "${config.xdg.configHome}/k9s".source = "${dotfiles}/k9s";
     "${config.xdg.configHome}/kanata".source = "${dotfiles}/kanata";
-    "${config.xdg.configHome}/nvim".source = "${dotfiles}/neovim/logic";
+    # "${config.xdg.configHome}/nvim".source = "${dotfiles}/neovim/logic";
+    "${config.xdg.configHome}/nvim/lua".source = "${dotfiles}/neovim/logic/lua";
+    "${config.xdg.configHome}/nvim/lazy-lock.json".source = "${dotfiles}/neovim/logic/lazy-lock.json";
+    "${config.xdg.configHome}/nvim/mason-lock-private.json".source = "${dotfiles}/neovim/logic/mason-lock-private.json";
+    "${config.xdg.configHome}/nvim/mason-lock-work.json".source = "${dotfiles}/neovim/logic/mason-lock-work.json";
     "${config.xdg.configHome}/opencode/AGENTS.md".source = "${dotfiles}/opencode/AGENTS.md";
     "${config.xdg.configHome}/opencode/agent".source = "${dotfiles}/opencode/agent";
     "${config.xdg.configHome}/opencode/commands".source = "${dotfiles}/opencode/commands";
