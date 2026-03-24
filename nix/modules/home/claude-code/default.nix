@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   repoScopes,
@@ -158,6 +159,31 @@
     '';
   };
 
+  # Persist Claude settings in a writable location so Claude Code can mutate settings.json
+  # for plugin install/management.
+  mutableSettingsPath = "${config.xdg.stateHome}/claude/settings.json";
+
+  settings = {
+    "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+    # defaultMode = "dontAsk";
+    hooks = {
+      PreToolUse = [
+        {
+          matcher = "Bash|Read|Edit|Write";
+          hooks = [
+            {
+              type = "command";
+              command = "${hookScript}/bin/claude-code-deny-outside-repo-scopes";
+            }
+          ];
+        }
+      ];
+    };
+    inherit permissions;
+  };
+
+  managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
+
   permissions = {
     allow =
       (permissionsLib.mkClaudeBashPermissions sharedPermissions).allow
@@ -168,26 +194,59 @@
     additionalDirectories = repoScopes;
   };
 in {
+  # Override the store-backed Home Manager settings.json with an out-of-store symlink to a
+  # writable file. Claude Code can then update settings during plugin install.
+  #
+  # Important: use the exact target path Home Manager uses (relative to $HOME) to avoid
+  # conflicting target definitions.
+  home.file.".claude/settings.json" = lib.mkForce {
+    source = config.lib.file.mkOutOfStoreSymlink mutableSettingsPath;
+  };
+
+  home.activation.claudeCodeMaterializeSettings = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    # Path to the mutable settings file that ~/.claude/settings.json symlinks to.
+    # Kept in $XDG_STATE_HOME so Claude Code and plugins can write to it at runtime.
+    state_settings="${mutableSettingsPath}"
+    state_dir="$(${pkgs.coreutils}/bin/dirname "$state_settings")"
+
+    # Ensure both the config dir and the state dir exist before writing.
+    ${pkgs.coreutils}/bin/mkdir -p "$HOME/.claude"
+    ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
+
+    # Work in a temp dir so the merge is atomic — the state file is never
+    # left in a partially-written state if something goes wrong mid-merge.
+    tmp_dir="$(${pkgs.coreutils}/bin/mktemp -d)"
+    user_settings="$tmp_dir/user.json"    # current on-disk settings (may include plugin writes)
+    managed_settings="$tmp_dir/managed.json"  # Nix-controlled settings baked into the store
+    out_settings="$tmp_dir/out.json"      # merged result
+
+    # Seed user_settings from the existing state file, or start with an empty
+    # object on first run (e.g. fresh machine, no prior settings).
+    if [ -e "$state_settings" ]; then
+      ${pkgs.coreutils}/bin/cp "$state_settings" "$user_settings"
+    else
+      ${pkgs.coreutils}/bin/printf '{}' > "$user_settings"
+    fi
+    ${pkgs.coreutils}/bin/cp "${managedSettingsFile}" "$managed_settings"
+
+    # Guard against a corrupt/non-JSON state file (e.g. truncated mid-write).
+    # Reset to {} so the merge still produces a valid result.
+    if ! ${pkgs.jq}/bin/jq -e . "$user_settings" >/dev/null 2>&1; then
+      ${pkgs.coreutils}/bin/printf '{}' > "$user_settings"
+    fi
+
+    # Merge: user settings are the base, managed settings win on conflict.
+    # This means Nix-controlled keys (hooks, permissions) always take effect,
+    # while user/plugin keys not present in managed (e.g. statusLine) are preserved.
+    ${pkgs.jq}/bin/jq -s '.[0] * .[1]' "$user_settings" "$managed_settings" > "$out_settings"
+    # Atomically replace the state file and set safe permissions (0644).
+    ${pkgs.coreutils}/bin/install -m 0644 "$out_settings" "$state_settings"
+    ${pkgs.coreutils}/bin/rm -rf "$tmp_dir"
+  '';
+
   programs.claude-code = {
     enable = true;
     enableMcpIntegration = true;
-    settings = {
-      "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-      # defaultMode = "dontAsk";
-      hooks = {
-        PreToolUse = [
-          {
-            matcher = "Bash|Read|Edit|Write";
-            hooks = [
-              {
-                type = "command";
-                command = "${hookScript}/bin/claude-code-deny-outside-repo-scopes";
-              }
-            ];
-          }
-        ];
-      };
-      inherit permissions;
-    };
+    inherit settings;
   };
 }
