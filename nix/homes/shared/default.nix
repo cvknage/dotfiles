@@ -11,6 +11,7 @@
     [
       "${config.home.homeDirectory}/.dotfiles"
       "${config.home.homeDirectory}/.claude"
+      "${config.xdg.configHome}/opencode"
     ]
     ++ lib.optionals pkgs.stdenv.isDarwin [
       "${config.home.homeDirectory}/Code"

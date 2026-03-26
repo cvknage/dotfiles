@@ -72,8 +72,8 @@
           exit 2
         fi
 
-        if [[ "$command" == *";"* || "$command" == *"|"* || "$command" == *"&"* || "$command" == *"<"* || "$command" == *">"* || "$command" == *"\`"* || "$command" == *"\$("* ]]; then
-          echo "Blocked: Bash command uses shell operators" >&2
+        if [[ "$command" == *";"* ]]; then
+          echo "Blocked: Bash command uses semicolons (use && or || for chaining)" >&2
           exit 2
         fi
 

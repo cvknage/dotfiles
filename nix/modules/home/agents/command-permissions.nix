@@ -3,7 +3,6 @@
     allow = [
       "git status"
       "git status *"
-      "git commit *"
       "git diff"
       "git diff *"
       "git log"
@@ -13,20 +12,12 @@
       "gh --version"
       "gh version"
       "gh help"
+      "gh api *"
       "gh auth status"
       "gh status"
-      "gh repo view"
-      "gh repo view *"
-      "gh repo list"
-      "gh repo list *"
-      "gh pr view"
-      "gh pr view *"
-      "gh pr list"
-      "gh pr list *"
-      "gh issue view"
-      "gh issue view *"
-      "gh issue list"
-      "gh issue list *"
+      "gh repo *"
+      "gh pr *"
+      "gh issue *"
       "gh search *"
 
       "pwd"
@@ -47,6 +38,7 @@
     ];
 
     ask = [
+      "git commit *"
       "git branch *"
       "git checkout *"
       "git clean *"
@@ -58,10 +50,6 @@
       "git switch *"
       "git tag *"
 
-      "gh api *"
-      "gh pr *"
-      "gh issue *"
-      "gh repo *"
       "gh release *"
       "gh workflow *"
       "gh run *"
