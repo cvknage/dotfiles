@@ -34,8 +34,7 @@
       flake = false;
     };
     tuxedo-nixos = {
-      url = "github:KalokaK/tuxedo-nixos";
-      inputs.nixpkgs.follows = "nixpkgs-stable";
+      url = "github:sund3RRR/tuxedo-nixos";
     };
   };
 

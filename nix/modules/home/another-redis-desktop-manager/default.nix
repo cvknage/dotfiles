@@ -15,7 +15,7 @@
       with pkgs; [
         libGLU
         mesa
-        xorg.libxshmfence
+        libxshmfence
       ];
     extraInstallCommands = ''
       mkdir -p $out/share/applications
