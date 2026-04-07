@@ -101,6 +101,15 @@ end
 --- @param bufnr integer
 function M.code_lens(client, bufnr)
   if client:supports_method("textDocument/codeLens") then
+    local codelens_update = function(buf)
+      -- Neovim 0.12+: avoid deprecated `codelens.refresh({ bufnr = ... })`.
+      if vim.lsp.codelens.enable ~= nil then
+        pcall(vim.lsp.codelens.enable, true, { bufnr = buf })
+        return
+      end
+      vim.lsp.codelens.refresh({ bufnr = buf })
+    end
+
     vim.api.nvim_create_autocmd({
       "BufEnter",
       -- "CursorHold",
@@ -108,10 +117,10 @@ function M.code_lens(client, bufnr)
     }, {
       buffer = bufnr,
       callback = function(ev)
-        vim.lsp.codelens.refresh({ bufnr = ev.buf })
+        codelens_update(ev.buf)
       end,
     })
-    vim.lsp.codelens.refresh({ bufnr = bufnr })
+    codelens_update(bufnr)
   end
 end
 

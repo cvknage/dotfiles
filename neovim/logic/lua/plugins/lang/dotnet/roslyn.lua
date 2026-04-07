@@ -1,5 +1,18 @@
 local dotnet_utils = require("plugins.lang.dotnet.utils")
 
+local function refresh_inlay_hints(bufnr)
+  -- Neovim 0.12+ has a public inlay hint refresh API.
+  if vim.lsp.inlay_hint and type(vim.lsp.inlay_hint.refresh) == "function" then
+    pcall(vim.lsp.inlay_hint.refresh, bufnr)
+    return
+  end
+
+  -- Older versions used this internal helper.
+  if vim.lsp.util and type(vim.lsp.util._refresh) == "function" then
+    pcall(vim.lsp.util._refresh, "textDocument/inlayHint", { bufnr = bufnr })
+  end
+end
+
 if dotnet_utils.has_dotnet then
   vim.lsp.config("roslyn", {
     handlers = {
@@ -11,7 +24,7 @@ if dotnet_utils.has_dotnet then
           local buffers = vim.lsp.get_buffers_by_client_id(ctx.client_id)
           for _, buf in ipairs(buffers) do
             vim.lsp.inlay_hint.enable(vim.lsp.inlay_hint.is_enabled({ bufnr = buf }), { bufnr = buf })
-            vim.lsp.util._refresh("textDocument/inlayHint", { bufnr = buf })
+            refresh_inlay_hints(buf)
           end
         end
         return vim.NIL
