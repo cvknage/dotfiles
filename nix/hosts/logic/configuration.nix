@@ -1,6 +1,5 @@
 {
   config,
-  hostPlatform,
   self,
   user,
   ...
@@ -23,9 +22,6 @@
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
-
-  # The platform the configuration will be used on.
-  nixpkgs.hostPlatform = hostPlatform;
 
   # Home-Manager needs this value to work with nix-darwin.
   users.users.${user}.home = "/Users/${user}";

@@ -6,7 +6,6 @@
   lib,
   pkgs,
   modulesPath,
-  hostPlatform,
   inputs,
   ...
 }: {
@@ -42,7 +41,6 @@
   networking.useDHCP = lib.mkDefault true;
   # networking.interfaces.wlo1.useDHCP = lib.mkDefault true;
 
-  nixpkgs.hostPlatform = lib.mkDefault hostPlatform;
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
   # Enable Tuxedo-rs - disabled; because it causes the internal keyboard backlight to flip out...
@@ -56,7 +54,7 @@
 
   hardware.tuxedo-control-center = {
     enable = true;
-    # package = inputs.tuxedo-nixos.packages.${hostPlatform}.default; # use package versions specifies in the module.
+    # package = inputs.tuxedo-nixos.packages.${pkgs.stdenv.hostPlatform.system}.default; # use package versions specifies in the module.
   };
 
   # Enable OpenGL

@@ -19,7 +19,7 @@
     file
     dbus
     git
-    nodePackages.asar
+    asar
     xdotool # For window focusing
     procps # For pgrep
   ];
@@ -32,7 +32,7 @@
       owner = "johnzfitch";
       repo = "claude-cowork-linux";
       rev = "master";
-      hash = "sha256-UkdD6p3ioFAUvsO7Vf8W7EOrLijlabPebzsxvhAZNFY=";
+      hash = "sha256-RKCLi/t+Uio0Z+LTONiHz0LT2Y72zWwt+mNFQDvbnOs=";
     };
 
     nativeBuildInputs = with pkgs; [makeWrapper];

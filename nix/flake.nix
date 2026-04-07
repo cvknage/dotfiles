@@ -71,7 +71,7 @@
     darwinConfigurations = {
       logic = nix-darwin.lib.darwinSystem {
         system = darwinArchitecture;
-        specialArgs = extraArgs // {inherit self;} // {hostPlatform = darwinArchitecture;};
+        specialArgs = extraArgs // {inherit self;};
         modules =
           [
             ./hosts/logic/configuration.nix
@@ -90,7 +90,7 @@
     nixosConfigurations = {
       penguin-tuxedo = nixpkgs.lib.nixosSystem {
         system = linuxArchitecture;
-        specialArgs = extraArgs // {inherit owner;} // {hostPlatform = linuxArchitecture;};
+        specialArgs = extraArgs // {inherit owner;};
         modules =
           [
             ./hosts/penguin-tuxedo/configuration.nix

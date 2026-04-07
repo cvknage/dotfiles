@@ -92,7 +92,6 @@ in {
       };
     };
     settings = {
-      theme = "catppuccin-macchiato-transparent";
       autoupdate = true;
       share = "manual";
       permission = {
@@ -125,6 +124,9 @@ in {
           extensions = [".cs" ".xml"];
         };
       };
+    };
+    tui = {
+      theme = "catppuccin-macchiato-transparent";
     };
   };
 }
