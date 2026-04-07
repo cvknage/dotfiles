@@ -1,6 +1,8 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false,
     dependencies = {
       {
         "nvim-treesitter/nvim-treesitter-context",
@@ -11,10 +13,8 @@ return {
         },
       },
     },
-    build = function()
-      require("nvim-treesitter.install").update({ with_sync = true })()
-    end,
-    cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
+    build = ":TSUpdate",
+    cmd = { "TSUpdate", "TSInstall", "TSLog", "TSUninstall" },
     keys = {
       { "<C-space>", desc = "Increment selection" },
       { "<bs>", desc = "Decrement selection", mode = "x" },
@@ -39,6 +39,7 @@ return {
     },
     opts_extend = { "ensure_installed" },
     opts = {
+      install_dir = vim.fn.stdpath("data") .. "/site",
       ensure_installed = {
         "diff",
         "query",
@@ -46,29 +47,24 @@ return {
         "vim",
         "vimdoc",
       },
-      sync_install = false,
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-        -- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-        -- Using this option may slow down your editor, and you may see some duplicate highlights.
-        -- Instead of true it can also be a list of languages
-        additional_vim_regex_highlighting = false,
-      },
-      indent = { enable = true },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          scope_incremental = false,
-          node_decremental = "<bs>",
-        },
-      },
     },
     config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+      local TS = require("nvim-treesitter")
+
+      TS.setup({
+        install_dir = opts.install_dir,
+      })
+
+      if type(opts.ensure_installed) == "table" and #opts.ensure_installed > 0 then
+        TS.install(opts.ensure_installed)
+      end
+
+      -- Enable tree-sitter highlighting by default (best-effort per buffer).
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function(ev)
+          pcall(vim.treesitter.start, ev.buf)
+        end,
+      })
     end,
   },
 }

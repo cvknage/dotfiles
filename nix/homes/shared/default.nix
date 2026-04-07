@@ -97,9 +97,7 @@ in {
 
   programs.neovim = {
     enable = true;
-    # Neovim 0.12 currently trips over nvim-treesitter (which explicitly does not support 0.12).
-    # Pin Neovim to nixpkgs-stable to keep treesitter-based highlighting working.
-    package = inputs.nixpkgs-stable.legacyPackages.${pkgs.system}.neovim-unwrapped;
+    package = pkgs.neovim-unwrapped;
     vimAlias = true;
     withRuby = true;
     withNodeJs = true;

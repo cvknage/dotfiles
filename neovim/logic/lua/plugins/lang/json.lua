@@ -1,7 +1,7 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "json", "jsonc", "json5" } },
+    opts = { ensure_installed = { "json", "json5" } },
   },
   {
     "mason-org/mason.nvim",
