@@ -47,7 +47,8 @@ return {
     "brianhuster/live-preview.nvim",
     cmd = { "LivePreview" },
     dependencies = {
-      "nvim-telescope/telescope.nvim",
+      { "nvim-telescope/telescope.nvim", optional = true },
+      { "ibhagwan/fzf-lua", optional = true },
     },
   },
 }

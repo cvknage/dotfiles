@@ -63,6 +63,9 @@ return {
         -- Telescope
         TelescopeBorder = { fg = colors.mauve, bg = colors.base },
 
+        -- fzf-lua
+        FzfLuaBorder = { fg = colors.mauve, bg = colors.base },
+
         -- EasyDotnet
         EasyDotnetTestRunnerPassed = { fg = colors.green, style = { "bold" } },
         EasyDotnetTestRunnerFailed = { fg = colors.red, style = { "bold" } },

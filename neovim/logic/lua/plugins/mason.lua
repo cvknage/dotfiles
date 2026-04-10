@@ -18,8 +18,11 @@ return {
       "MasonLog",
     },
     init = function()
-      -- Load telescope for ui-select before Mason
-      if not package.loaded["telescope"] then
+      -- Load a picker for ui-select before Mason
+      local plugins = require("lazy.core.config").plugins
+      if plugins["fzf-lua"] and not package.loaded["fzf-lua"] then
+        require("lazy").load({ plugins = { "fzf-lua" } })
+      elseif plugins["telescope.nvim"] and not package.loaded["telescope"] then
         require("lazy").load({ plugins = { "telescope.nvim" } })
       end
     end,

@@ -6,6 +6,7 @@ end
 
 return {
   "nvim-telescope/telescope.nvim",
+  enabled = false, -- Trying out fzf-lua instead.
   dependencies = {
     { "nvim-lua/plenary.nvim" },
     {

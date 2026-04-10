@@ -17,12 +17,22 @@ end
 --- @param client vim.lsp.Client
 --- @param bufnr integer
 function M.keymaps(client, bufnr)
-  local has_telescope = require("lazy.core.config").plugins["telescope.nvim"] ~= nil
-  local has_conform = require("lazy.core.config").plugins["conform.nvim"] ~= nil
-  local telescope_builtin = function(builtin, opts)
-    return function()
-      require("telescope.builtin")[builtin](opts)
+  local plugins = require("lazy.core.config").plugins
+  local has_fzf_lua = plugins["fzf-lua"] ~= nil
+  local has_telescope = plugins["telescope.nvim"] ~= nil
+  local has_conform = plugins["conform.nvim"] ~= nil
+
+  local lsp_picker = function(fzf_cmd, telescope_cmd, opts)
+    if has_fzf_lua then
+      return function()
+        require("fzf-lua")[fzf_cmd](opts)
+      end
+    elseif has_telescope then
+      return function()
+        require("telescope.builtin")[telescope_cmd](opts)
+      end
     end
+    return nil
   end
 
   local MAP = {}
@@ -32,29 +42,33 @@ function M.keymaps(client, bufnr)
     end
   end
   function MAP.definitions(mode, lhs, opts)
-    if has_telescope then
-      vim.keymap.set(mode, lhs, telescope_builtin("lsp_definitions", { reuse_win = true }), opts)
+    local picker = lsp_picker("lsp_definitions", "lsp_definitions", { reuse_win = true })
+    if picker then
+      vim.keymap.set(mode, lhs, picker, opts)
     else
       vim.keymap.set(mode, lhs, vim.lsp.buf.definition, opts)
     end
   end
   function MAP.references(mode, lhs, opts)
-    if has_telescope then
-      vim.keymap.set(mode, lhs, telescope_builtin("lsp_references", { reuse_win = true }), opts)
+    local picker = lsp_picker("lsp_references", "lsp_references", { reuse_win = true })
+    if picker then
+      vim.keymap.set(mode, lhs, picker, opts)
     else
       vim.keymap.set(mode, lhs, vim.lsp.buf.references, opts)
     end
   end
   function MAP.implementation(mode, lhs, opts)
-    if has_telescope then
-      vim.keymap.set(mode, lhs, telescope_builtin("lsp_implementations", { reuse_win = true }), opts)
+    local picker = lsp_picker("lsp_implementations", "lsp_implementations", { reuse_win = true })
+    if picker then
+      vim.keymap.set(mode, lhs, picker, opts)
     else
       vim.keymap.set(mode, lhs, vim.lsp.buf.implementation, opts)
     end
   end
   function MAP.type_definition(mode, lhs, opts)
-    if has_telescope then
-      vim.keymap.set(mode, lhs, telescope_builtin("lsp_type_definitions", { reuse_win = true }), opts)
+    local picker = lsp_picker("lsp_typedefs", "lsp_type_definitions", { reuse_win = true })
+    if picker then
+      vim.keymap.set(mode, lhs, picker, opts)
     else
       vim.keymap.set(mode, lhs, vim.lsp.buf.type_definition, opts)
     end
