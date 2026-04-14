@@ -4,13 +4,14 @@ local M = {}
 function M.global_keymaps()
   -- When the Nvim LSP client starts it sets various default options listed here: https://neovim.io/doc/user/lsp.html#lsp-defaults
   -- These GLOBAL keymaps are created unconditionally when Nvim starts
-  vim.keymap.del({ "n", "v" }, "gra")
-  vim.keymap.del("n", "gri")
-  vim.keymap.del("n", "grn")
-  vim.keymap.del("n", "grr")
-  vim.keymap.del("n", "grt")
-  vim.keymap.del("n", "gO")
-  vim.keymap.del("i", "<c-S>")
+  vim.keymap.del({ "n", "v" }, "gra") -- code actions
+  vim.keymap.del("n", "gri") -- implementations
+  vim.keymap.del("n", "grn") -- rename
+  vim.keymap.del("n", "grr") -- references
+  vim.keymap.del("n", "grt") -- type definition
+  vim.keymap.del("n", "grx") -- run codelens
+  vim.keymap.del("n", "gO") -- document symbols
+  vim.keymap.del("i", "<c-S>") -- signature help
 end
 
 --- Configure LSP keymaps
@@ -116,12 +117,7 @@ end
 function M.code_lens(client, bufnr)
   if client:supports_method("textDocument/codeLens") then
     local codelens_update = function(buf)
-      -- Neovim 0.12+: avoid deprecated `codelens.refresh({ bufnr = ... })`.
-      if vim.lsp.codelens.enable ~= nil then
-        pcall(vim.lsp.codelens.enable, true, { bufnr = buf })
-        return
-      end
-      vim.lsp.codelens.refresh({ bufnr = buf })
+      pcall(vim.lsp.codelens.enable, true, { bufnr = buf })
     end
 
     vim.api.nvim_create_autocmd({
@@ -136,6 +132,39 @@ function M.code_lens(client, bufnr)
     })
     codelens_update(bufnr)
   end
+end
+
+--- Enable document highlight on supported clients
+--- @param client vim.lsp.Client
+--- @param bufnr integer
+function M.document_highlight(client, bufnr)
+  if not client:supports_method("textDocument/documentHighlight") then
+    return
+  end
+
+  if vim.b[bufnr].lsp_document_highlight then
+    return
+  end
+
+  vim.b[bufnr].lsp_document_highlight = true
+
+  local highlight_group = vim.api.nvim_create_augroup("lsp_document_highlight_" .. bufnr, { clear = true })
+
+  vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
+    group = highlight_group,
+    buffer = bufnr,
+    callback = function()
+      vim.lsp.buf.document_highlight()
+    end,
+  })
+
+  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufLeave" }, {
+    group = highlight_group,
+    buffer = bufnr,
+    callback = function()
+      vim.lsp.buf.clear_references()
+    end,
+  })
 end
 
 --- Configure global diagnostic options
@@ -165,6 +194,7 @@ function M.lsp_attach()
       local clients = vim.lsp.get_clients({ buffer = ev.buf })
       for _, client in pairs(clients) do
         M.keymaps(client, ev.buf)
+        M.document_highlight(client, ev.buf)
         -- M.inlay_hints(client, ev.buf)
         M.code_lens(client, ev.buf)
       end

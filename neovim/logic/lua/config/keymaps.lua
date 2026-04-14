@@ -53,6 +53,10 @@ vim.keymap.set("n", "<leader>K", "<cmd>norm! K<cr>", { desc = "Keywordprg" })
 
 -- highlights under cursor
 vim.keymap.set("n", "<leader>ui", vim.show_pos, { desc = "Inspect Pos" })
+vim.keymap.set("n", "<leader>uu", function()
+  vim.cmd("packadd nvim.undotree")
+  vim.cmd("Undotree")
+end, { desc = "Show UndoTree" })
 
 -- buffers
 vim.keymap.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to Other Buffer" })

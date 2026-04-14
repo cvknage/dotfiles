@@ -8,7 +8,7 @@ return {
   init = function()
     -- Available models: https://tabby.tabbyml.com/docs/models/
 
-    if vim.loop.os_uname().sysname == "Darwin" then
+    if vim.uv.os_uname().sysname == "Darwin" then
       pcall(io.popen, "tabby serve --device metal --model TabbyML/StarCoder-3B > /dev/null 2>&1 &")
       -- pcall(io.popen, "tabby serve --device metal --model TabbyML/CodeLlama-7B > /dev/null 2>&1 &")
     else

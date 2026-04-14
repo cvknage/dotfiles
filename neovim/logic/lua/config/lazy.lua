@@ -1,7 +1,7 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 -- print("Lazy install dir: " .. lazypath)
 
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
   local out = vim.fn.system({
     "git",
@@ -36,8 +36,8 @@ require("lazy").setup({
     { import = "plugins.lang" },
 
     -- AI
-    { import = "plugins.ai.copilot" },
-    { import = "plugins.ai.codeium" },
+    -- { import = "plugins.ai.copilot" },
+    -- { import = "plugins.ai.codeium" },
     -- { import = "plugins.ai.llm" },
     -- { import = "plugins.ai.tabby" },
     -- { import = "plugins.ai.gen" },
