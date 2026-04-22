@@ -74,12 +74,6 @@ return {
   },
   opts = {
     "default-title",
-    winopts = {
-      width = 0.95,
-      preview = {
-        horizontal = "right:55%",
-      },
-    },
     fzf_opts = {
       ["--layout"] = "default",
     },
