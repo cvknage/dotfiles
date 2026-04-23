@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   repoScopes,
@@ -20,7 +21,8 @@
   hookScript = pkgs.writeShellApplication {
     name = "claude-code-deny-outside-repo-scopes";
     runtimeInputs = [pkgs.jq pkgs.python3];
-    text = builtins.replaceStrings
+    text =
+      builtins.replaceStrings
       ["@repoScopes@"]
       [
         (lib.concatStringsSep "\n    " (map (scope: ''"${scope}"'') repoScopes))
@@ -33,10 +35,13 @@
   mutableSettingsPath = "${config.xdg.stateHome}/claude/settings.json";
   managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
 
-  activationScript = builtins.replaceStrings
+  activationScript =
+    builtins.replaceStrings
     ["@mutableSettingsPath@" "@managedSettingsFile@" "@coreutils@" "@jq@"]
     [mutableSettingsPath "${managedSettingsFile}" "${pkgs.coreutils}" "${pkgs.jq}"]
     (builtins.readFile ./materialize-settings.sh);
+
+  claudeCodePackage = inputs.claude-code.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
 
   permissions = {
     allow =
@@ -79,6 +84,7 @@ in {
   programs.claude-code = {
     enable = true;
     enableMcpIntegration = true;
+    package = claudeCodePackage;
     inherit settings;
   };
 }

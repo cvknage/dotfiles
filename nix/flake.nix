@@ -36,6 +36,9 @@
     tuxedo-nixos = {
       url = "github:sund3RRR/tuxedo-nixos";
     };
+    claude-code = {
+      url = "github:sadjow/claude-code-nix";
+    };
   };
 
   outputs = inputs @ {
