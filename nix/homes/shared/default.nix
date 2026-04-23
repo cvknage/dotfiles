@@ -68,6 +68,7 @@ in {
     ../../modules/home/mcp
     ../../modules/home/opencode
     ../../modules/home/claude-code
+    ../../modules/home/codex
     (args:
       inputs.secrets.homeManagerModules.default {
         sops-nix = inputs.sops-nix;
