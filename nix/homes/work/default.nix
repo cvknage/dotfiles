@@ -68,10 +68,10 @@ in {
       export DOCKER_REGISTRY_HOSTNAME="$(cat ${config.sops.secrets.docker_registry_hostname.path})"
       export GITHUB_USER="$(cat ${config.sops.secrets.github_user.path})"
       export GITHUB_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
-      export GH_TOKEN="$(cat ${config.sops.secrets.gh_token.path})"
+      export GH_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
       export GITHUB_MCP_TOKEN="$(cat ${config.sops.secrets.github_mcp_token.path})"
-      export GITHUB_PAT="$GH_TOKEN"
-      export GITHUB_REPO_PAT="$GITHUB_TOKEN"
+      export GITHUB_PAT="$(cat ${config.sops.secrets.gh_token.path})"
+      export GITHUB_REPO_PAT="$(cat ${config.sops.secrets.github_token.path})"
       export NIX_CONFIG="access-tokens = github.com/secomea-dev=$GITHUB_TOKEN"
 
       alias mnotes='gocryptfs ~/Notes.encrypted ~/Notes'
