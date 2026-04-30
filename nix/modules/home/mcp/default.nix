@@ -60,13 +60,18 @@ in {
         command = lib.getExe (mkNpxCmd "context7");
         args = ["-y" "@upstash/context7-mcp"];
       };
-      github = lib.mkIf isWorkContext {
-        type = "remote";
-        url = "https://api.githubcopilot.com/mcp/";
-        headers = {
-          Authorization = "Bearer {env:GITHUB_MCP_TOKEN}";
-        };
-      };
+      # figma = {
+      #   type = "remote";
+      #   url = "https://mcp.figma.com/mcp";
+      # };
+      #
+      # github = lib.mkIf isWorkContext {
+      #   type = "remote";
+      #   url = "https://api.githubcopilot.com/mcp/";
+      #   headers = {
+      #     Authorization = "Bearer {env:GITHUB_MCP_TOKEN}";
+      #   };
+      # };
       kubernetes = lib.mkIf isWorkContext {
         type = "local";
         command = lib.getExe (mkNpxCmd "kubernetes");
