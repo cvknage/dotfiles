@@ -88,12 +88,12 @@ in {
   };
 
   # Chromium stopped generating its own desktop icon, so add it manually
-  xdg.desktopEntries.chromium = {
-    name = "Chromium";
-    exec = "chromium %U";
-    icon = "chromium";
-    categories = ["Network" "WebBrowser"];
-  };
+  # xdg.desktopEntries.chromium = {
+  #   name = "Chromium";
+  #   exec = "chromium %U";
+  #   icon = "chromium";
+  #   categories = ["Network" "WebBrowser"];
+  # };
 
   # Configure GNOME desktop settings using dconf
   dconf = {
