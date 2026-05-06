@@ -44,7 +44,7 @@ return {
     end,
   },
   {
-    "nvim-treesitter/nvim-treesitter",
+    "romus204/tree-sitter-manager.nvim",
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
         -- easy-dotnet language injection

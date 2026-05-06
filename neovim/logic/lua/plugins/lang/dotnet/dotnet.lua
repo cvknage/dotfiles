@@ -3,7 +3,7 @@ local use_vstest = true
 
 return {
   {
-    "nvim-treesitter/nvim-treesitter",
+    "romus204/tree-sitter-manager.nvim",
     opts = function(_, opts)
       if dotnet_utils.has_dotnet then
         table.insert(opts.ensure_installed, "c_sharp")

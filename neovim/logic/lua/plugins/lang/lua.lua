@@ -20,10 +20,9 @@ vim.lsp.config("lua_ls", {
 
 return {
   {
-    "nvim-treesitter/nvim-treesitter",
+    "romus204/tree-sitter-manager.nvim",
     opts = {
       ensure_installed = {
-        "lua",
         "luadoc",
         "luap",
       },

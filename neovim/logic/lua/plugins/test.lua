@@ -5,7 +5,6 @@ return {
       "nvim-neotest/nvim-nio",
       "nvim-lua/plenary.nvim",
       "antoinemadec/FixCursorHold.nvim", -- The repo claims it is no longer needed but it is still recommended (see: https://github.com/antoinemadec/FixCursorHold.nvim/issues/13)
-      "nvim-treesitter/nvim-treesitter",
     },
     ---@type neotest.Config
     ---@diagnostic disable-next-line: missing-fields

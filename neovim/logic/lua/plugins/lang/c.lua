@@ -1,7 +1,7 @@
 return {
   {
-    "nvim-treesitter/nvim-treesitter",
-    opts = { ensure_installed = { "c", "cmake" } },
+    "romus204/tree-sitter-manager.nvim",
+    opts = { ensure_installed = { "cmake" } },
   },
   {
     "mason-org/mason.nvim",
