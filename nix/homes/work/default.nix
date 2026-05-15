@@ -81,7 +81,10 @@ in {
     '';
   };
 
-  programs.firefox.enable = true;
+  programs.firefox = {
+    enable = true;
+    configPath = "${config.xdg.configHome}/mozilla/firefox";
+  };
   programs.chromium = {
     enable = true;
     package = pkgs.stable.ungoogled-chromium;
