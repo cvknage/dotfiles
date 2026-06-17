@@ -35,6 +35,7 @@
   "render-markdown.nvim": { "branch": "main", "commit": "4ae2f2e8e8c66d070f33cfb57cb6f867e3baf5d9" },
   "roslyn.nvim": { "branch": "main", "commit": "f2ec6ee6384c3b611ddc817b9e78b20cd0334bbb" },
   "telescope.nvim": { "branch": "master", "commit": "7ef4d6dccb78ee71e552bbd866176762ad328afa" },
+  "tree-sitter-manager.nvim": { "branch": "main", "commit": "33a94d022e3a5a500d878b784ba7fec61559c70a" },
   "vim-fugitive": { "branch": "master", "commit": "3b753cf8c6a4dcde6edee8827d464ba9b8c4a6f0" },
   "vim-obsession": { "branch": "master", "commit": "ed9dfc7c2cc917ace8b24f4f9f80a91e05614b63" },
   "vim-test": { "branch": "master", "commit": "c090bfd93919888bb0b86e1ab707bc6a3095097f" },
