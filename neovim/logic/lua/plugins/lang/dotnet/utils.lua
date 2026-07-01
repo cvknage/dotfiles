@@ -106,7 +106,20 @@ function M.debug_adapter()
           return M.dotnet_get_dll_path()
         end,
       })
-      config.configurations[3].name = "Launch dll"
+      table.insert(config.configurations, 3, {
+        type = "coreclr",
+        name = "Attach mirrord",
+        request = "attach",
+        processId = function()
+          return require("dap.utils").pick_process({
+            -- the built apphost (…/net10.0/<svc>), NOT the `dotnet run` wrapper
+            filter = function(proc)
+              return proc.name:match("/net%d+%.%d+/[%w._-]+$") ~= nil and not proc.name:match("dotnet run")
+            end,
+          })
+        end,
+      })
+      config.configurations[4].name = "Launch dll"
 
       return config
     end,
