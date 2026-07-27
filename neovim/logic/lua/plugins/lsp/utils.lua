@@ -79,7 +79,7 @@ function M.keymaps(client, bufnr)
     return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
   end
 
-  vim.keymap.set("n", "<leader>cl", "<cmd>LspInfo<cr>", options({ desc = "Lsp Info" }))
+  vim.keymap.set("n", "<leader>cl", "<cmd>checkhealth vim.lsp<cr>", options({ desc = "Lsp Info" }))
   MAP.format("n", "<leader>cf", options({ desc = "Format" }))
   vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, options({ desc = "Rename" }))
   vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, options({ desc = "Code Action" }))

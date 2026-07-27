@@ -7,16 +7,11 @@ lsp_utils.lsp_attach()
 return {
   {
     "neovim/nvim-lspconfig",
-    cmd = {
-      "LspInfo",
-      "LspStart",
-      "LspStop",
-      "LspRestart",
-    },
+    lazy = true,
   },
   {
     "mason-org/mason-lspconfig.nvim",
-    cmd = { "LspInstall", "LspStart" },
+    cmd = { "LspInstall", "LspUninstall" },
     event = { "BufReadPre", "BufNewFile" },
     dependencies = {
       "mason-org/mason.nvim",
