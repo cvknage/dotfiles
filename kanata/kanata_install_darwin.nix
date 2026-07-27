@@ -78,39 +78,97 @@
       chmod +x "$APP/Contents/MacOS/kanata"
 
       # ---- Permissions dialog ----
-      cat > "$APP/Contents/MacOS/kanata-permissions" <<'EOF'
+      # AppleScript display dialog supports max 3 buttons, so we use a
+      # two-step flow: main dialog (Help / Open Settings / Restart) and
+      # a settings picker dialog if "Open Settings" is chosen.
+      cat > "$APP/Contents/MacOS/kanata-permissions" <<'PERMSEOF'
       #!/usr/bin/env bash
       set -euo pipefail
 
-      APP_NAME="kanata-permissions"
-      SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+      show_help() {
+        osascript <<'HELP_OSA'
+        display dialog ¬
+          "Kanata needs macOS permissions to function:
 
-      osascript <<OSA
-      display dialog ¬
-        "Kanata requires Input Monitoring permission.
-          Ensure \"Kanata.app\" is enable in:
-          System Settings → Privacy & Security → Input Monitoring.
+      1. Accessibility
+         System Settings → Privacy & Security → Accessibility
+         • Remove any old/stale kanata entries (may show as ? icons)
+         • Click + and add: /Applications/Nix Apps/Kanata.app
+         • Enable the toggle
 
-      Kanata requires a Virtual HID device system extension.
-          Ensure \"Karabiner-VirtualHIDDevice-Manager\" is enabled in:
-          System Setings → General → Login Items & Extensio
+      2. Input Monitoring
+         System Settings → Privacy & Security → Input Monitoring
+         • Remove any old/stale kanata entries
+         • Click + and add: /Applications/Nix Apps/Kanata.app
+         • Enable the toggle
 
-      If \"Kanata.app\" was updated, it may be necessary to remove \"Kanata.app\" from Input Monitoring, add it again and then Restart Kanata." buttons {"Input Monitoring", "Login Items & Extensions", "Restart Kanata"} ¬
-        default button ¬
-        "Restart Kanata" with icon caution ¬
-        with title "Kanata Permissions"
+      3. Login Items & Extensions
+         System Settings → General → Login Items & Extensions
+         • Ensure Karabiner-VirtualHIDDevice-Manager is enabled
 
-      set choice to button returned of the result
+      If kanata was just upgraded, macOS pins the old binary
+      path. You MUST remove stale entries and re-add Kanata.app.
 
-      if choice is "Input Monitoring" then
-        do shell script "open 'x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent'"
-      else if choice is "Login Items & Extensions" then
-        do shell script "open 'x-apple.systempreferences:com.apple.LoginItems-Settings.extension'"
-      else if choice is "Restart Kanata" then
-        do shell script "launchctl kickstart -k system/com.jtroo.kanata" with administrator privileges
-      end if
-      OSA
-      EOF
+      After granting permissions, click Restart Kanata." buttons {"OK"} default button "OK" with icon note with title "Kanata Permissions Help"
+      HELP_OSA
+      }
+
+      show_settings() {
+        CHOICE=$(osascript <<'SETTINGS_OSA'
+        display dialog ¬
+          "Which permission panel to open?" buttons {"Accessibility", "Input Monitoring", "Login Items"} ¬
+          default button "Accessibility" with icon note ¬
+          with title "Kanata — Open Settings"
+        return button returned of the result
+        SETTINGS_OSA
+        )
+        case "$CHOICE" in
+          "Accessibility")
+            open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+            ;;
+          "Input Monitoring")
+            open 'x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent'
+            ;;
+          "Login Items")
+            open 'x-apple.systempreferences:com.apple.LoginItems-Settings.extension'
+            ;;
+        esac
+      }
+
+      # Main loop — re-show the dialog after opening settings
+      # so the user can grant multiple permissions without relaunching.
+      while true; do
+        MAIN_CHOICE=$(osascript <<'MAIN_OSA'
+        display dialog ¬
+          "Kanata requires macOS permissions to intercept keystrokes.
+
+      ① Accessibility — read keyboard input
+      ② Input Monitoring — HID device access
+      ③ Login Items & Extensions — virtual HID
+
+      If kanata was just upgraded, remove stale entries
+      and re-add Kanata.app to each permission panel." buttons {"Help", "Open Settings", "Restart Kanata"} ¬
+          default button "Restart Kanata" with icon caution ¬
+          with title "Kanata Permissions"
+
+        return button returned of the result
+        MAIN_OSA
+        )
+
+        case "$MAIN_CHOICE" in
+          "Help")
+            show_help
+            ;;
+          "Open Settings")
+            show_settings
+            ;;
+          "Restart Kanata")
+            osascript -e 'do shell script "launchctl kickstart -k system/com.jtroo.kanata" with administrator privileges'
+            break
+            ;;
+        esac
+      done
+      PERMSEOF
 
       chmod +x "$APP/Contents/MacOS/kanata-permissions"
     '';
@@ -137,6 +195,13 @@ in {
     "/Library/Application Support/com.apple.TCC/TCC.db" \
     "SELECT service, client FROM access WHERE client LIKE '%kanata%';"
     */
+
+    # To remove stale kanata entries from TCC (needed after upgrades if
+    # Accessibility/Input Monitoring is broken), do manually:
+    #   1. System Settings → Privacy & Security → Accessibility → remove all kanata entries
+    #   2. System Settings → Privacy & Security → Input Monitoring → remove all kanata entries
+    #   3. Re-add /Applications/Nix Apps/Kanata.app to both panels
+    #   4. sudo launchctl kickstart -k system/com.jtroo.kanata
 
     # To remove EVERYTHING approved for Input Monitoring in TCC, run:
     /*
@@ -206,6 +271,23 @@ in {
     rm -rf "${nixAppsDirectory}/Kanata.app"
     cp -R "${kanataApp}/Kanata.app" "${nixAppsDirectory}/Kanata.app"
     chmod -R u+w "${nixAppsDirectory}/Kanata.app"
+
+    # Ad-hoc codesign the kanata binary with a stable identifier.
+    # macOS TCC (Accessibility/Input Monitoring) tracks binaries by code
+    # signature identity. Without an explicit --identifier, ad-hoc signatures
+    # change with every binary update, invalidating TCC permissions. The stable
+    # identifier "com.jtroo.kanata" ensures TCC recognises the binary as the
+    # same program across kanata version upgrades.
+    #
+    # --force: overwrite any existing signature
+    # -s -:   ad-hoc sign (no keychain identity needed)
+    # --identifier: stable identity string for TCC tracking
+    #
+    # A 10s timeout prevents the rebuild from hanging if codesign prompts
+    # for keychain access. If it times out, the binary still works — TCC
+    # will just need manual re-approval after kanata upgrades.
+    timeout 10 codesign --force --sign - --identifier com.jtroo.kanata \
+      "${nixAppsDirectory}/Kanata.app/Contents/MacOS/kanata" 2>/dev/null || true
 
     # Restart the daemons
     launchctl kickstart -k system/com.pqrs-org.karabiner-vhiddaemon
