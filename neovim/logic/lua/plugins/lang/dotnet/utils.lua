@@ -135,14 +135,14 @@ function M.dotnet_build_project()
   ---@diagnostic disable-next-line: redundant-parameter
   local path = vim.fn.input("Path to your *proj file", default_path, "file")
   M["dotnet_last_proj_path"] = path
-  local cmd = "dotnet build -c Debug " .. path .. " > /dev/null"
+  local cmd = { "dotnet", "build", "-c", "Debug", path }
   print("")
-  print("Cmd to execute: " .. cmd)
-  local f = os.execute(cmd)
-  if f == 0 then
+  print("Cmd to execute: " .. table.concat(cmd, " "))
+  local result = vim.system(cmd, { text = true }):wait()
+  if result.code == 0 then
     print("\nBuild: ✔️ ")
   else
-    print("\nBuild: ❌ (code: " .. f .. ")")
+    print("\nBuild: ❌ (code: " .. result.code .. ")")
   end
 end
 

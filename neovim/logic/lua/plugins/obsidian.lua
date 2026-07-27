@@ -53,7 +53,7 @@ return {
       -- Runs anytime you enter the buffer for a note.
       enter_note = function(_, note)
         -- Remove default mapping
-        vim.keymap.del("n", "<CR>", { buffer = note.bufnr })
+        vim.keymap.del("n", "<CR>", { buf = note.bufnr })
 
         -- Follow markdown/wiki links within your vault "Obsidian follow".
         -- Overrides the 'gf' mapping to work on markdown/wiki links within your vault.
@@ -65,19 +65,19 @@ return {
           end
         end, {
           expr = true,
-          buffer = note.bufnr,
+          buf = note.bufnr,
           desc = "Go to file under cursor",
         })
 
         -- Follow markdown/wiki links within your vault "Obsidian follow".
         vim.keymap.set("n", "<leader>og", "<cmd>Obsidian follow_link<cr>", {
-          buffer = note.bufnr,
+          buf = note.bufnr,
           desc = "Go To Link",
         })
 
         -- Toggle check-boxes "Obsidian done".
         vim.keymap.set("n", "<leader>oc", "<cmd>Obsidian toggle_checkbox<cr>", {
-          buffer = note.bufnr,
+          buf = note.bufnr,
           desc = "Toggle Checkbox",
         })
 
@@ -86,7 +86,7 @@ return {
           "n",
           "<leader>oa",
           require("obsidian.api").smart_action,
-          { expr = true, buffer = note.bufnr, desc = "Smart Action" }
+          { expr = true, buf = note.bufnr, desc = "Smart Action" }
         )
       end,
     },

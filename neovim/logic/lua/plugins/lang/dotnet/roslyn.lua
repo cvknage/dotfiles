@@ -1,26 +1,7 @@
 local dotnet_utils = require("plugins.lang.dotnet.utils")
 
-local function refresh_inlay_hints(bufnr)
-  pcall(vim.lsp.inlay_hint.refresh, bufnr)
-end
-
 if dotnet_utils.has_dotnet then
   vim.lsp.config("roslyn", {
-    handlers = {
-      -- https://neovim.io/doc/user/lsp.html
-      -- https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/
-      ["workspace/inlayHint/refresh"] = function(_, _, ctx)
-        local client = vim.lsp.get_client_by_id(ctx.client_id)
-        if client ~= nil and client:supports_method("textDocument/inlayHint") then
-          local attached_buffers = client.attached_buffers or {}
-          for buf, _ in pairs(attached_buffers) do
-            vim.lsp.inlay_hint.enable(vim.lsp.inlay_hint.is_enabled({ bufnr = buf }), { bufnr = buf })
-            refresh_inlay_hints(buf)
-          end
-        end
-        return vim.NIL
-      end,
-    },
     settings = {
       --[[
       Server name would be in format {languageName}|{grouping}.{name} or {grouping}.{name} if this option can be applied to multiple languages.

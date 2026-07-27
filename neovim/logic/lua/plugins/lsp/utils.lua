@@ -76,16 +76,14 @@ function M.keymaps(client, bufnr)
   end
 
   local options = function(opts)
-    return vim.tbl_extend("force", { buffer = bufnr, remap = false }, opts)
+    return vim.tbl_extend("force", { buf = bufnr, remap = false }, opts)
   end
 
   vim.keymap.set("n", "<leader>cl", "<cmd>checkhealth vim.lsp<cr>", options({ desc = "Lsp Info" }))
   MAP.format("n", "<leader>cf", options({ desc = "Format" }))
   vim.keymap.set("n", "<leader>cr", vim.lsp.buf.rename, options({ desc = "Rename" }))
   vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, options({ desc = "Code Action" }))
-  vim.keymap.set("n", "<leader>cA", function()
-    vim.lsp.buf.code_action({ context = { only = { "source" }, diagnostics = {} } })
-  end, options({ desc = "Source Action" }))
+  vim.keymap.set("n", "<leader>cA", function() vim.lsp.buf.code_action({ context = { only = { "source" }, diagnostics = {} } }) end, options({ desc = "Source Action" }))
   MAP.definitions("n", "gd", options({ desc = "Goto Definition" }))
   MAP.references("n", "gr", options({ desc = "References" }))
   vim.keymap.set("n", "gD", vim.lsp.buf.declaration, options({ desc = "Goto Declaration" }))
@@ -116,21 +114,7 @@ end
 --- @param bufnr integer
 function M.code_lens(client, bufnr)
   if client:supports_method("textDocument/codeLens") then
-    local codelens_update = function(buf)
-      pcall(vim.lsp.codelens.enable, true, { bufnr = buf })
-    end
-
-    vim.api.nvim_create_autocmd({
-      "BufEnter",
-      -- "CursorHold",
-      "InsertLeave",
-    }, {
-      buffer = bufnr,
-      callback = function(ev)
-        codelens_update(ev.buf)
-      end,
-    })
-    codelens_update(bufnr)
+    vim.lsp.codelens.enable(true, { bufnr = bufnr })
   end
 end
 
@@ -152,7 +136,7 @@ function M.document_highlight(client, bufnr)
 
   vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
     group = highlight_group,
-    buffer = bufnr,
+    buf = bufnr,
     callback = function()
       vim.lsp.buf.document_highlight()
     end,
@@ -160,7 +144,7 @@ function M.document_highlight(client, bufnr)
 
   vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI", "BufLeave" }, {
     group = highlight_group,
-    buffer = bufnr,
+    buf = bufnr,
     callback = function()
       vim.lsp.buf.clear_references()
     end,
@@ -191,13 +175,15 @@ function M.lsp_attach()
   vim.api.nvim_create_autocmd("LspAttach", {
     desc = "LSP actions",
     callback = function(ev)
-      local clients = vim.lsp.get_clients({ buffer = ev.buf })
-      for _, client in pairs(clients) do
-        M.keymaps(client, ev.buf)
-        M.document_highlight(client, ev.buf)
-        -- M.inlay_hints(client, ev.buf)
-        M.code_lens(client, ev.buf)
+      local client = vim.lsp.get_client_by_id(ev.data.client_id)
+      if not client then
+        return
       end
+
+      M.keymaps(client, ev.buf)
+      M.document_highlight(client, ev.buf)
+      -- M.inlay_hints(client, ev.buf)
+      M.code_lens(client, ev.buf)
     end,
   })
 end

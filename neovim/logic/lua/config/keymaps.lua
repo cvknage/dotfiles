@@ -43,10 +43,9 @@ vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("v", ">", ">gv")
 
 -- Quickfix navigation
+-- [q and ]q are Nvim defaults (:cprevious / :cnext, count-aware), so they are not remapped here
 vim.keymap.set("n", "<leader>xl", "<cmd>lopen<cr>", { desc = "Location List" })
 vim.keymap.set("n", "<leader>xq", "<cmd>copen<cr>", { desc = "Quickfix List" })
-vim.keymap.set("n", "[q", vim.cmd.cprev, { desc = "Previous quickfix" })
-vim.keymap.set("n", "]q", vim.cmd.cnext, { desc = "Next quickfix" })
 
 --keywordprg
 vim.keymap.set("n", "<leader>K", "<cmd>norm! K<cr>", { desc = "Keywordprg" })

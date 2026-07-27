@@ -9,8 +9,7 @@ return {
         "<leader>uT",
         function()
           local buf = vim.api.nvim_get_current_buf()
-          local highlighter = require("vim.treesitter.highlighter")
-          if highlighter.active[buf] then
+          if vim.b[buf].ts_highlight then
             vim.treesitter.stop()
             print("Treesitter Stopped")
           else

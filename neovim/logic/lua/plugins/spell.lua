@@ -7,12 +7,8 @@ M.ltex_spellfile = M.spell_root .. "/ltex_plus"
 M.harper_spellfile = M.spell_root .. "/harper_ls"
 
 function M.client_is_attached(name)
-  for _, client in pairs(vim.lsp.get_clients({ name = name })) do
-    if vim.lsp.buf_is_attached(0, client.id) then
-      return true
-    end
-  end
-  return false
+  -- The bufnr filter already means "attached to this buffer"
+  return next(vim.lsp.get_clients({ name = name, bufnr = 0 })) ~= nil
 end
 
 function M.attach_lsp_to_current_buffer(name)
@@ -22,21 +18,8 @@ function M.attach_lsp_to_current_buffer(name)
     return false
   end
 
-  local filetype = vim.bo.filetype
-  local supported = false
-
-  if config.filetypes then
-    for _, supported_filetype in ipairs(config.filetypes) do
-      if supported_filetype == filetype then
-        supported = true
-        break
-      end
-    end
-  else
-    supported = true -- Assume global support if not specified
-  end
-
-  if not supported then
+  -- No filetypes at all means the config is assumed to support every buffer
+  if config.filetypes and not vim.list_contains(config.filetypes, vim.bo.filetype) then
     return false
   end
 
@@ -56,10 +39,9 @@ function M.attach_lsp_to_current_buffer(name)
 end
 
 function M.detach_lsp_from_current_buffer(name)
-  for _, client in pairs(vim.lsp.get_clients({ name = name })) do
-    if vim.lsp.buf_is_attached(0, client.id) then
-      vim.lsp.buf_detach_client(0, client.id)
-    end
+  local bufnr = vim.api.nvim_get_current_buf()
+  for _, client in ipairs(vim.lsp.get_clients({ name = name, bufnr = bufnr })) do
+    vim.lsp.buf_detach_client(bufnr, client.id)
   end
 end
 

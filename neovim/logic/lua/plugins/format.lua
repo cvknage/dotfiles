@@ -1,12 +1,3 @@
-local function contains(tbl, value)
-  for _, v in ipairs(tbl) do
-    if v == value then
-      return true
-    end
-  end
-  return false
-end
-
 vim.api.nvim_create_user_command("FormatDisable", function(args)
   if args.bang then
     -- FormatDisable! will disable formatting just for this buffer
@@ -55,7 +46,7 @@ return {
           return
         end
         local filetype = vim.bo[bufnr].filetype
-        if contains(opts.disable_format_on_save_for_ft, filetype) then
+        if vim.list_contains(opts.disable_format_on_save_for_ft, filetype) then
           return
         end
         return {
