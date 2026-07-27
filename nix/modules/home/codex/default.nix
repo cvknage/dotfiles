@@ -42,17 +42,22 @@
   mcpServers =
     lib.mapAttrs (
       _name: server:
-        (lib.removeAttrs server [
-          "disabled"
-          "headers"
-        ])
-        // (lib.optionalAttrs (server ? headers && !(server ? http_headers)) {
-          http_headers = server.headers;
-        })
-        // {
-          default_tools_approval_mode = "approve";
-          enabled = !(server.disabled or false);
-        }
+      # TOML has no null; strip null-valued attrs (e.g. unset `url`/`enabled`)
+      # that the mcp module leaves in place, or serialization fails with
+      # "unsupported unit type".
+        lib.filterAttrs (_: v: v != null) (
+          (lib.removeAttrs server [
+            "disabled"
+            "headers"
+          ])
+          // (lib.optionalAttrs (server ? headers && !(server ? http_headers)) {
+            http_headers = server.headers;
+          })
+          // {
+            default_tools_approval_mode = "approve";
+            enabled = !(server.disabled or false);
+          }
+        )
     )
     config.programs.mcp.servers;
 

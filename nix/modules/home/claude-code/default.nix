@@ -81,10 +81,14 @@ in {
   home.activation.claudeCodeMaterializeSettings =
     lib.hm.dag.entryAfter ["writeBoundary"] activationScript;
 
+  # NOTE: settings are intentionally NOT passed to programs.claude-code here.
+  # The module would write configDir/settings.json (~/.claude/settings.json),
+  # colliding with the out-of-store symlink defined above. Instead the managed
+  # `settings` are merged into the mutable state file by the activation script,
+  # and the symlink points Claude Code at that writable copy.
   programs.claude-code = {
     enable = true;
     enableMcpIntegration = true;
     package = claudeCodePackage;
-    inherit settings;
   };
 }
