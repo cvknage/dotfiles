@@ -2,7 +2,7 @@ return {
   {
     "romus204/tree-sitter-manager.nvim",
     lazy = false,
-    cmd = { "TSManager" },
+    cmd = { "TSManager", "TSInstall", "TSUninstall", "TSUpdate" },
     keys = {
       {
         -- https://neovim.io/doc/user/treesitter.html#vim.treesitter.start()
