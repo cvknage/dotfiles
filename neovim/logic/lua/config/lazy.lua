@@ -39,9 +39,6 @@ require("lazy").setup({
     { import = "plugins.ai.codecompanion" },
     -- { import = "plugins.ai.copilot" },
     -- { import = "plugins.ai.codeium" },
-    -- { import = "plugins.ai.llm" },
-    -- { import = "plugins.ai.tabby" },
-    -- { import = "plugins.ai.gen" },
   },
   install = { colorscheme = { "catppuccin", "habamax" } },
   dev = {
