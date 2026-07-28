@@ -36,6 +36,7 @@ require("lazy").setup({
     { import = "plugins.lang" },
 
     -- AI
+    { import = "plugins.ai.codecompanion" },
     -- { import = "plugins.ai.copilot" },
     -- { import = "plugins.ai.codeium" },
     -- { import = "plugins.ai.llm" },

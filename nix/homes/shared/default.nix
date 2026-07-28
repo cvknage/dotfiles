@@ -47,6 +47,9 @@
 
       # nix code formatter for conform.nvim
       pkgs.alejandra
+
+      # ACP adapter for Claude Code, used by codecompanion.nvim
+      pkgs.claude-agent-acp
     ]
     ++ lib.optionals (!pkgs.stdenv.isDarwin) [
       # Needed to install some native dependencies like: nvim-treesitter and fzf-native
