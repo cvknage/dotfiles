@@ -11,10 +11,11 @@
 
   scopedPathRules = permissionsLib.mkClaudeScopedPathRules repoScopes;
 
+  # Edit(path) rules cover all file-editing tools (Edit, Write, NotebookEdit);
+  # a separate Write(path) rule is never matched and Claude Code warns about it.
   fileAccessRules = lib.flatten (map (dir: [
       "Read(${dir}/**)"
       "Edit(${dir}/**)"
-      "Write(${dir}/**)"
     ])
     repoScopes);
 
