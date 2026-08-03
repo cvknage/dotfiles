@@ -39,7 +39,7 @@ in {
             "github_mcp_token"
           ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
       })
-    # ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
+    ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
   ];
 
   home.packages = [
