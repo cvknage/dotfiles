@@ -110,16 +110,3 @@ if command -v docker >/dev/null; then
   }
   alias dockerl="docker-logs"
 fi
-
-if command -v mirrord >/dev/null; then
-  # debug C# with mirrord
-  function mirrord-debug() {
-    namespace=$(kubectl get ns -A | fzf | awk '{print $1}')
-    items=("deployment" "statefulset")
-    type=$(printf "%s\n" "${items[@]}" | fzf)
-    entity=$(kubectl -n $namespace get "${type}s" | fzf | awk '{print $1}')
-    project=$(find . -type f -name '*.csproj' ! -ipath '*test*' ! -ipath '*mock*' | fzf)
-    mirrord exec -n $namespace --target "${type}/${entity}" --steal dotnet run -- --project $project
-  }
-  alias mirrordd="mirrord-debug"
-fi
