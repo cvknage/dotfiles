@@ -69,7 +69,7 @@ in {
       #   type = "remote";
       #   url = "https://api.githubcopilot.com/mcp/";
       #   headers = {
-      #     Authorization = "Bearer {env:GITHUB_MCP_TOKEN}";
+      #     Authorization = "Bearer {env:GITHUB_TOKEN}";
       #   };
       # };
       kubernetes = lib.mkIf isWorkContext {

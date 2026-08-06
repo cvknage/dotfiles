@@ -35,8 +35,8 @@ in {
             "docker_registry_hostname"
             "github_user"
             "github_token"
-            "gh_token"
-            "github_mcp_token"
+            "email"
+            "public_key"
           ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
       })
     ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
@@ -56,6 +56,38 @@ in {
     pkgs.git-cliff
   ];
 
+  # Commit signing for github.com/secomea-dev. Git needs these as literals in a
+  # config file, so sops renders them at activation rather than the runtime reads
+  # used for the tokens below. ../../../git/config decides where they apply.
+  #
+  # signingkey is a path, not a key:: literal, because gitui rejects literals
+  # (gitui-org/gitui#2188). Verify a signature locally with:
+  #   git log --show-signature -1
+  sops.templates = {
+    "git-allowed-signers".content = ''
+      ${config.sops.placeholder.email} namespaces="git" ${config.sops.placeholder.public_key}
+    '';
+
+    "git-secomea.inc".content = ''
+      [user]
+      	email = ${config.sops.placeholder.email}
+      	signingkey = ~/.ssh/id_ed25519.pub
+      [gpg]
+      	format = ssh
+      [gpg "ssh"]
+      	allowedSignersFile = ${config.sops.templates."git-allowed-signers".path}
+      [commit]
+      	gpgsign = true
+      [tag]
+      	gpgsign = true
+    '';
+  };
+
+  # Stable path for ../../../git/config to include; the rendered file itself sits
+  # under XDG_RUNTIME_DIR, whose path contains the uid.
+  home.file.".config/git-secomea.inc".source =
+    config.lib.file.mkOutOfStoreSymlink config.sops.templates."git-secomea.inc".path;
+
   programs.bash = {
     enable = true;
     initExtra = ''
@@ -69,8 +101,7 @@ in {
       export GITHUB_USER="$(cat ${config.sops.secrets.github_user.path})"
       export GITHUB_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
       export GH_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
-      export GITHUB_MCP_TOKEN="$(cat ${config.sops.secrets.github_mcp_token.path})"
-      export GITHUB_PAT="$(cat ${config.sops.secrets.gh_token.path})"
+      export GITHUB_PAT="$(cat ${config.sops.secrets.github_token.path})"
       export GITHUB_REPO_PAT="$(cat ${config.sops.secrets.github_token.path})"
       export NIX_CONFIG="access-tokens = github.com/secomea-dev=$GITHUB_TOKEN"
 

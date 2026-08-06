@@ -1,0 +1,16 @@
+# Symlinked to ~/.config/git/config by nix/homes/shared/default.nix. This repo
+# is public: the included file holds the work identity and signing settings, is
+# rendered from sops by nix/homes/work/default.nix, and only exists on work
+# machines. Git ignores an include it cannot read, so this is a no-op elsewhere.
+
+[includeIf "hasconfig:remote.*.url:git@github.com:secomea-dev/**"]
+	path = ~/.config/git-secomea.inc
+[includeIf "hasconfig:remote.*.url:ssh://git@github.com/secomea-dev/**"]
+	path = ~/.config/git-secomea.inc
+[includeIf "hasconfig:remote.*.url:https://github.com/secomea-dev/**"]
+	path = ~/.config/git-secomea.inc
+
+# libgit2 does not implement hasconfig: (libgit2/libgit2#6641), so gitui and
+# friends would commit unsigned without warning. gitdir: covers them.
+[includeIf "gitdir:~/code/"]
+	path = ~/.config/git-secomea.inc
