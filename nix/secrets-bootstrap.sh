@@ -2,8 +2,6 @@
 #
 # Per-machine setup for the private dotfiles-secrets flake input: one keypair
 # acting as both GitHub deploy key (fetch) and sops age identity (decrypt).
-# The ssh alias and age identity are declared in nix/homes/shared/secrets.nix;
-# only creating the key and priming the store can't be declarative.
 # Idempotent. Exits 1 with instructions until the deploy key is authorized.
 set -euo pipefail
 
@@ -17,22 +15,16 @@ else
   echo "Keypair already exists: $KEY"
 fi
 
-# The github-secrets ssh alias is written by the system config, i.e. only
-# exists after a successful rebuild — but the rebuild needs to fetch this
-# input. These ssh options substitute for the alias to break that cycle.
+# Stand-in for the github-secrets ssh alias, which the system config only writes after a successful rebuild.
 NO_ALIAS_SSH="ssh -i $KEY -o IdentitiesOnly=yes -o Hostname=github.com -o User=git -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
 
-# Fetch the input once, out of band. Locked inputs resolve from the store by
-# hash, so the rebuild itself then needs no network — which also keeps sudo
-# rebuilds working (root never sees the user's ssh config).
-# Doubles as the "is the deploy key authorized" check.
+# Prime the input into the nix store for the first rebuild; doubles as the
+# deploy-key authorization check.
 if GIT_SSH_COMMAND="$NO_ALIAS_SSH" \
   nix flake prefetch "git+ssh://github-secrets/$SECRETS_REPO" >/dev/null; then
-  # A stale flake.lock would make the rebuild fetch anyway; re-lock here.
-  FLAKE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if ! grep -q 'github-secrets' "$FLAKE_DIR/flake.lock"; then
-    GIT_SSH_COMMAND="$NO_ALIAS_SSH" nix flake update secrets --flake "$FLAKE_DIR"
-    echo "Re-locked the secrets input in $FLAKE_DIR/flake.lock"
+  # sudo rebuilds evaluate as root with separate fetch caches; prime those too until the system ssh alias exists.
+  if { [ "$(uname)" = "Darwin" ] || [ -e /etc/NIXOS ]; } && ! grep -qrs 'Host github-secrets' /etc/ssh/; then
+    sudo GIT_SSH_COMMAND="$NO_ALIAS_SSH" nix flake prefetch "git+ssh://github-secrets/$SECRETS_REPO" >/dev/null
   fi
   echo "Deploy key is authorized; $SECRETS_REPO is primed in the nix store."
   exit 0

@@ -5,9 +5,8 @@
   ...
 }: {
   # Single sops entry point; importers add their own `sops.secrets` on top.
-  # Not imported from ./default.nix, so a home without secrets never forces a
-  # fetch of the private dotfiles-secrets input.
   imports = [
+    ./secrets-ssh.nix
     (inputs.secrets.homeManagerModules.default {
       sops-nix = inputs.sops-nix;
       keyFile = null;

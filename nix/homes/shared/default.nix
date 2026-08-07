@@ -65,7 +65,6 @@
 in {
   _module.args.repoScopes = repoScopes;
 
-  # sops secrets live in ./secrets.nix, imported by the homes that use them
   imports = [
     ../../../rust
     ../../modules/home/mcp

@@ -36,9 +36,9 @@ Each machine has one keypair, `~/.ssh/dotfiles-secrets`:
 - **GitHub deploy key** — read-only access to the secrets repo
 - **sops age identity** — converted by sops-nix at activation (`sops.age.sshKeyPaths`)
 
-The flake input is fetched via the `github-secrets` ssh alias — github.com with
-only this keypair offered — declared system-wide in `modules/shared/secrets-ssh.nix`
-so it also works for root during sudo rebuilds.
+The flake input is fetched via the `github-secrets` ssh alias: github.com,
+offering only this keypair. It is defined once in `modules/shared/secrets-ssh-alias.nix`
+and rendered into `/etc/ssh` (system configs) and `~/.ssh/config` (standalone home-manager).
 `secrets-bootstrap.sh` creates the keypair and primes the input for the first rebuild.
 
 ### New machine
