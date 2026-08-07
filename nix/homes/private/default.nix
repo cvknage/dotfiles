@@ -1,20 +1,15 @@
 {
   config,
-  inputs,
   pkgs,
   ...
 }: {
   imports = [
-    (
-      inputs.secrets.homeManagerModules.default {
-        sops-nix = inputs.sops-nix;
-        keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
-        secrets = {
-          mutation_strings = {};
-        };
-      }
-    )
+    ../shared/secrets.nix
   ];
+
+  sops.secrets = {
+    mutation_strings = {};
+  };
 
   home.packages = [
     # pkgs.hugo

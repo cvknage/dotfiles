@@ -17,7 +17,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     secrets = {
-      url = "github:cvknage/dotfiles-secrets";
+      # Private repo, fetched with a deploy key via ./secrets-bootstrap.sh
+      url = "git+ssh://github-secrets/cvknage/dotfiles-secrets";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-homebrew.url = "github:zhaofengli-wip/nix-homebrew";

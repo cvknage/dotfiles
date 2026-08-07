@@ -287,17 +287,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1786013862,
-        "narHash": "sha256-rwyJ6OSjZq9PH/I12iyom5LicMPJ9NwgAhXPD7ISRFI=",
-        "owner": "cvknage",
-        "repo": "dotfiles-secrets",
-        "rev": "ac86b4436d86bf77c8fe779db89e1e9ed141397f",
-        "type": "github"
+        "lastModified": 1786089181,
+        "narHash": "sha256-PzPYtIPXfpCP6DuKxI76AAIECiw7i43rkAsCXcj5pnA=",
+        "ref": "refs/heads/main",
+        "rev": "82870e8f41dace7a3003ac2e2c24b6c4b255525c",
+        "revCount": 1,
+        "type": "git",
+        "url": "ssh://github-secrets/cvknage/dotfiles-secrets"
       },
       "original": {
-        "owner": "cvknage",
-        "repo": "dotfiles-secrets",
-        "type": "github"
+        "type": "git",
+        "url": "ssh://github-secrets/cvknage/dotfiles-secrets"
       }
     },
     "sops-nix": {

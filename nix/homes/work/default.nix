@@ -20,27 +20,24 @@
   };
 in {
   imports = [
+    ../shared/secrets.nix
     ../../modules/home/another-redis-desktop-manager
     ../../modules/home/claude-desktop
     ../../modules/home/outlook
-    (args:
-      inputs.secrets.homeManagerModules.default {
-        sops-nix = inputs.sops-nix;
-        keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
-        secrets =
-          {
-            mutation_strings = {};
-          }
-          // inputs.nixpkgs.lib.genAttrs [
-            "docker_registry_hostname"
-            "github_user"
-            "github_token"
-            "email"
-            "public_key"
-          ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
-      })
     ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
   ];
+
+  sops.secrets =
+    {
+      mutation_strings = {};
+    }
+    // inputs.nixpkgs.lib.genAttrs [
+      "docker_registry_hostname"
+      "github_user"
+      "github_token"
+      "email"
+      "public_key"
+    ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
 
   home.packages = [
     pkgs.gnomeExtensions.auto-move-windows
@@ -70,16 +67,16 @@ in {
 
     "git-secomea.inc".content = ''
       [user]
-      	email = ${config.sops.placeholder.email}
-      	signingkey = ~/.ssh/id_ed25519.pub
+        email = ${config.sops.placeholder.email}
+        signingkey = ~/.ssh/id_ed25519.pub
       [gpg]
-      	format = ssh
+        format = ssh
       [gpg "ssh"]
-      	allowedSignersFile = ${config.sops.templates."git-allowed-signers".path}
+        allowedSignersFile = ${config.sops.templates."git-allowed-signers".path}
       [commit]
-      	gpgsign = true
+        gpgsign = true
       [tag]
-      	gpgsign = true
+        gpgsign = true
     '';
   };
 

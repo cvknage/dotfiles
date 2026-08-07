@@ -1,5 +1,4 @@
 {
-  inputs,
   config,
   lib,
   pkgs,
@@ -66,20 +65,13 @@
 in {
   _module.args.repoScopes = repoScopes;
 
+  # sops secrets live in ./secrets.nix, imported by the homes that use them
   imports = [
     ../../../rust
     ../../modules/home/mcp
     ../../modules/home/opencode
     ../../modules/home/claude-code
     ../../modules/home/codex
-    (args:
-      inputs.secrets.homeManagerModules.default {
-        sops-nix = inputs.sops-nix;
-        keyFile = inputs.nixpkgs.lib.mkDefault "${args.config.xdg.configHome}/sops/age/keys.txt";
-        secrets = {
-          sheet_music = {};
-        };
-      })
   ];
 
   home.username = lib.mkDefault user;

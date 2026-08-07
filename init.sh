@@ -25,6 +25,13 @@ if ! command -v nix >/dev/null; then
   exit 0
 fi
 
+# Access to the private dotfiles-secrets input; must run before the rebuild
+if ! bash "$SCRIPT_DIR/nix/secrets-bootstrap.sh"; then
+  echo ""
+  echo "Complete the NEXT STEPS above, then re-run \`bash init.sh\`"
+  exit 0
+fi
+
 pushd $DOTFILES_DIR &>/dev/null
 
 if command -v nixos-rebuild >/dev/null; then

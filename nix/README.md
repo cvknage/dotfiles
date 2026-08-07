@@ -24,6 +24,46 @@ nix run nix-darwin -- switch --flake .
 nix run home-manager/master -- switch --flake .
 ```
 
+Or run `bash init.sh` from the repo root, which also bootstraps the secrets key (see [Secrets](#secrets)).
+
+## Secrets
+
+Secrets live in the private [cvknage/dotfiles-secrets](https://github.com/cvknage/dotfiles-secrets) repo,
+encrypted with [sops](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age).
+
+Each machine has one keypair, `~/.ssh/dotfiles-secrets`:
+
+- **GitHub deploy key** — read-only access to the secrets repo
+- **sops age identity** — converted by sops-nix at activation (`sops.age.sshKeyPaths`)
+
+The flake input is fetched via the `github-secrets` ssh alias — github.com with
+only this keypair offered — declared in `homes/shared/secrets.nix`.
+`secrets-bootstrap.sh` creates the keypair and primes the input for the first rebuild.
+
+### New machine
+
+```bash
+bash init.sh
+```
+
+Follow the printed instructions:
+
+1. Add the deploy key on GitHub
+2. From an existing machine: add the age recipient to `.sops.yaml` and run
+   `sops updatekeys` on the files the new machine should read
+
+### Retiring a machine
+
+1. Delete its [deploy key](https://github.com/cvknage/dotfiles-secrets/settings/keys)
+2. Remove its recipient from `.sops.yaml` and re-run `sops updatekeys`
+3. Rotate any secrets it could read
+
+### Without a key
+
+Homes that don't import `homes/shared/secrets.nix` build without a key — flake
+inputs are fetched lazily. `nix flake update` needs repo access; update named
+inputs instead: `nix flake update nixpkgs --flake .`
+
 ## Usage
 
 Update the configuration and rebuild the system.
