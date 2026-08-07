@@ -17,9 +17,9 @@ else
   echo "Keypair already exists: $KEY"
 fi
 
-# The github-secrets ssh alias is written by home-manager, i.e. only exists
-# after a successful rebuild — but the rebuild needs to fetch this input.
-# These ssh options substitute for the alias to break that cycle.
+# The github-secrets ssh alias is written by the system config, i.e. only
+# exists after a successful rebuild — but the rebuild needs to fetch this
+# input. These ssh options substitute for the alias to break that cycle.
 NO_ALIAS_SSH="ssh -i $KEY -o IdentitiesOnly=yes -o Hostname=github.com -o User=git -o BatchMode=yes -o StrictHostKeyChecking=accept-new"
 
 # Fetch the input once, out of band. Locked inputs resolve from the store by
