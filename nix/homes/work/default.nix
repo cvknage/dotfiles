@@ -53,13 +53,10 @@ in {
     pkgs.git-cliff
   ];
 
-  # Commit signing for github.com/secomea-dev. Git needs these as literals in a
-  # config file, so sops renders them at activation rather than the runtime reads
-  # used for the tokens below. ../../../git/config decides where they apply.
-  #
-  # signingkey is a path, not a key:: literal, because gitui rejects literals
-  # (gitui-org/gitui#2188). Verify a signature locally with:
-  #   git log --show-signature -1
+  # Commit signing for github.com/secomea-dev; ../../../git/config decides where.
+  # Rendered at activation because git needs these as literals, not runtime reads.
+  # signingkey is a path, not a key:: literal, which gitui rejects (gitui#2188).
+  # Verify with: git log --show-signature -1
   sops.templates = {
     "git-allowed-signers".content = ''
       ${config.sops.placeholder.email} namespaces="git" ${config.sops.placeholder.public_key}
@@ -79,11 +76,6 @@ in {
         gpgsign = true
     '';
   };
-
-  # Stable path for ../../../git/config to include; the rendered file itself sits
-  # under XDG_RUNTIME_DIR, whose path contains the uid.
-  home.file.".config/git-secomea.inc".source =
-    config.lib.file.mkOutOfStoreSymlink config.sops.templates."git-secomea.inc".path;
 
   programs.bash = {
     enable = true;
