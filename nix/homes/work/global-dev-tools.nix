@@ -46,7 +46,7 @@ in
     pkgs.k6
 
     # Other CLI Tools
-    pkgs.jq
+    # pkgs.jq
 
     # JS/TS Tools
     # pkgs.corepack
