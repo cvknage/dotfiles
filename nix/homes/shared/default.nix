@@ -85,7 +85,7 @@ in {
     pkgs.gitui
     pkgs.jq
     pkgs.gnused
-    pkgs.posting
+    # pkgs.posting
     pkgs.btop
     pkgs.gocryptfs
   ];
