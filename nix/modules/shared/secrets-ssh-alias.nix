@@ -5,7 +5,7 @@ home: {
   settings = {
     HostName = "github.com";
     User = "git";
-    IdentityFile = "${home}/.ssh/dotfiles-secrets";
+    IdentityFile = "${home}/.ssh/keys/dotfiles-secrets";
     IdentitiesOnly = "yes";
   };
 }

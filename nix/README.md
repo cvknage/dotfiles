@@ -31,7 +31,11 @@ Or run `bash init.sh` from the repo root, which also bootstraps the secrets key 
 Secrets live in the private [cvknage/dotfiles-secrets](https://github.com/cvknage/dotfiles-secrets) repo,
 encrypted with [sops](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age).
 
-Each machine has one keypair, `~/.ssh/dotfiles-secrets`:
+Each machine has one keypair, `~/.ssh/keys/dotfiles-secrets`:
+
+> The key lives in a subdirectory because GNOME's gcr ssh-agent auto-loads
+> `~/.ssh/*.pub` keys into the agent, where libgit2 clients (gitui) offer the
+> deploy key to GitHub first and get "Repository not found" on other repos.
 
 - **GitHub deploy key** — read-only access to the secrets repo
 - **sops age identity** — converted by sops-nix at activation (`sops.age.sshKeyPaths`)

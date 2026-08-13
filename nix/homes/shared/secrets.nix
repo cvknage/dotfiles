@@ -19,7 +19,7 @@
   # The deploy key created by ../../secrets-bootstrap.sh is also the age
   # identity; sops-nix converts it at activation.
   sops.age = {
-    sshKeyPaths = ["${config.home.homeDirectory}/.ssh/dotfiles-secrets"];
+    sshKeyPaths = ["${config.home.homeDirectory}/.ssh/keys/dotfiles-secrets"];
     generateKey = lib.mkForce false;
   };
 }

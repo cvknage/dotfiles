@@ -6,9 +6,10 @@
 set -euo pipefail
 
 SECRETS_REPO="cvknage/dotfiles-secrets"
-KEY="$HOME/.ssh/dotfiles-secrets"
+KEY="$HOME/.ssh/keys/dotfiles-secrets"
 
 if [ ! -f "$KEY" ]; then
+  mkdir -p "$(dirname "$KEY")"
   ssh-keygen -t ed25519 -f "$KEY" -N "" -C "dotfiles-secrets@$(hostname)"
   echo "Generated $KEY"
 else
