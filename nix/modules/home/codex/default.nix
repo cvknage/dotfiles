@@ -90,6 +90,11 @@
     out_path = Path(os.environ["OUT_CONFIG"])
     config_format = os.environ["CODEX_CONFIG_FORMAT"]
 
+    # Keys nix owns outright, replaced rather than merged. The merge below only
+    # ever adds and overwrites, so without this a server dropped from the flake
+    # would survive in the mutable config forever.
+    AUTHORITATIVE_KEYS = ("mcp_servers",)
+
 
     def load_config(path: Path):
         if not path.exists() or path.stat().st_size == 0:
@@ -120,6 +125,11 @@
 
     managed_config = load_config(managed_path)
     user_config = load_config(state_path)
+
+    if isinstance(user_config, dict):
+        for key in AUTHORITATIVE_KEYS:
+            user_config.pop(key, None)
+
     merged_config = merge(user_config, managed_config)
 
     if config_format == "toml":
