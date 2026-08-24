@@ -4,9 +4,10 @@
 #
 #   nix        system, home-manager, and imperative `nix profile` / `nix-env`
 #   neovim     plugins from lazy-lock.json, tools from mason
-#   browsers   firefox and chromium-family extensions, per profile
+#   browsers   firefox and chromium-family extensions, firefox web apps
 #   ai         mcp servers declared in nix, plus per-agent mcp servers and
 #              plugins for claude, codex, and opencode
+#   brew       casks, formulae, and Mac App Store apps (macOS)
 #
 #   bash list-installed.sh                        # everything
 #   bash list-installed.sh neovim browsers        # only these sections
@@ -18,7 +19,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers|ai ...]
+Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers|ai|brew ...]
 
   -p, --plain   One entry per line, no headers, deduplicated (for grep/pipe).
 
@@ -32,11 +33,11 @@ for arg in "$@"; do
   case "$arg" in
     -p|--plain) PLAIN=1 ;;
     -h|--help) usage && exit 0 ;;
-    nix|neovim|browsers|ai) SECTIONS+=("$arg") ;;
+    nix|neovim|browsers|ai|brew) SECTIONS+=("$arg") ;;
     *) usage >&2 && exit 1 ;;
   esac
 done
-[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai)
+[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai brew)
 
 wanted() {
   case " ${SECTIONS[*]} " in *" $1 "*) return 0 ;; *) return 1 ;; esac
@@ -76,11 +77,14 @@ store_paths_in() {
 
 # Package names installed by a profile, one per line.
 # Split outputs (-man, -dev, ...) collapse into the package they belong to.
+# Desktop entries and profile plumbing are packaged as their own store paths
+# but are launchers and scripts, not software, so they are dropped.
 packages_in() {
   store_paths_in "$1" \
     | sed -E -e 's#^/nix/store/[a-z0-9]{32}-##' \
              -e 's#(-[0-9][^-]*)-(man|doc|info|bin|dev|lib|out|devdoc|devman|terminfo|debug)$#\1#' \
     | grep -v -e '\.drv$' -e '^manifest\.nix$' -e '^env-manifest\.nix$' \
+              -e '\.desktop$' -e '^hm-session-vars\.sh$' \
     | sort -u
 }
 
@@ -109,25 +113,53 @@ list_nix() {
   done
 }
 
+# Programs nix wraps with extra tools on their PATH. `programs.neovim.
+# extraPackages` and friends land in the wrapper, never in a profile, so
+# nothing above sees them. Add a command name here to cover another wrapper.
+WRAPPED_PROGRAMS=(nvim)
+
+list_wrapped() {
+  local cmd wrapper body
+  for cmd in "${WRAPPED_PROGRAMS[@]}"; do
+    command -v "$cmd" >/dev/null || continue
+    wrapper="$(readlink -f "$(command -v "$cmd")")"
+    # Only a generated wrapper script bakes in store paths; an unwrapped
+    # binary matches nothing and is skipped.
+    body="$( (grep PATH "$wrapper" 2>/dev/null || true) \
+      | grep -oE "/nix/store/[a-z0-9]{32}-[^:']*/bin" \
+      | sed -E -e 's#^/nix/store/[a-z0-9]{32}-##' -e 's#/bin$##' \
+      | sort -f -u || true)"
+    emit "nix · $cmd wrapper" "$wrapper" packages "$body"
+  done
+}
+
 # --- neovim -------------------------------------------------------------
 
 list_lazy() {
   local lock="$CONFIG_HOME/nvim/lazy-lock.json"
   local dir="$DATA_HOME/nvim/lazy"
-  local body="" plugin
+  local names="" plugin
 
+  # The lock file covers every plugin the config can enable, including ones
+  # this host never installs, so the cloned directories are the real list.
+  [ -d "$dir" ] || return 0
+  for plugin in "$dir"/*/; do
+    [ -d "$plugin" ] || continue
+    plugin="${plugin%/}"
+    plugin="${plugin##*/}"
+    # `<name>.cloning` is an in-progress or abandoned clone.
+    case "$plugin" in *.cloning) continue ;; esac
+    names="$names$plugin"$'\n'
+  done
+
+  # The lock file only supplies the commit each plugin is pinned to.
   if [ -f "$lock" ]; then
-    body="$(jq -r 'to_entries[] | "\(.key) (\(.value.commit[0:7]))"' "$lock" | sort -f)"
-    emit "neovim · lazy" "$lock" plugins "$body"
-  elif [ -d "$dir" ]; then
-    # No lock file: fall back to whatever lazy has cloned.
-    for plugin in "$dir"/*/; do
-      [ -d "$plugin" ] || continue
-      plugin="${plugin%/}"
-      body="$body${plugin##*/}"$'\n'
-    done
-    emit "neovim · lazy" "$dir" plugins "$(printf '%s' "$body" | sort -f)"
+    names="$(printf '%s' "$names" | jq -R -r --slurpfile lock "$lock" '
+      ($lock[0][.].commit // "") as $commit
+      | if $commit == "" then . else "\(.) (\($commit[0:7]))" end
+    ')"
   fi
+  emit "neovim · lazy" "$dir" plugins "$(printf '%s' "$names" | sort -f)"
 }
 
 list_mason() {
@@ -184,6 +216,19 @@ chromium_extensions_in() {
   ' "$1"
 }
 
+# Web apps installed as their own firefox profile by `programs.firefoxpwa`.
+list_firefox_pwa() {
+  local config
+  for config in "$DATA_HOME/firefoxpwa/config.json" "$APP_SUPPORT/firefoxpwa/config.json"; do
+    [ -f "$config" ] || continue
+    emit "browser · firefox pwa" "$config" apps "$(jq -r '
+      (.sites // {})
+      | to_entries[]
+      | .value.config.name // .value.manifest.name // .key
+    ' "$config" | sort -f)"
+  done
+}
+
 list_chromium() {
   local root profile prefs body
   for root in "$CONFIG_HOME"/{chromium,ungoogled-chromium,google-chrome*,microsoft-edge,vivaldi,BraveSoftware/Brave-Browser} \
@@ -202,6 +247,33 @@ list_chromium() {
         "$(printf '%s' "$body" | { grep -v '^$' || true; } | sort -f -u)"
     done
   done
+}
+
+# --- homebrew -----------------------------------------------------------
+
+# nix-darwin declares casks, formulae and Mac App Store apps but hands the
+# install to homebrew, so they live outside the nix store entirely.
+# `brew list --versions` prints `name 1.2.3`, and several versions when more
+# than one is kept.
+brew_list() {
+  brew list "$1" --versions \
+    | awk '{name = $1; $1 = ""; sub(/^ /, ""); print name " (" $0 ")"}' \
+    | sort -f
+}
+
+list_brew() {
+  command -v brew >/dev/null || return 0
+  local prefix
+  prefix="$(brew --prefix)"
+  emit "brew · formulae" "$prefix" formulae "$(brew_list --formula)"
+  emit "brew · casks" "$prefix" casks "$(brew_list --cask)"
+}
+
+list_mas() {
+  command -v mas >/dev/null || return 0
+  # `mas list` prints `<id>  <name>  (<version>)`; the id is not worth showing.
+  emit "brew · app store" mas apps \
+    "$(mas list | sed -E 's/^[0-9]+[[:space:]]+//' | sort -f)"
 }
 
 # --- ai agents ----------------------------------------------------------
@@ -297,9 +369,10 @@ if wanted neovim || wanted browsers || wanted ai; then
     || { echo "list-installed.sh: jq is required for every section except nix" >&2 && exit 1; }
 fi
 
-if wanted nix; then list_nix; fi
+if wanted nix; then list_nix && list_wrapped; fi
 if wanted neovim; then list_lazy && list_mason; fi
-if wanted browsers; then list_firefox && list_chromium; fi
+if wanted browsers; then list_firefox && list_firefox_pwa && list_chromium; fi
+if wanted brew; then list_brew && list_mas; fi
 if wanted ai; then list_nix_mcp && list_claude && list_codex && list_opencode; fi
 
 if [ "$PLAIN" -eq 1 ]; then
