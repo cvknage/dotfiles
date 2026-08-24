@@ -18,14 +18,35 @@
     ++ lib.optionals (!pkgs.stdenv.isDarwin) [
       "${config.home.homeDirectory}/code"
     ];
-  easy-dotnet-server = pkgs.buildDotnetGlobalTool {
-    pname = "easy-dotnet-server";
-    version = "3.0.8";
-    nugetName = "EasyDotnet";
-    nugetHash = "sha256-PZHgCom5rB1h8/2T/h1PADbmp0/EF0xu4vEWAIFVyJE=";
-    executables = ["dotnet-easydotnet"];
-    dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
-  };
+  easy-dotnet-server = let
+    base = pkgs.buildDotnetGlobalTool {
+      pname = "easy-dotnet-server";
+      version = "3.4.14";
+      nugetName = "EasyDotnet";
+      nugetHash = "sha256-a1ZBCZZyvyQvlXmhxnMgeslzgEq9Pk4q9+1gojtJ9XE=";
+      executables = ["dotnet-easydotnet"];
+      dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+    };
+    # patchelf aborts on the separate debug-info ELFs the nupkg ships (tools/dncdbg/*/dncdbg.dbg).
+    dropDebugSymbols = nupkg:
+      nupkg.overrideAttrs (old: {
+        postPatch =
+          (old.postPatch or "")
+          + ''
+            find . -name '*.dbg' -delete
+          '';
+      });
+  in
+    base.overrideAttrs (old: {
+      buildInputs =
+        map (
+          pkg:
+            if pkg.name == base.nupkg.name
+            then dropDebugSymbols pkg
+            else pkg
+        )
+        old.buildInputs;
+    });
   neovimExtraPackages =
     [
       # Needed by lazy.nvim package manager to support luarocks
