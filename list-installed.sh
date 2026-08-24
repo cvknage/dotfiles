@@ -5,18 +5,20 @@
 #   nix        system, home-manager, and imperative `nix profile` / `nix-env`
 #   neovim     plugins from lazy-lock.json, tools from mason
 #   browsers   firefox and chromium-family extensions, per profile
+#   ai         mcp servers declared in nix, plus per-agent mcp servers and
+#              plugins for claude, codex, and opencode
 #
 #   bash list-installed.sh                        # everything
 #   bash list-installed.sh neovim browsers        # only these sections
 #   bash list-installed.sh --plain | grep -i dark # one entry per line, no headers
 #
-# Needs jq for the neovim and browsers sections.
+# Needs jq for every section except nix.
 
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers ...]
+Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers|ai ...]
 
   -p, --plain   One entry per line, no headers, deduplicated (for grep/pipe).
 
@@ -30,11 +32,11 @@ for arg in "$@"; do
   case "$arg" in
     -p|--plain) PLAIN=1 ;;
     -h|--help) usage && exit 0 ;;
-    nix|neovim|browsers) SECTIONS+=("$arg") ;;
+    nix|neovim|browsers|ai) SECTIONS+=("$arg") ;;
     *) usage >&2 && exit 1 ;;
   esac
 done
-[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers)
+[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai)
 
 wanted() {
   case " ${SECTIONS[*]} " in *" $1 "*) return 0 ;; *) return 1 ;; esac
@@ -202,16 +204,103 @@ list_chromium() {
   done
 }
 
+# --- ai agents ----------------------------------------------------------
+
+# Servers from a `{"mcpServers": {...}}` document, one per line.
+mcp_servers_in() {
+  jq -r '(.mcpServers // {}) | to_entries[] | "\(.key) (\(.value.type // "stdio"))"' "$1"
+}
+
+# What `programs.mcp.servers` declares. Home-manager writes this shared file and
+# feeds the same servers to each agent that opts into the integration.
+list_nix_mcp() {
+  local shared="$CONFIG_HOME/mcp/mcp.json"
+  [ -f "$shared" ] || return 0
+  emit "ai · nix mcp" "$shared" servers "$(mcp_servers_in "$shared" | sort -f)"
+}
+
+list_claude() {
+  local config="$HOME/.claude.json"
+  local plugins="$HOME/.claude/plugins/installed_plugins.json"
+  local mcp_json
+
+  # Plugins carry their own servers; home-manager hands claude the ones from
+  # `programs.mcp` as a generated plugin under skills/.
+  for mcp_json in "$HOME/.claude/.mcp.json" "$HOME/.claude/skills"/*/.mcp.json; do
+    [ -f "$mcp_json" ] || continue
+    case "$mcp_json" in *.hm-backup/*) continue ;; esac
+    emit "ai · claude mcp" "$mcp_json" servers "$(mcp_servers_in "$mcp_json" | sort -f)"
+  done
+
+  # Servers live at the top level (user scope) and under each project.
+  if [ -f "$config" ]; then
+    emit "ai · claude mcp" "$config" servers "$(jq -r '
+      [(.mcpServers // {}) | to_entries[]]
+      + [(.projects // {}) | to_entries[] | (.value.mcpServers // {}) | to_entries[]]
+      | .[]
+      | "\(.key) (\(.value.type // "stdio"))"
+    ' "$config" | sort -f -u)"
+  fi
+
+  # One entry per install; the same plugin can be installed at several scopes.
+  if [ -f "$plugins" ]; then
+    emit "ai · claude plugins" "$plugins" plugins "$(jq -r '
+      (.plugins // {})
+      | to_entries[]
+      | .key as $name
+      | .value[]
+      | "\($name) (\(.version), \(.scope))"
+    ' "$plugins" | sort -f -u)"
+  fi
+}
+
+list_codex() {
+  local config="$HOME/.codex/config.toml"
+  [ -f "$config" ] || return 0
+
+  # `[mcp_servers.NAME]` opens a server; `[mcp_servers.NAME.env]` and friends
+  # are sub-tables of one, so only headers without a second dot count.
+  emit "ai · codex mcp" "$config" servers "$(awk '
+    /^\[mcp_servers\.[^.]+\]$/ { name = substr($0, 14, length($0) - 14); type = ""; enabled = "true" }
+    name != "" && /^type *=/ { gsub(/^type *= *"|"$/, ""); type = $0 }
+    name != "" && /^enabled *=/ { gsub(/^enabled *= */, ""); enabled = $0 }
+    name != "" && /^$/ { print name " (" type (enabled == "false" ? ", disabled" : "") ")"; name = "" }
+    END { if (name != "") print name " (" type (enabled == "false" ? ", disabled" : "") ")" }
+  ' "$config" | sort -f)"
+}
+
+list_opencode() {
+  local config plugin body=""
+  for config in "$CONFIG_HOME/opencode/opencode.json" "$CONFIG_HOME/opencode/opencode.jsonc"; do
+    [ -f "$config" ] || continue
+    emit "ai · opencode mcp" "$config" servers "$(jq -r '
+      (.mcp // {})
+      | to_entries[]
+      | "\(.key) (\(.value.type // "local")\(if .value.enabled == false then ", disabled" else "" end))"
+    ' "$config" | sort -f)"
+    body="$body$(jq -r '(.plugin // [])[]' "$config")"$'\n'
+  done
+
+  # Plugins are npm specs in the config plus loose files dropped in `plugin/`.
+  for plugin in "$CONFIG_HOME/opencode/plugin"/*; do
+    [ -f "$plugin" ] || continue
+    body="$body${plugin##*/}"$'\n'
+  done
+  emit "ai · opencode plugins" "$CONFIG_HOME/opencode" plugins \
+    "$(printf '%s' "$body" | { grep -v '^$' || true; } | sort -f -u)"
+}
+
 # --- run ----------------------------------------------------------------
 
-if wanted neovim || wanted browsers; then
+if wanted neovim || wanted browsers || wanted ai; then
   command -v jq >/dev/null \
-    || { echo "list-installed.sh: jq is required for the neovim and browsers sections" >&2 && exit 1; }
+    || { echo "list-installed.sh: jq is required for every section except nix" >&2 && exit 1; }
 fi
 
 if wanted nix; then list_nix; fi
 if wanted neovim; then list_lazy && list_mason; fi
 if wanted browsers; then list_firefox && list_chromium; fi
+if wanted ai; then list_nix_mcp && list_claude && list_codex && list_opencode; fi
 
 if [ "$PLAIN" -eq 1 ]; then
   printf '%s' "$all" | sort -f -u
