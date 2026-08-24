@@ -1,7 +1,11 @@
+local utils = require("utils")
+local enabled = utils.is_private_config
+
 return {
   {
     "olimorris/codecompanion.nvim",
     version = "^19.0.0",
+    enabled = enabled,
     -- nvim-treesitter is declared upstream, but only for parser installation, which
     -- tree-sitter-manager.nvim already handles. See the parser table at the bottom of this file.
     dependencies = {
@@ -63,12 +67,5 @@ return {
         },
       },
     },
-  },
-
-  -- Chat buffer is markdown, and the prompt library reads yaml frontmatter.
-  -- yaml is already covered by plugins/lang/yaml.lua.
-  {
-    "romus204/tree-sitter-manager.nvim",
-    opts = { ensure_installed = { "markdown", "markdown_inline" } },
   },
 }

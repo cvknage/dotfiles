@@ -1,5 +1,9 @@
 return {
   {
+    "romus204/tree-sitter-manager.nvim",
+    opts = { ensure_installed = { "markdown", "markdown_inline" } },
+  },
+  {
     "MeanderingProgrammer/render-markdown.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = { "RenderMarkdown" },
