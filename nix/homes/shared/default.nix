@@ -83,6 +83,9 @@
     ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work") [
       # Needed by easy-dotnet.nvim
       easy-dotnet-server
+
+      # Needed to debug in local kubernetes cluster
+      pkgs.mirrord
     ];
 in {
   _module.args.repoScopes = repoScopes;

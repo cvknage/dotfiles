@@ -33,7 +33,7 @@ in
     pkgs.kubernetes-helm
     pkgs.k9s
     pkgs.pluto
-    pkgs.mirrord
+    # pkgs.mirrord
 
     # Developer Tools
     # pkgs.go-task
