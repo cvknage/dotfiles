@@ -67,9 +67,6 @@
 
       # nix code formatter for conform.nvim
       pkgs.alejandra
-
-      # ACP adapter for Claude Code, used by codecompanion.nvim
-      pkgs.claude-agent-acp
     ]
     ++ lib.optionals (!pkgs.stdenv.isDarwin) [
       # Needed to install some native dependencies like: nvim-treesitter and fzf-native
@@ -78,6 +75,10 @@
 
       # Swift LSP
       # pkgs.sourcekit-lsp
+    ]
+    ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "private") [
+      # ACP adapter for Claude Code, used by codecompanion.nvim
+      pkgs.claude-agent-acp
     ]
     ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work") [
       # Needed by easy-dotnet.nvim
