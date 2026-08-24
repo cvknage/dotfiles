@@ -8,6 +8,7 @@
 #   ai         mcp servers declared in nix, plus per-agent mcp servers and
 #              plugins for claude, codex, and opencode
 #   brew       casks, formulae, and Mac App Store apps (macOS)
+#   projects   per-project flake devshell packages, from the direnv cache
 #
 #   bash list-installed.sh                        # everything
 #   bash list-installed.sh neovim browsers        # only these sections
@@ -19,7 +20,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers|ai|brew ...]
+Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers|ai|brew|projects ...]
 
   -p, --plain   One entry per line, no headers, deduplicated (for grep/pipe).
 
@@ -33,11 +34,11 @@ for arg in "$@"; do
   case "$arg" in
     -p|--plain) PLAIN=1 ;;
     -h|--help) usage && exit 0 ;;
-    nix|neovim|browsers|ai|brew) SECTIONS+=("$arg") ;;
+    nix|neovim|browsers|ai|brew|projects) SECTIONS+=("$arg") ;;
     *) usage >&2 && exit 1 ;;
   esac
 done
-[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai brew)
+[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai brew projects)
 
 wanted() {
   case " ${SECTIONS[*]} " in *" $1 "*) return 0 ;; *) return 1 ;; esac
@@ -46,6 +47,7 @@ wanted() {
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 APP_SUPPORT="$HOME/Library/Application Support" # macOS
 
 all=""
@@ -249,6 +251,76 @@ list_chromium() {
   done
 }
 
+# --- project devshells --------------------------------------------------
+
+PROJECT_ROOTS=("$HOME/code")
+
+# Where nix-direnv keeps a project's built devshell. By default that is the
+# project's own `.direnv`, but direnvrc can redirect the layout to a central
+# cache keyed by a sha1 of the project path — as direnv/direnvrc does here —
+# in which case the project directory stays clean.
+project_layout() {
+  local project=$1 hash
+  hash="$(printf '%s' "$project" | sha1sum | cut -d' ' -f1)"
+  if [ -d "$CACHE_HOME/direnv/layouts/$hash" ]; then
+    echo "$CACHE_HOME/direnv/layouts/$hash"
+  elif [ -d "$project/.direnv" ]; then
+    echo "$project/.direnv"
+  fi
+}
+
+# A `buildEnv`/`combinePackages` aggregate is one store path with an opaque
+# name like `dotNetSDKs`. SDK-style aggregates lay their contents out as
+# `share/<tool>/sdk/<version>`, so report those versions instead.
+aggregate_detail() {
+  local sdk tool detail=""
+  for sdk in "$1"/share/*/sdk/*/; do
+    [ -d "$sdk" ] || continue
+    sdk="${sdk%/}"
+    tool="${sdk%/sdk/*}"
+    detail="$detail${tool##*/} ${sdk##*/}, "
+  done
+  [ -z "$detail" ] || echo "${detail%, }"
+}
+
+# Packages a project's flake devshell installs, read from the direnv cache
+# rather than by evaluating the flake. A project whose devshell was never
+# built has nothing installed and is not listed.
+list_projects() {
+  local root project layout profile rc body store name detail
+  for root in "${PROJECT_ROOTS[@]}"; do
+    [ -d "$root" ] || continue
+    while read -r project; do
+      layout="$(project_layout "$project")"
+      [ -n "$layout" ] || continue
+      for profile in "$layout"/flake-profile-*; do
+        case "$profile" in *.rc) continue ;; esac
+        rc="$profile.rc"
+        [ -f "$rc" ] || continue
+        body=""
+        # These hold the devshell's own packages; the profile's store
+        # references would also drag in all of stdenv. `mkShell` routes its
+        # `packages` argument to nativeBuildInputs, so all three are read.
+        while read -r store; do
+          name="${store##*/}"
+          name="${name#*-}"
+          detail="$(aggregate_detail "$store")"
+          if [ -n "$detail" ]; then
+            body="$body$name ($detail)"$'\n'
+          else
+            body="$body$name"$'\n'
+          fi
+        done < <(grep -oE "^(buildInputs|nativeBuildInputs|propagatedBuildInputs)='[^']*'" "$rc" \
+          | grep -oE "/nix/store/[a-z0-9]{32}-[^ ']*" | sort -u)
+        emit "project · ${project#"$root"/}" "$project" packages \
+          "$(printf '%s' "$body" | sort -f -u)"
+      done
+    done < <(find "$root" -maxdepth 4 \( -name .git -o -name node_modules \) -prune \
+      -o \( -name .envrc -o -name flake.nix \) -print 2>/dev/null \
+      | sed 's|/[^/]*$||' | sort -u)
+  done
+}
+
 # --- homebrew -----------------------------------------------------------
 
 # nix-darwin declares casks, formulae and Mac App Store apps but hands the
@@ -372,8 +444,9 @@ fi
 if wanted nix; then list_nix && list_wrapped; fi
 if wanted neovim; then list_lazy && list_mason; fi
 if wanted browsers; then list_firefox && list_firefox_pwa && list_chromium; fi
-if wanted brew; then list_brew && list_mas; fi
 if wanted ai; then list_nix_mcp && list_claude && list_codex && list_opencode; fi
+if wanted brew; then list_brew && list_mas; fi
+if wanted projects; then list_projects; fi
 
 if [ "$PLAIN" -eq 1 ]; then
   printf '%s' "$all" | sort -f -u
