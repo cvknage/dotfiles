@@ -32,7 +32,7 @@
       owner = "johnzfitch";
       repo = "claude-cowork-linux";
       rev = "master";
-      hash = "sha256-RKCLi/t+Uio0Z+LTONiHz0LT2Y72zWwt+mNFQDvbnOs=";
+      hash = "sha256-+mV9+ypWSqxNeqBlsVNvvty9wc8+RT3Ipde0RqkERqY=";
     };
 
     nativeBuildInputs = with pkgs; [makeWrapper];
