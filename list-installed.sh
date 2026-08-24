@@ -1,0 +1,220 @@
+#!/usr/bin/env bash
+
+# List installed software, grouped by where it came from:
+#
+#   nix        system, home-manager, and imperative `nix profile` / `nix-env`
+#   neovim     plugins from lazy-lock.json, tools from mason
+#   browsers   firefox and chromium-family extensions, per profile
+#
+#   bash list-installed.sh                        # everything
+#   bash list-installed.sh neovim browsers        # only these sections
+#   bash list-installed.sh --plain | grep -i dark # one entry per line, no headers
+#
+# Needs jq for the neovim and browsers sections.
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers ...]
+
+  -p, --plain   One entry per line, no headers, deduplicated (for grep/pipe).
+
+With no section arguments, every section is listed.
+EOF
+}
+
+PLAIN=0
+SECTIONS=()
+for arg in "$@"; do
+  case "$arg" in
+    -p|--plain) PLAIN=1 ;;
+    -h|--help) usage && exit 0 ;;
+    nix|neovim|browsers) SECTIONS+=("$arg") ;;
+    *) usage >&2 && exit 1 ;;
+  esac
+done
+[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers)
+
+wanted() {
+  case " ${SECTIONS[*]} " in *" $1 "*) return 0 ;; *) return 1 ;; esac
+}
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+APP_SUPPORT="$HOME/Library/Application Support" # macOS
+
+all=""
+
+# emit <label> <source> <noun> <body>; body is one entry per line, may be empty.
+emit() {
+  local label=$1 source=$2 noun=$3 body=$4
+  [ -n "$body" ] || return 0
+  all="$all$body"$'\n'
+  if [ "$PLAIN" -eq 0 ]; then
+    printf '\n\033[1m%s\033[0m %s (%s %s)\n\n' "$label" "$source" "$(echo "$body" | wc -l)" "$noun"
+    echo "$body" | sed 's/^/  /'
+  fi
+}
+
+# --- nix ----------------------------------------------------------------
+
+# Store paths a profile installs. `home-manager-path` and `system-path` are
+# aggregates of many packages, so they are expanded one level.
+store_paths_in() {
+  local path
+  while read -r path; do
+    case "$path" in
+      *-home-manager-path|*-system-path) nix-store --query --references "$path" ;;
+      *) echo "$path" ;;
+    esac
+  done < <(nix-store --query --references "$(readlink -f "$1")")
+}
+
+# Package names installed by a profile, one per line.
+# Split outputs (-man, -dev, ...) collapse into the package they belong to.
+packages_in() {
+  store_paths_in "$1" \
+    | sed -E -e 's#^/nix/store/[a-z0-9]{32}-##' \
+             -e 's#(-[0-9][^-]*)-(man|doc|info|bin|dev|lib|out|devdoc|devman|terminfo|debug)$#\1#' \
+    | grep -v -e '\.drv$' -e '^manifest\.nix$' -e '^env-manifest\.nix$' \
+    | sort -u
+}
+
+list_nix() {
+  command -v nix-store >/dev/null || return 0
+
+  # label:path pairs, in the order the profiles take precedence on PATH.
+  local profiles=(
+    "nix · system:/run/current-system/sw"
+    "nix · home-manager:/etc/profiles/per-user/$USER"
+    "nix · home-manager:$STATE_HOME/nix/profile"
+    "nix · user:$HOME/.nix-profile"
+  )
+  local entry label path resolved seen=""
+  for entry in "${profiles[@]}"; do
+    label="${entry%%:*}"
+    path="${entry#*:}"
+    [ -e "$path" ] || continue
+
+    # Several profile links can resolve to the same store path; report it once.
+    resolved="$(readlink -f "$path")"
+    case " $seen " in *" $resolved "*) continue ;; esac
+    seen="$seen $resolved"
+
+    emit "$label" "$path" packages "$(packages_in "$path")"
+  done
+}
+
+# --- neovim -------------------------------------------------------------
+
+list_lazy() {
+  local lock="$CONFIG_HOME/nvim/lazy-lock.json"
+  local dir="$DATA_HOME/nvim/lazy"
+  local body="" plugin
+
+  if [ -f "$lock" ]; then
+    body="$(jq -r 'to_entries[] | "\(.key) (\(.value.commit[0:7]))"' "$lock" | sort -f)"
+    emit "neovim · lazy" "$lock" plugins "$body"
+  elif [ -d "$dir" ]; then
+    # No lock file: fall back to whatever lazy has cloned.
+    for plugin in "$dir"/*/; do
+      [ -d "$plugin" ] || continue
+      plugin="${plugin%/}"
+      body="$body${plugin##*/}"$'\n'
+    done
+    emit "neovim · lazy" "$dir" plugins "$(printf '%s' "$body" | sort -f)"
+  fi
+}
+
+list_mason() {
+  local dir="$DATA_HOME/nvim/mason/packages"
+  [ -d "$dir" ] || return 0
+
+  local body="" pkg name id version
+  for pkg in "$dir"/*/; do
+    [ -f "$pkg/mason-receipt.json" ] || continue
+    name="$(jq -r '.name' "$pkg/mason-receipt.json")"
+    # Package URLs look like `pkg:github/luals/lua-language-server@3.18.2`.
+    id="$(jq -r '.source.id // ""' "$pkg/mason-receipt.json")"
+    case "$id" in
+      *@*) version="${id##*@}" && body="$body$name (${version%%\?*})"$'\n' ;;
+      *) body="$body$name"$'\n' ;;
+    esac
+  done
+  emit "neovim · mason" "$dir" tools "$(printf '%s' "$body" | sort -f)"
+}
+
+# --- browsers -----------------------------------------------------------
+
+list_firefox() {
+  local root profile ext_json
+  for root in "$CONFIG_HOME/mozilla/firefox" "$HOME/.mozilla/firefox" \
+              "$APP_SUPPORT/Firefox/Profiles"; do
+    [ -d "$root" ] || continue
+    for ext_json in "$root"/*/extensions.json; do
+      [ -f "$ext_json" ] || continue
+      profile="$(basename "$(dirname "$ext_json")")"
+      # Everything shipping with firefox itself lives in an `app-builtin*` or
+      # `app-system-*` location; the rest is what was actually installed.
+      emit "browser · firefox" "$profile" extensions "$(jq -r '
+        .addons[]
+        | select(.location | test("^app-(builtin|system)") | not)
+        | "\(.defaultLocale.name // .id) (\(.version))"
+      ' "$ext_json" | sort -f)"
+    done
+  done
+}
+
+# Extension names, one per line, from a chromium `Preferences`-style file.
+# location 5 and 10 are components bundled with the browser. Extensions naming
+# themselves `__MSG_*__` localize at runtime, so fall back to their id.
+chromium_extensions_in() {
+  jq -r '
+    (.extensions.settings // {})
+    | to_entries[]
+    | select(.value.manifest != null)
+    | select(.value.location as $loc | [5, 10] | index($loc) | not)
+    | (.value.manifest.name // "") as $n
+    | (if ($n == "" or ($n | startswith("__MSG_"))) then .key else $n end) as $name
+    | "\($name) (\(.value.manifest.version // "?"))"
+  ' "$1"
+}
+
+list_chromium() {
+  local root profile prefs body
+  for root in "$CONFIG_HOME"/{chromium,ungoogled-chromium,google-chrome*,microsoft-edge,vivaldi,BraveSoftware/Brave-Browser} \
+              "$APP_SUPPORT"/{Chromium,Google/Chrome,Microsoft\ Edge,Vivaldi,BraveSoftware/Brave-Browser}; do
+    [ -d "$root" ] || continue
+    for profile in Default "$root"/Profile*; do
+      profile="$root/${profile##*/}"
+      body=""
+      # Chrome moved extension state into `Secure Preferences`; chromium and
+      # older profiles still keep it in `Preferences`.
+      for prefs in "$profile/Preferences" "$profile/Secure Preferences"; do
+        [ -f "$prefs" ] || continue
+        body="$body$(chromium_extensions_in "$prefs")"$'\n'
+      done
+      emit "browser · ${root##*/}" "${profile##*/}" extensions \
+        "$(printf '%s' "$body" | { grep -v '^$' || true; } | sort -f -u)"
+    done
+  done
+}
+
+# --- run ----------------------------------------------------------------
+
+if wanted neovim || wanted browsers; then
+  command -v jq >/dev/null \
+    || { echo "list-installed.sh: jq is required for the neovim and browsers sections" >&2 && exit 1; }
+fi
+
+if wanted nix; then list_nix; fi
+if wanted neovim; then list_lazy && list_mason; fi
+if wanted browsers; then list_firefox && list_chromium; fi
+
+if [ "$PLAIN" -eq 1 ]; then
+  printf '%s' "$all" | sort -f -u
+else
+  echo
+fi
