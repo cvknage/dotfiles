@@ -26,6 +26,7 @@
         exec npx "$@"
       '';
     };
+  /*
   mkAzureCmd = name:
     pkgs.writeShellApplication {
       name = "mcp-${name}";
@@ -38,7 +39,8 @@
         exec npx "$@"
       '';
     };
-  isWorkContext = config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work";
+  */
+  # isWorkContext = config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work";
 in {
   programs.mcp = {
     enable = true;
@@ -60,11 +62,15 @@ in {
         command = lib.getExe (mkNpxCmd "context7");
         args = ["-y" "@upstash/context7-mcp"];
       };
-      # figma = {
+      # kubernetes = lib.mkIf isWorkContext {
+      #   type = "local";
+      #   command = lib.getExe (mkNpxCmd "kubernetes");
+      #   args = ["-y" "kubernetes-mcp-server@latest"];
+      # };
+      # figma = lib.mkIf isWorkContext {
       #   type = "remote";
       #   url = "https://mcp.figma.com/mcp";
       # };
-      #
       # github = lib.mkIf isWorkContext {
       #   type = "remote";
       #   url = "https://api.githubcopilot.com/mcp/";
@@ -72,24 +78,19 @@ in {
       #     Authorization = "Bearer {env:GITHUB_TOKEN}";
       #   };
       # };
-      kubernetes = lib.mkIf isWorkContext {
-        type = "local";
-        command = lib.getExe (mkNpxCmd "kubernetes");
-        args = ["-y" "kubernetes-mcp-server@latest"];
-      };
-      azure = lib.mkIf isWorkContext {
-        type = "local";
-        command = lib.getExe (mkAzureCmd "azure");
-        args = ["-y" "@azure/mcp@latest" "server" "start"];
-        env = {
-          AZURE_TOKEN_CREDENTIALS = "dev";
-        };
-      };
-      atlassian = lib.mkIf isWorkContext {
-        type = "local";
-        command = lib.getExe (mkNpxCmd "atlassian");
-        args = ["-y" "mcp-remote" "https://mcp.atlassian.com/v1/mcp"];
-      };
+      # azure = lib.mkIf isWorkContext {
+      #   type = "local";
+      #   command = lib.getExe (mkAzureCmd "azure");
+      #   args = ["-y" "@azure/mcp@latest" "server" "start"];
+      #   env = {
+      #     AZURE_TOKEN_CREDENTIALS = "dev";
+      #   };
+      # };
+      # atlassian = lib.mkIf isWorkContext {
+      #   type = "local";
+      #   command = lib.getExe (mkNpxCmd "atlassian");
+      #   args = ["-y" "mcp-remote" "https://mcp.atlassian.com/v1/mcp"];
+      # };
     };
   };
 }
