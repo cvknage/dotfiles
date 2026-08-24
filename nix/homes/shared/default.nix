@@ -89,7 +89,6 @@ in {
   imports = [
     ../../../rust
     ../../modules/home/mcp
-    ../../modules/home/opencode
     ../../modules/home/claude-code
     ../../modules/home/codex
   ];
