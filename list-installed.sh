@@ -7,12 +7,17 @@
 #   browsers   firefox and chromium-family extensions, firefox web apps
 #   ai         mcp servers declared in nix, plus per-agent mcp servers and
 #              plugins for claude, codex, and opencode
+#   cargo      crates installed with `cargo install`
 #   brew       casks, formulae, and Mac App Store apps (macOS)
 #   projects   per-project flake devshell packages, from the direnv cache
 #
-#   bash list-installed.sh                        # everything
-#   bash list-installed.sh neovim browsers        # only these sections
-#   bash list-installed.sh --plain | grep -i dark # one entry per line, no headers
+#   bash list-installed.sh                          # everything
+#   bash list-installed.sh neovim browsers          # only these sections
+#   bash list-installed.sh --plain | grep -i dark   # one entry per line, no headers
+#   bash list-installed.sh --markdown > report.md   # a document
+#
+# Bold headers are dropped when stdout is not a terminal, so a plain redirect
+# never writes escape codes to a file.
 #
 # Needs jq for every section except nix.
 
@@ -20,25 +25,37 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: list-installed.sh [-p|--plain] [nix|neovim|browsers|ai|brew|projects ...]
+Usage: list-installed.sh [-p|--plain] [-m|--markdown]
+                        [nix|neovim|browsers|ai|cargo|brew|projects ...]
 
-  -p, --plain   One entry per line, no headers, deduplicated (for grep/pipe).
+  -p, --plain      One entry per line, no headers, deduplicated (for grep/pipe).
+  -m, --markdown   A markdown document, for redirecting to a .md file.
 
 With no section arguments, every section is listed.
 EOF
 }
 
-PLAIN=0
+FORMAT=text
 SECTIONS=()
 for arg in "$@"; do
   case "$arg" in
-    -p|--plain) PLAIN=1 ;;
+    -p|--plain) FORMAT=plain ;;
+    -m|--markdown) FORMAT=markdown ;;
     -h|--help) usage && exit 0 ;;
-    nix|neovim|browsers|ai|brew|projects) SECTIONS+=("$arg") ;;
+    nix|neovim|browsers|ai|cargo|brew|projects) SECTIONS+=("$arg") ;;
     *) usage >&2 && exit 1 ;;
   esac
 done
-[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai brew projects)
+[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai cargo brew projects)
+
+# Only a terminal gets escape codes; a redirect or pipe gets clean text.
+if [ -t 1 ]; then
+  BOLD=$'\033[1m'
+  RESET=$'\033[0m'
+else
+  BOLD=""
+  RESET=""
+fi
 
 wanted() {
   case " ${SECTIONS[*]} " in *" $1 "*) return 0 ;; *) return 1 ;; esac
@@ -54,13 +71,22 @@ all=""
 
 # emit <label> <source> <noun> <body>; body is one entry per line, may be empty.
 emit() {
-  local label=$1 source=$2 noun=$3 body=$4
+  local label=$1 source=$2 noun=$3 body=$4 count
   [ -n "$body" ] || return 0
   all="$all$body"$'\n'
-  if [ "$PLAIN" -eq 0 ]; then
-    printf '\n\033[1m%s\033[0m %s (%s %s)\n\n' "$label" "$source" "$(echo "$body" | wc -l)" "$noun"
-    echo "$body" | sed 's/^/  /'
-  fi
+  count="$(echo "$body" | wc -l)"
+  case "$FORMAT" in
+    plain) ;;
+    markdown)
+      # shellcheck disable=SC2016  # the backticks are markdown, not a subshell
+      printf '\n## %s\n\n`%s` — %s %s\n\n' "$label" "$source" "$count" "$noun"
+      echo "$body" | sed 's/^/- /'
+      ;;
+    *)
+      printf '\n%s%s%s %s (%s %s)\n\n' "$BOLD" "$label" "$RESET" "$source" "$count" "$noun"
+      echo "$body" | sed 's/^/  /'
+      ;;
+  esac
 }
 
 # --- nix ----------------------------------------------------------------
@@ -321,6 +347,25 @@ list_projects() {
   done
 }
 
+# --- cargo --------------------------------------------------------------
+
+# `cargo install` records each crate in .crates2.json, keyed by
+# `<name> <version> (<source>+<url>)`. Reading it rather than listing
+# ~/.cargo/bin keeps out stray binaries and gives the versions.
+list_cargo() {
+  local config="${CARGO_HOME:-$HOME/.cargo}/.crates2.json"
+  [ -f "$config" ] || return 0
+  emit "cargo · installed" "$config" crates "$(jq -r '
+    (.installs // {})
+    | keys[] as $key
+    | (($key | capture("^(?<name>[^ ]+) (?<version>[^ ]+) \\((?<src>[a-z]+)\\+")?) // null) as $m
+    | if $m == null then $key
+      elif $m.src == "registry" then "\($m.name) (\($m.version))"
+      else "\($m.name) (\($m.version), \($m.src))"
+      end
+  ' "$config" | sort -f)"
+}
+
 # --- homebrew -----------------------------------------------------------
 
 # nix-darwin declares casks, formulae and Mac App Store apps but hands the
@@ -441,15 +486,20 @@ if wanted neovim || wanted browsers || wanted ai; then
     || { echo "list-installed.sh: jq is required for every section except nix" >&2 && exit 1; }
 fi
 
+if [ "$FORMAT" = markdown ]; then
+  printf '# Installed software\n\n%s — %s\n' "$(hostname)" "$(date '+%Y-%m-%d %H:%M')"
+fi
+
 if wanted nix; then list_nix && list_wrapped; fi
 if wanted neovim; then list_lazy && list_mason; fi
 if wanted browsers; then list_firefox && list_firefox_pwa && list_chromium; fi
 if wanted ai; then list_nix_mcp && list_claude && list_codex && list_opencode; fi
+if wanted cargo; then list_cargo; fi
 if wanted brew; then list_brew && list_mas; fi
 if wanted projects; then list_projects; fi
 
-if [ "$PLAIN" -eq 1 ]; then
-  printf '%s' "$all" | sort -f -u
-else
-  echo
-fi
+case "$FORMAT" in
+  plain) printf '%s' "$all" | sort -f -u ;;
+  markdown) printf '\n---\n\n%s entries in total.\n' "$(printf '%s' "$all" | sort -f -u | wc -l)" ;;
+  *) echo ;;
+esac
