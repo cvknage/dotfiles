@@ -118,6 +118,9 @@
       "Guru Maps" = 321745474;
       # "Scenic Motorcycle Navigation" = 1089668246; # iPad/iPhone Apps not supported - https://github.com/mas-cli/mas/issues/321
 
+      # Training
+      "Tacx Training" = 892366151;
+
       # Tesla
       "Dash View" = 1484225024;
       "Auth for Tesla" = 1552058613;
