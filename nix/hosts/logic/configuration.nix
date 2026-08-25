@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   self,
   user,
   ...
@@ -13,6 +14,15 @@
   environment.systemPackages = [
   ];
 
+  # Start ollama serve on login so the CLI works out of the box.
+  launchd.user.agents.ollama = {
+    serviceConfig = {
+      ProgramArguments = ["${pkgs.ollama}/bin/ollama" "serve"];
+      RunAtLoad = true;
+      KeepAlive = true;
+    };
+  };
+
   # Enable alternative shell support in nix-darwin.
   # programs.fish.enable = true;
 
@@ -22,6 +32,7 @@
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
   system.stateVersion = 5;
+  system.primaryUser = user;
 
   # Home-Manager needs this value to work with nix-darwin.
   users.users.${user}.home = "/Users/${user}";
