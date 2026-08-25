@@ -45,7 +45,6 @@ in {
 
     pkgs.slack
     pkgs.stable.teams-for-linux
-    pkgs.buttercup-desktop
     easyeffectsWrapped # pkgs.easyeffects
 
     pkgs.ghostty
