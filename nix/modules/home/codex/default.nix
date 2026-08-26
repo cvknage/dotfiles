@@ -50,9 +50,14 @@
             "disabled"
             "headers"
           ])
-          // (lib.optionalAttrs (server ? headers && !(server ? http_headers)) {
-            http_headers = server.headers;
-          })
+          # Codex rejects http_headers on stdio servers, even when empty, and the
+          # mcp module defaults `headers` to {} for every server.
+          // (lib.optionalAttrs
+            (!(server ? http_headers)
+              && (server.headers or null) != null
+              && server.headers != {}) {
+              http_headers = server.headers;
+            })
           // {
             default_tools_approval_mode = "approve";
             enabled = !(server.disabled or false);
