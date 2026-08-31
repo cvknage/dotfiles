@@ -1,47 +1,34 @@
 {
+  agentPolicy,
+  agentSandbox,
   config,
   inputs,
   lib,
   pkgs,
-  repoScopes,
   ...
 }: let
-  sharedPermissions = import ../agents/command-permissions.nix;
-  permissionsLib = import ../agents/permissions-lib.nix {inherit lib;};
   codexCliPackage = inputs.codex-cli.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+  sandboxedCodexCli = agentSandbox.wrapPackage {
+    agent = "codex";
+    package = codexCliPackage;
+    executable = "codex";
+  };
 
-  codexRules = permissionsLib.mkCodexExecPolicyRules sharedPermissions;
-
-  packageVersion =
-    if config.programs.codex.package != null
-    then lib.getVersion config.programs.codex.package
-    else "0.94.0";
-
-  isTomlConfig = lib.versionAtLeast packageVersion "0.2.0";
-  settingsFormat =
-    if isTomlConfig
-    then pkgs.formats.toml {}
-    else pkgs.formats.yaml {};
-  useXdgDirectories = config.home.preferXdgDirectories && isTomlConfig;
+  settingsFormat = pkgs.formats.toml {};
   xdgConfigHome = lib.removePrefix config.home.homeDirectory config.xdg.configHome;
   configDir =
-    if useXdgDirectories
+    if config.home.preferXdgDirectories
     then "${xdgConfigHome}/codex"
     else ".codex";
-  configFileName =
-    if isTomlConfig
-    then "config.toml"
-    else "config.yaml";
-  mutableConfigPath = "${config.xdg.stateHome}/codex/${configFileName}";
+  configFileName = "config.toml";
+  mutableConfigPath = "${config.home.homeDirectory}/${configDir}/.mutable/${configFileName}";
+  legacyMutableConfigPath = "${config.xdg.stateHome}/codex/${configFileName}";
 
-  pythonEnv = pkgs.python3.withPackages (ps: [
-    ps."tomli-w"
-    ps.pyyaml
-  ]);
+  pythonEnv = pkgs.python3.withPackages (ps: [ps."tomli-w"]);
 
   mcpServers =
     lib.mapAttrs (
-      _name: server:
+      _: server:
       # TOML has no null; strip null-valued attrs (e.g. unset `url`/`enabled`)
       # that the mcp module leaves in place, or serialization fails with
       # "unsupported unit type".
@@ -59,20 +46,18 @@
               http_headers = server.headers;
             })
           // {
-            default_tools_approval_mode = "approve";
             enabled = !(server.disabled or false);
+            default_tools_approval_mode = "approve";
           }
         )
     )
     config.programs.mcp.servers;
 
   settings =
-    {
-      approval_policy = "on-request";
+    agentPolicy.codex.settings
+    // {
       features.child_agents_md = true;
       suppress_unstable_features_warning = true;
-      sandbox_mode = "workspace-write";
-      sandbox_workspace_write.writable_roots = repoScopes;
     }
     // lib.optionalAttrs config.programs.mcp.enable {
       mcp_servers = mcpServers;
@@ -88,17 +73,22 @@
     from pathlib import Path
 
     import tomli_w
-    import yaml
 
     state_path = Path(os.environ["STATE_CONFIG"])
     managed_path = Path(os.environ["MANAGED_CONFIG"])
     out_path = Path(os.environ["OUT_CONFIG"])
-    config_format = os.environ["CODEX_CONFIG_FORMAT"]
 
     # Keys nix owns outright, replaced rather than merged. The merge below only
     # ever adds and overwrites, so without this a server dropped from the flake
     # would survive in the mutable config forever.
-    AUTHORITATIVE_KEYS = ("mcp_servers",)
+    AUTHORITATIVE_KEYS = (
+        "approval_policy",
+        "default_permissions",
+        "mcp_servers",
+        "permissions",
+        "sandbox_mode",
+        "sandbox_workspace_write",
+    )
 
 
     def load_config(path: Path):
@@ -106,14 +96,10 @@
             return {}
 
         try:
-            if config_format == "toml":
-                import tomllib
+            import tomllib
 
-                with path.open("rb") as handle:
-                    return tomllib.load(handle) or {}
-
-            with path.open("r", encoding="utf-8") as handle:
-                return yaml.safe_load(handle) or {}
+            with path.open("rb") as handle:
+                return tomllib.load(handle) or {}
         except Exception:
             return {}
 
@@ -137,10 +123,7 @@
 
     merged_config = merge(user_config, managed_config)
 
-    if config_format == "toml":
-        out_path.write_text(tomli_w.dumps(merged_config), encoding="utf-8")
-    else:
-        out_path.write_text(yaml.safe_dump(merged_config, sort_keys=False), encoding="utf-8")
+    out_path.write_text(tomli_w.dumps(merged_config), encoding="utf-8")
   '';
 
   materializeConfig = pkgs.writeShellApplication {
@@ -150,33 +133,31 @@
       pythonEnv
     ];
     text = ''
-            set -euo pipefail
+      set -euo pipefail
 
-            state_config="${mutableConfigPath}"
-            state_dir="$(${pkgs.coreutils}/bin/dirname "$state_config")"
-            managed_config="${managedSettingsFile}"
-            tmp_dir="$(${pkgs.coreutils}/bin/mktemp -d)"
-            user_config="$tmp_dir/user.${configFileName}"
-            out_config="$tmp_dir/out.${configFileName}"
+      state_config="${mutableConfigPath}"
+      state_dir="$(${pkgs.coreutils}/bin/dirname "$state_config")"
+      managed_config="${managedSettingsFile}"
+      tmp_dir="$(${pkgs.coreutils}/bin/mktemp -d)"
+      user_config="$tmp_dir/user.${configFileName}"
+      out_config="$tmp_dir/out.${configFileName}"
 
-            trap '${pkgs.coreutils}/bin/rm -rf "$tmp_dir"' EXIT
+      trap '${pkgs.coreutils}/bin/rm -rf "$tmp_dir"' EXIT
 
-            ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
+      ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
 
-            if [ -e "$state_config" ]; then
-              ${pkgs.coreutils}/bin/cp "$state_config" "$user_config"
-            else
-              ${pkgs.coreutils}/bin/touch "$user_config"
-            fi
+      if [ -e "$state_config" ]; then
+        ${pkgs.coreutils}/bin/cp "$state_config" "$user_config"
+      elif [ -e "${legacyMutableConfigPath}" ]; then
+        # Preserve mutable settings from the previous state-directory layout.
+        ${pkgs.coreutils}/bin/cp "${legacyMutableConfigPath}" "$user_config"
+      else
+        ${pkgs.coreutils}/bin/touch "$user_config"
+      fi
 
-            export STATE_CONFIG="$user_config"
-            export MANAGED_CONFIG="$managed_config"
+      export STATE_CONFIG="$user_config"
+      export MANAGED_CONFIG="$managed_config"
       export OUT_CONFIG="$out_config"
-      export CODEX_CONFIG_FORMAT="${
-        if isTomlConfig
-        then "toml"
-        else "yaml"
-      }"
 
       ${pythonEnv}/bin/python "${materializeConfigPy}"
 
@@ -194,9 +175,9 @@ in {
 
   programs.codex = {
     enable = true;
-    package = codexCliPackage;
+    package = sandboxedCodexCli;
     rules = {
-      "shared-bash-permissions" = codexRules;
+      "shared-bash-permissions" = agentPolicy.codex.rules;
     };
     inherit settings;
   };

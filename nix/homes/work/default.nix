@@ -24,6 +24,7 @@ in {
     ../../modules/home/another-redis-desktop-manager
     ../../modules/home/claude-desktop
     ../../modules/home/outlook
+    ./git-signing.nix
     ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
   ];
 
@@ -51,30 +52,6 @@ in {
     pkgs.postman
     pkgs.git-cliff
   ];
-
-  # Commit signing for github.com/secomea-dev; ../../../git/config decides where.
-  # Rendered at activation because git needs these as literals, not runtime reads.
-  # signingkey is a path, not a key:: literal, which gitui rejects (gitui#2188).
-  # Verify with: git log --show-signature -1
-  sops.templates = {
-    "git-allowed-signers".content = ''
-      ${config.sops.placeholder.email} namespaces="git" ${config.sops.placeholder.public_key}
-    '';
-
-    "git-secomea.inc".content = ''
-      [user]
-        email = ${config.sops.placeholder.email}
-        signingkey = ~/.ssh/id_ed25519.pub
-      [gpg]
-        format = ssh
-      [gpg "ssh"]
-        allowedSignersFile = ${config.sops.templates."git-allowed-signers".path}
-      [commit]
-        gpgsign = true
-      [tag]
-        gpgsign = true
-    '';
-  };
 
   programs.bash = {
     enable = true;

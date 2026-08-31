@@ -69,3 +69,5 @@ Session.vim
 
 # Agents
 **/.claude/settings.local.json
+**/.claude/.cc-writes/
+

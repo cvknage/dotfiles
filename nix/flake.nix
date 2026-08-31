@@ -60,7 +60,11 @@
     user = "chris";
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
-    extraArgs = {inherit inputs user;};
+    inherit (nixpkgs) lib;
+    extraArgs = {
+      inherit inputs user;
+      homeContext = import ./lib/home-context.nix;
+    };
     sharedModules = [
       ./modules/shared
     ];
@@ -116,9 +120,29 @@
       };
     };
 
+    # Install the root-owned policy after standalone Home Manager switches.
+    apps.${linuxArchitecture}.install-agent-policy = {
+      type = "app";
+      meta.description = "Install the root-owned agent policy into /etc";
+      program = lib.getExe (import ./modules/agents/install.nix {
+        inherit inputs lib;
+        pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+        homeDirectory = "/home/${user}";
+      });
+    };
+
+    # Standalone Home Manager cannot install the root-owned /etc policy.
     homeConfigurations."${user}@full-tuxedo" = home-manager.lib.homeManagerConfiguration {
-      pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
-      modules = [./homes/work];
+      # Mirror the shared system module's package configuration.
+      pkgs = import nixpkgs {
+        system = linuxArchitecture;
+        config.allowUnfree = true;
+        overlays = [(import ./overlays {inherit inputs;}).stable-packages];
+      };
+      modules = [
+        ./homes/shared
+        ./homes/work
+      ];
       extraSpecialArgs = extraArgs;
     };
   };

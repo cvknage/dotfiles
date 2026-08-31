@@ -1,23 +1,12 @@
 {
   config,
+  homeContext,
   lib,
   pkgs,
   user,
   ...
 }: let
   dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
-  repoScopes =
-    [
-      "${config.home.homeDirectory}/.dotfiles"
-      "${config.home.homeDirectory}/.claude"
-      "${config.xdg.configHome}/opencode"
-    ]
-    ++ lib.optionals pkgs.stdenv.isDarwin [
-      "${config.home.homeDirectory}/Code"
-    ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
-      "${config.home.homeDirectory}/code"
-    ];
   easy-dotnet-server = let
     base = pkgs.buildDotnetGlobalTool {
       pname = "easy-dotnet-server";
@@ -68,7 +57,7 @@
       # nix code formatter for conform.nvim
       pkgs.alejandra
     ]
-    ++ lib.optionals (!pkgs.stdenv.isDarwin) [
+    ++ lib.optionals (!pkgs.stdenv.hostPlatform.isDarwin) [
       # Needed to install some native dependencies like: nvim-treesitter and fzf-native
       pkgs.gcc
       pkgs.gnumake
@@ -76,11 +65,11 @@
       # Swift LSP
       # pkgs.sourcekit-lsp
     ]
-    ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "private") [
+    ++ lib.optionals (homeContext.isPrivate config) [
       # ACP adapter for Claude Code, used by codecompanion.nvim
       pkgs.claude-agent-acp
     ]
-    ++ lib.optionals (config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work") [
+    ++ lib.optionals (homeContext.isWork config) [
       # Needed by easy-dotnet.nvim
       easy-dotnet-server
 
@@ -88,18 +77,14 @@
       pkgs.mirrord
     ];
 in {
-  _module.args.repoScopes = repoScopes;
-
   imports = [
     ../../../rust
-    ../../modules/home/mcp
-    ../../modules/home/claude-code
-    ../../modules/home/codex
+    ../../modules/home/agents
   ];
 
   home.username = lib.mkDefault user;
   home.homeDirectory = lib.mkDefault (
-    if pkgs.stdenv.isDarwin
+    if pkgs.stdenv.hostPlatform.isDarwin
     then "/Users/${user}"
     else "/home/${user}"
   );
@@ -126,7 +111,7 @@ in {
     '';
     extraPackages = neovimExtraPackages;
     extraWrapperArgs =
-      lib.optionals (pkgs.stdenv.isDarwin)
+      lib.optionals (pkgs.stdenv.hostPlatform.isDarwin)
       (lib.concatMap (pkg: [
           "--prefix"
           "PATH"
@@ -207,10 +192,12 @@ in {
     "${config.xdg.configHome}/nvim/lazy-lock.json".source = "${dotfiles}/neovim/logic/lazy-lock.json";
     "${config.xdg.configHome}/nvim/mason-lock-private.json".source = "${dotfiles}/neovim/logic/mason-lock-private.json";
     "${config.xdg.configHome}/nvim/mason-lock-work.json".source = "${dotfiles}/neovim/logic/mason-lock-work.json";
-    "${config.xdg.configHome}/opencode/AGENTS.md".source = "${dotfiles}/opencode/AGENTS.md";
-    "${config.xdg.configHome}/opencode/agent".source = "${dotfiles}/opencode/agent";
-    "${config.xdg.configHome}/opencode/commands".source = "${dotfiles}/opencode/commands";
-    "${config.xdg.configHome}/opencode/skills".source = "${dotfiles}/opencode/skills";
+    ".claude/CLAUDE.md".source = "${dotfiles}/agents/AGENTS.md";
+    ".codex/AGENTS.md".source = "${dotfiles}/agents/AGENTS.md";
+    "${config.xdg.configHome}/opencode/AGENTS.md" = {
+      enable = !(homeContext.isWork config);
+      source = "${dotfiles}/agents/AGENTS.md";
+    };
     "${config.xdg.configHome}/starship.toml".source = "${dotfiles}/starship/starship.toml";
     "${config.xdg.configHome}/tmux".source = "${dotfiles}/tmux";
     "${config.xdg.configHome}/wezterm".source = "${dotfiles}/wezterm";

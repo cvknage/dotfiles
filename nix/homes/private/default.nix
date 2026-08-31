@@ -5,7 +5,6 @@
 }: {
   imports = [
     ../shared/secrets.nix
-    ../../modules/home/opencode
   ];
 
   sops.secrets = {

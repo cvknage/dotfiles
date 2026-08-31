@@ -1,14 +1,16 @@
-# The included file is rendered by sops-nix from nix/homes/work/default.nix, so it
-# only exists on work machines. Git ignores an include it cannot read.
+# The work signing module publishes this include and the public verification
+# material outside the denied sops runtime tree. It exists only on work hosts.
 
 [includeIf "hasconfig:remote.*.url:git@github.com:secomea-dev/**"]
-	path = ~/.config/sops-nix/secrets/rendered/git-secomea.inc
+	path = ~/.config/git-identity/git-work.inc
 [includeIf "hasconfig:remote.*.url:ssh://git@github.com/secomea-dev/**"]
-	path = ~/.config/sops-nix/secrets/rendered/git-secomea.inc
+	path = ~/.config/git-identity/git-work.inc
 [includeIf "hasconfig:remote.*.url:https://github.com/secomea-dev/**"]
-	path = ~/.config/sops-nix/secrets/rendered/git-secomea.inc
+	path = ~/.config/git-identity/git-work.inc
 
 # libgit2 does not implement hasconfig: (libgit2/libgit2#6641), so gitui and
 # friends would commit unsigned without warning. gitdir: covers them.
 [includeIf "gitdir:~/code/"]
-	path = ~/.config/sops-nix/secrets/rendered/git-secomea.inc
+	path = ~/.config/git-identity/git-work.inc
+[includeIf "gitdir:~/Code/"]
+	path = ~/.config/git-identity/git-work.inc

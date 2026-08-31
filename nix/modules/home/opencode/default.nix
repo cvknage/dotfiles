@@ -1,23 +1,21 @@
 {
-  lib,
-  repoScopes,
+  agentPolicy,
+  agentSandbox,
+  config,
+  homeContext,
+  pkgs,
   ...
 }: let
-  sharedPermissions = import ../agents/command-permissions.nix;
-  permissionsLib = import ../agents/permissions-lib.nix {inherit lib;};
-
-  scopedPathRules = permissionsLib.mkOpencodeScopedPathRules repoScopes;
-
-  externalDirectoryRules = lib.foldl' lib.recursiveUpdate {"*" = "deny";} (map
-    (dir: {
-      "${dir}" = "allow";
-      "${dir}/**" = "allow";
-    })
-    repoScopes);
+  sandboxedOpenCode = agentSandbox.wrapPackage {
+    agent = "opencode";
+    package = pkgs.opencode;
+    executable = "opencode";
+  };
 in {
   programs.opencode = {
-    enable = true;
+    enable = !(homeContext.isWork config);
     enableMcpIntegration = true;
+    package = sandboxedOpenCode;
     themes = {
       catppuccin-macchiato-transparent = {
         defs = {
@@ -91,40 +89,36 @@ in {
         };
       };
     };
-    settings = {
-      autoupdate = true;
-      share = "manual";
-      permission = {
-        external_directory = externalDirectoryRules;
-        bash =
-          lib.recursiveUpdate
-          (permissionsLib.mkOpencodeBashPermissions sharedPermissions)
-          scopedPathRules;
-      };
-      formatter = {
-        nixfmt.disabled = true;
-        alejandra = {
-          command = ["alejandra" "$FILE"];
-          extensions = [".nix"];
+    settings =
+      {
+        # A self-updated binary would replace the Nix-managed one.
+        autoupdate = false;
+        share = "manual";
+        formatter = {
+          nixfmt.disabled = true;
+          alejandra = {
+            command = ["alejandra" "$FILE"];
+            extensions = [".nix"];
+          };
+          stylua = {
+            command = ["stylua" "$FILE"];
+            extensions = [".lua"];
+          };
+          shfmt = {
+            command = ["shfmt" "-i" "2" "-ci" "-w" "$FILE"];
+            extensions = [".sh" ".bash" ".zsh"];
+          };
+          taplo = {
+            command = ["taplo" "format" "$FILE"];
+            extensions = [".toml"];
+          };
+          csharpier = {
+            command = ["dotnet" "csharpier" "format" "$FILE"];
+            extensions = [".cs" ".xml"];
+          };
         };
-        stylua = {
-          command = ["stylua" "$FILE"];
-          extensions = [".lua"];
-        };
-        shfmt = {
-          command = ["shfmt" "-i" "2" "-ci" "-w" "$FILE"];
-          extensions = [".sh" ".bash" ".zsh"];
-        };
-        taplo = {
-          command = ["taplo" "format" "$FILE"];
-          extensions = [".toml"];
-        };
-        csharpier = {
-          command = ["dotnet" "csharpier" "format" "$FILE"];
-          extensions = [".cs" ".xml"];
-        };
-      };
-    };
+      }
+      // agentPolicy.opencode.settings;
     tui = {
       theme = "catppuccin-macchiato-transparent";
     };

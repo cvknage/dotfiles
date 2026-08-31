@@ -20,6 +20,10 @@ if ! @jq@/bin/jq -e . "$user_settings" >/dev/null 2>&1; then
   @coreutils@/bin/printf '{}' > "$user_settings"
 fi
 
-@jq@/bin/jq -s '.[0] * .[1]' "$user_settings" "$managed_settings" > "$out_settings"
+# Keys nix owns outright, dropped from the user copy rather than merged. The
+# merge below is recursive and only ever adds or overwrites, so without this a
+# setting removed from the flake would survive in the mutable file forever.
+@jq@/bin/jq -s 'del(.[0].hooks, .[0].permissions, .[0].sandbox) | .[0] * .[1]' \
+  "$user_settings" "$managed_settings" > "$out_settings"
 @coreutils@/bin/install -m 0644 "$out_settings" "$state_settings"
 @coreutils@/bin/rm -rf "$tmp_dir"

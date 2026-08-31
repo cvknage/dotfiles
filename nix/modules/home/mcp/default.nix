@@ -1,8 +1,8 @@
 {
   config,
+  homeContext,
   lib,
   pkgs,
-  repoScopes,
   ...
 }: let
   /*
@@ -18,12 +18,23 @@
       '';
     };
   */
+  # Agent launchers provide the shared writable tool caches. MCP wrappers
+  # inherit those paths instead of replacing them with per-process temp caches.
   mkNpxCmd = name:
     pkgs.writeShellApplication {
       name = "mcp-${name}";
       runtimeInputs = [pkgs.nodejs];
       text = ''
         exec npx "$@"
+      '';
+    };
+  mkNixCmd = name:
+    pkgs.writeShellApplication {
+      name = "mcp-${name}";
+      runtimeInputs = [pkgs.nix];
+      text = ''
+        export NIX_REMOTE=daemon
+        exec nix "$@"
       '';
     };
   /*
@@ -40,29 +51,19 @@
       '';
     };
   */
-  # isWorkContext = config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == "work";
 in {
   programs.mcp = {
     enable = true;
     servers = {
-      filesystem = {
-        type = "local";
-        command = lib.getExe (mkNpxCmd "filesystem");
-        args =
-          ["-y" "@modelcontextprotocol/server-filesystem"]
-          ++ repoScopes;
-      };
       nixos = {
-        type = "local";
-        command = "nix";
+        command = lib.getExe (mkNixCmd "nixos");
         args = ["run" "github:utensils/mcp-nixos" "--"];
       };
       context7 = {
-        type = "local";
         command = lib.getExe (mkNpxCmd "context7");
         args = ["-y" "@upstash/context7-mcp"];
       };
-      # kubernetes = lib.mkIf isWorkContext {
+      # kubernetes = lib.mkIf (homeContext.isWork config) {
       #   type = "local";
       #   command = lib.getExe (mkNpxCmd "kubernetes");
       #   args = ["-y" "kubernetes-mcp-server@latest"];
