@@ -4,6 +4,7 @@
   homeDirectory,
   xdgConfigHome,
   isDarwin,
+  isWork ? false,
   orderBefore ? (_: value: value),
   uid ? 1000,
 }: let
@@ -69,7 +70,12 @@
   ];
 
   gitIdentityDirectory = "${xdgConfigHome}/git-identity";
-  sshAgentSocket = "${gitIdentityDirectory}/ssh-agent.sock";
+  # Only the work profile runs the signing relay; elsewhere the socket does
+  # not exist, so agents get no agent at all.
+  sshAgentSocket =
+    if isWork
+    then "${gitIdentityDirectory}/ssh-agent.sock"
+    else "";
   serviceSockets =
     ["/nix/var/nix/daemon-socket/socket"]
     ++ lib.optionals (!isDarwin) ["/run/docker.sock"];
@@ -170,7 +176,10 @@
   in {
     inherit dockerConfigRoot;
     launchRoots = trustedRoots;
-    readOnlyPaths = sharedReadOnlyPaths ++ systemReadOnlyPaths ++ [gitIdentityDirectory];
+    readOnlyPaths =
+      sharedReadOnlyPaths
+      ++ systemReadOnlyPaths
+      ++ lib.optionals isWork [gitIdentityDirectory];
     socketPaths = serviceSockets;
     writePaths = workspaceRoots ++ sharedWritablePaths ++ runtimeRoots ++ runtimeFiles ++ kubernetesStateRoots;
     ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot];
@@ -182,17 +191,21 @@
   # Private host data excluded from both the agent and Docker views.
   credentialPaths =
     inHome [
-      ".ssh"
       ".aws"
-      ".gnupg"
-      ".config/sops"
-      ".config/sops-nix"
+      ".bash_history"
       ".claude/.credentials.json"
       ".codex/auth.json"
+      ".config/sops"
+      ".config/sops-nix"
       ".docker/config.json"
       ".git-credentials"
+      ".gnupg"
+      ".local/share/fish/fish_history"
+      ".local/share/opencode/auth.json"
       ".netrc"
       ".npmrc"
+      ".ssh"
+      ".zsh_history"
     ]
     ++ lib.optionals (!isDarwin) [
       "/run/keys"
@@ -213,11 +226,8 @@
       if isDarwin
       then [
         "Applications"
+        "Library"
         "Movies"
-        "Library/Keychains"
-        "Library/Mail"
-        "Library/Messages"
-        "Library/Safari"
       ]
       else [
         "Public"
@@ -270,6 +280,7 @@
 in {
   inherit
     deniedPaths
+    homeDirectory
     outerSandboxProfiles
     sshAgentSocket
     toolCachePaths

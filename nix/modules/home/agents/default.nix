@@ -1,5 +1,6 @@
 {
   config,
+  homeContext,
   lib,
   pkgs,
   ...
@@ -9,6 +10,7 @@
     homeDirectory = config.home.homeDirectory;
     xdgConfigHome = config.xdg.configHome;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
+    isWork = homeContext.isWork config;
     orderBefore = lib.hm.dag.entryBefore;
   };
   sandbox = import ../../agents/outer-sandbox.nix {
