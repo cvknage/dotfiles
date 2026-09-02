@@ -119,7 +119,6 @@
       "LocalSend" = 1661733229;
 
       # Developer Tools
-      "Xcode" = 497799835;
       "CotEditor" = 1024640650;
 
       # Creative

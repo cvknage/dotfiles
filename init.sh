@@ -24,6 +24,18 @@ if [ "$TARGET" = "nixos" ] && ! command -v git >/dev/null; then
   exec nix-shell -p git --run "bash $(printf '%q' "$SCRIPT_DIR/init.sh")"
 fi
 
+if [ "$(uname -s)" = "Darwin" ]; then
+  if [ ! -d /Library/Developer/CommandLineTools ]; then
+    xcode-select --install
+    echo "Complete the Command Line Tools installation, then re-run init.sh."
+    exit 0
+  fi
+
+  if [ "$(xcode-select -p)" != "/Library/Developer/CommandLineTools" ]; then
+    sudo xcode-select --switch /Library/Developer/CommandLineTools
+  fi
+fi
+
 git config user.name "$(git log --reverse --format=%an | head -n 1)"
 git config user.email "$(git log --reverse --format=%ae | head -n 1)"
 
