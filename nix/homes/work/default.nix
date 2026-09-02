@@ -20,7 +20,6 @@
   };
 in {
   imports = [
-    ../shared/secrets.nix
     ../../modules/home/another-redis-desktop-manager
     ../../modules/home/claude-desktop
     ../../modules/home/outlook

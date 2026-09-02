@@ -21,7 +21,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     secrets = {
-      # Private repo, fetched with a deploy key via ./secrets-bootstrap.sh
+      # Private repo, fetched with a deploy key via ./scripts/secrets-bootstrap.sh
       url = "git+ssh://github-secrets/cvknage/dotfiles-secrets";
       inputs.nixpkgs.follows = "nixpkgs";
     };

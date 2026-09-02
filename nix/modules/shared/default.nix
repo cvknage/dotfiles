@@ -2,7 +2,7 @@
   imports = [
     ../agents/system.nix
     ./home-manager
-    ./secrets-ssh.nix
+    ./secrets
     ./stable-packages
     ./system.nix
   ];

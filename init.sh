@@ -60,7 +60,7 @@ if ! command -v nix >/dev/null; then
 fi
 
 # Access to the private dotfiles-secrets input; must run before the rebuild
-if ! bash "$SCRIPT_DIR/nix/secrets-bootstrap.sh"; then
+if ! bash "$SCRIPT_DIR/nix/scripts/secrets-bootstrap.sh"; then
   echo ""
   echo "Complete the NEXT STEPS above, then re-run \`bash init.sh\`"
   exit 0

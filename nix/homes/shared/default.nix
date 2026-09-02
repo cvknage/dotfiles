@@ -80,6 +80,7 @@ in {
   imports = [
     ../../../rust
     ../../modules/home/agents
+    ../../modules/home/secrets
   ];
 
   home.username = lib.mkDefault user;

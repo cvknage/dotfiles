@@ -124,9 +124,9 @@ Each machine has one keypair, `~/.ssh/keys/dotfiles-secrets`:
 - **sops age identity** — converted by sops-nix at activation (`sops.age.sshKeyPaths`)
 
 The flake input is fetched via the `github-secrets` ssh alias: github.com,
-offering only this keypair. It is defined once in `modules/shared/secrets-ssh-alias.nix`
+offering only this keypair. It is defined once in `modules/shared/secrets/alias.nix`
 and rendered into `/etc/ssh` (system configs) and `~/.ssh/config` (standalone home-manager).
-`secrets-bootstrap.sh` creates the keypair and primes the input for the first rebuild.
+`scripts/secrets-bootstrap.sh` creates the keypair and primes the input for the first rebuild.
 
 ### New machine
 
@@ -148,7 +148,7 @@ Follow the printed instructions:
 
 ### Without a key
 
-Homes that don't import `homes/shared/secrets.nix` build without a key — flake
+Homes that do not import `modules/home/secrets` build without a key — flake
 inputs are fetched lazily. `nix flake update` needs repo access; update named
 inputs instead: `nix flake update nixpkgs --flake .`
 

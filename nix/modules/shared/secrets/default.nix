@@ -4,7 +4,7 @@
   user,
   ...
 }: let
-  alias = import ./secrets-ssh-alias.nix (
+  alias = import ./alias.nix (
     if pkgs.stdenv.isDarwin
     then "/Users/${user}"
     else "/home/${user}"

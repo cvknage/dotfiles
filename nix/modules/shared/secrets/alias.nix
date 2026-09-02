@@ -1,5 +1,4 @@
-# Single source for the github-secrets ssh alias. Rendered into /etc/ssh by
-# ./secrets-ssh.nix and into ~/.ssh/config by homes/shared/secrets-ssh.nix.
+# Single source for the github-secrets SSH alias.
 home: {
   host = "github-secrets";
   settings = {

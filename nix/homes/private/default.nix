@@ -3,10 +3,6 @@
   pkgs,
   ...
 }: {
-  imports = [
-    ../shared/secrets.nix
-  ];
-
   sops.secrets = {
     mutation_strings = {};
   };
