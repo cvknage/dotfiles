@@ -57,3 +57,10 @@ Automation and safety rules that apply across all repositories.
 - Always read a file before editing; preserve indentation and use the repository's formatters.
 - Preserve existing user changes and avoid modifying unrelated files.
 - Avoid creating new documentation files unless requested; prefer updating existing scoped documentation.
+
+## Code Comments
+
+- Keep comments minimal and written in clear, simple language.
+- Describe only the current state; never explain what changed or how it worked before.
+- Leave out comments that are unnecessary or unhelpful; no comment is better than a redundant one.
+- Match the surrounding file's existing comment style and density.
