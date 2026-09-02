@@ -33,7 +33,6 @@
   deny = [
     "git push"
 
-    "gh api"
     "gh release delete"
     "gh repo archive"
     "gh repo delete"
