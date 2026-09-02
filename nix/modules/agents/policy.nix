@@ -39,13 +39,17 @@
         configRoot
         "${homeDirectory}/.local/state/claude"
         "${homeDirectory}/.cache/claude-cli-nodejs"
+        mcpAuthRoot
       ];
-      runtimeFiles = ["${homeDirectory}/.claude.json"];
+      runtimeFiles = [];
     };
     codex = rec {
       configRoot = "${homeDirectory}/.codex";
       trustedRoots = workspaceRoots ++ [configRoot];
-      runtimeRoots = [configRoot];
+      runtimeRoots = [
+        configRoot
+        mcpAuthRoot
+      ];
       runtimeFiles = [];
     };
     opencode = rec {
@@ -57,10 +61,15 @@
         "${homeDirectory}/.cache/opencode"
         "${homeDirectory}/.local/share/opencode"
         "${homeDirectory}/.local/state/opencode"
+        mcpAuthRoot
       ];
       runtimeFiles = [];
     };
   };
+
+  # Remote MCP OAuth sessions are shared by the configured agents. Keep this
+  # separate from their own config roots so the credential scope stays explicit.
+  mcpAuthRoot = "${homeDirectory}/.mcp-auth";
 
   # Shared development state exposed to every agent.
   kubernetesStateRoots = inHome [

@@ -19,7 +19,7 @@
   mutableSettingsPath = agentPolicy.claude.mutableSettingsPath;
   managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
 
-  # Claude stores user-scoped MCP servers in ~/.claude.json. Home Manager's
+  # Claude stores user-scoped MCP servers in ~/.claude/.config.json. Home Manager's
   # generic Claude integration currently materializes them as a plugin below
   # ~/.claude/skills, but Claude does not register that directory as an enabled
   # plugin. Merge the shared servers into Claude's actual user registry instead.
@@ -55,7 +55,7 @@
     (builtins.readFile ./materialize-settings.sh);
 
   mcpActivationScript = ''
-    state_file="$HOME/.claude.json"
+    state_file="$HOME/.claude/.config.json"
     managed_file=${lib.escapeShellArg "${managedMcpFile}"}
 
     tmp_dir="$(${pkgs.coreutils}/bin/mktemp -d)"
@@ -81,6 +81,7 @@
       | ($user | del(.mcpServers)) * {mcpServers: ($managed.mcpServers // {})}
     ' "$user_config" "$managed_file" > "$out_config"
 
+    ${pkgs.coreutils}/bin/mkdir -p "$HOME/.claude"
     ${pkgs.coreutils}/bin/install -m 0600 "$out_config" "$state_file"
     ${pkgs.coreutils}/bin/rm -rf "$tmp_dir"
     trap - EXIT
