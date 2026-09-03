@@ -7,7 +7,7 @@
   ...
 }: let
   homeDirectory = "/home/${user}";
-  policy = import ./policy.nix {
+  policy = import ../../shared/agents/policy/default.nix {
     inherit homeDirectory lib;
     isDarwin = false;
     xdgConfigHome = "${homeDirectory}/.config";

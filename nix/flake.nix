@@ -163,7 +163,7 @@
         install-agent-policy = {
           type = "app";
           meta.description = "Install the root-owned agent policy into /etc";
-          program = lib.getExe (import ./modules/agents/install.nix {
+          program = lib.getExe (import ./apps/install-agent-policy.nix {
             inherit inputs lib;
             pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
             homeDirectory = "/home/${workUser}";

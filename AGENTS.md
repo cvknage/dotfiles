@@ -11,7 +11,7 @@
 
 ## 1. Getting Set Up
 - Run `bash init.sh` once after cloning; it links `~/.dotfiles`, installs Nix if needed, then performs the appropriate rebuild (`darwin-rebuild`, `nixos-rebuild`, or `home-manager switch`).
-- MCP servers (NixOS, Context7, etc.) are configured in `nix/modules/home/mcp`; prefer using them whenever applicable.
+- MCP servers (NixOS, Context7, etc.) are configured in `nix/modules/home/agents/mcp`; prefer using them whenever applicable.
 
 ## 2. Command Reference (Build/Lint/Test)
 - **Flake validation:** `nix flake check ./nix` — evaluates recognized outputs and runs checks for the current system.
@@ -76,8 +76,9 @@
   container workflows without exposing unrelated private host data.
 - The launcher activates an allowed project direnv environment before starting the agent so flake-provided compilers and
   tools are available without granting broad access to the host filesystem.
-- Security behavior is defined centrally under `nix/modules/agents/` and is intended to remain consistent across agents
-  and supported platforms. A configuration change becomes effective only after activation and an agent restart.
+- Security behavior is defined in `nix/modules/shared/agents/` and `nix/modules/home/agents/`, with platform
+  installation under `nix/modules/nixos/agents/` and `nix/modules/darwin/agents/`. Configuration changes become effective
+  only after activation and an agent restart.
 
 ## 7. Code Style & Formatting
 

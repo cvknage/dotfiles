@@ -5,7 +5,7 @@
   pkgs,
   homeDirectory,
 }: let
-  files = import ./managed-files.nix {inherit homeDirectory inputs lib pkgs;};
+  files = import ../modules/shared/agents/policy/managed-files.nix {inherit homeDirectory inputs lib pkgs;};
 in
   pkgs.writeShellApplication {
     name = "install-agent-policy";

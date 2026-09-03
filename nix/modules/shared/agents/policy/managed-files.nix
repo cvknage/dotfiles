@@ -9,7 +9,7 @@
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   hmLib = inputs.home-manager.lib.hm;
   orderedJsonFormat = hmLib.generators.mkDAGOrderedJsonFormat {inherit pkgs;};
-  policy = import ./policy.nix {
+  policy = import ./default.nix {
     inherit isDarwin lib homeDirectory;
     xdgConfigHome = "${homeDirectory}/.config";
     orderBefore = hmLib.dag.entryBefore;

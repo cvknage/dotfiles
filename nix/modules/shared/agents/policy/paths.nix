@@ -5,17 +5,9 @@
   xdgConfigHome,
   isDarwin,
   isWork ? false,
-  orderBefore ? (_: value: value),
   uid ? 1000,
 }: let
-  commands = import ./commands.nix;
   inHome = paths: map (path: "${homeDirectory}/${path}") paths;
-  toAttrs = value: paths:
-    lib.listToAttrs (map (path: {
-        name = path;
-        inherit value;
-      })
-      paths);
 
   # Workspaces are shared by every agent and deliberately writable.
   workspaceRoots = [
@@ -276,127 +268,18 @@
       "${root}/**/opencode.jsonc"
     ])
     workspaceRoots;
-
-  # Translate shared command prefixes into each agent's native rule syntax.
-  expandCommandPrefixes = lib.concatMap (prefix: [prefix "${prefix} *"]);
-  toCommandTokens = prefix:
-    lib.filter (token: token != "") (lib.splitString " " prefix);
-  toClaudeBashRules = prefixes: map (pattern: "Bash(${pattern})") (expandCommandPrefixes prefixes);
-  toClaudePath = path: "//${lib.removePrefix "/" path}";
-  toClaudeEditRules = paths: map (path: "Edit(${toClaudePath path})") paths;
-  toOpencodeRules = effect: prefixes: toAttrs effect (expandCommandPrefixes prefixes);
-  toCodexRule = decision: prefix: "prefix_rule(pattern = ${builtins.toJSON (toCommandTokens prefix)}, decision = \"${decision}\")";
 in {
   inherit
+    agentPaths
+    claudeGlobalSettingsPaths
+    claudeProjectSettingsPaths
     deniedPaths
     homeDirectory
+    opencodeGlobalSettingsPaths
+    opencodeProjectSettingsPaths
     outerSandboxProfiles
     sshAgentSocket
     toolCachePaths
     workspaceRoots
     ;
-  claude = {
-    settings = {
-      "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-      permissions = {
-        allow =
-          [
-            "Bash(*)"
-            # Context7 is Claude's hosted connector; only NixOS is registered
-            # as a local MCP server by the Claude Home Manager module.
-            "mcp__context7__*"
-            "mcp__nixos__*"
-          ]
-          ++ lib.concatMap (path: [
-            "Read(${toClaudePath path})"
-            "Read(${toClaudePath path}/**)"
-            "Edit(${toClaudePath path})"
-            "Edit(${toClaudePath path}/**)"
-          ])
-          (agentPaths.claude.trustedRoots ++ agentPaths.claude.scratchRoots);
-        ask = (toClaudeBashRules commands.ask) ++ (toClaudeEditRules claudeProjectSettingsPaths);
-        deny =
-          (toClaudeBashRules commands.deny)
-          ++ (toClaudeEditRules claudeGlobalSettingsPaths)
-          ++ lib.concatMap (path: [
-            "Read(${toClaudePath path})"
-            "Read(${toClaudePath path}/**)"
-          ])
-          deniedPaths;
-        additionalDirectories = agentPaths.claude.trustedRoots;
-        disableBypassPermissionsMode = "disable";
-      };
-
-      # The whole-process wrapper is the filesystem authority. Disabling the
-      # nested command sandbox avoids conflicting mounts and exceptions.
-      sandbox.enabled = false;
-    };
-    mutableSettingsPath = agentPaths.claude.mutableSettingsPath;
-  };
-
-  codex = {
-    # Codex has no path-specific edit rules. Its root-owned requirements
-    # constrain native modes; the outer sandbox is the filesystem boundary.
-    settings = {
-      approval_policy = "on-request";
-      sandbox_mode = "danger-full-access";
-    };
-    requirements = {
-      allowed_approval_policies = ["on-request"];
-      # Codex requires "read-only" as the baseline every permission profile
-      # builds on, even though this configuration uses the outer sandbox.
-      allowed_sandbox_modes = ["read-only" "danger-full-access"];
-    };
-    rules = lib.concatLines (
-      (map (toCodexRule "forbidden") commands.deny)
-      ++ (map (toCodexRule "prompt") commands.ask)
-    );
-  };
-
-  opencode = let
-    # OpenCode takes the last matching rule, so specific exceptions must follow
-    # the wildcard default.
-    withDefaultRuleFirst = fallback: rules:
-      {
-        "*" = orderBefore (builtins.attrNames rules) fallback;
-      }
-      // rules;
-    readRules = {
-      "${agentPaths.opencode.authFile}" = "deny";
-    };
-    editRules =
-      toAttrs "ask" opencodeProjectSettingsPaths
-      // toAttrs "deny" opencodeGlobalSettingsPaths;
-    externalDirectoryRules = lib.foldl' lib.recursiveUpdate {} (map (path: {
-        "${path}" = "allow";
-        "${path}/**" = "allow";
-      })
-      agentPaths.opencode.trustedRoots);
-    bashRules =
-      toOpencodeRules "ask" commands.ask
-      // toOpencodeRules "deny" commands.deny;
-  in {
-    settings = {
-      "$schema" = "https://opencode.ai/config.json";
-      permission = withDefaultRuleFirst "ask" {
-        "context7_*" = "allow";
-        "nixos_*" = "allow";
-        bash = withDefaultRuleFirst "allow" bashRules;
-        doom_loop = "ask";
-        edit = withDefaultRuleFirst "allow" editRules;
-        external_directory = withDefaultRuleFirst "deny" externalDirectoryRules;
-        glob = "allow";
-        grep = "allow";
-        list = "allow";
-        lsp = "allow";
-        question = "allow";
-        read = withDefaultRuleFirst "allow" readRules;
-        skill = "allow";
-        task = "allow";
-        todowrite = "allow";
-        webfetch = "allow";
-        websearch = "allow";
-      };
-    };
-  };
 }

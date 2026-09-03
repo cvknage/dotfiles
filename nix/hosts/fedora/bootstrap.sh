@@ -36,8 +36,26 @@ PACKAGES=(
   NetworkManager-openvpn-gnome
 )
 
-# Fedora Workstation already ships upstream GNOME, so unlike Ubuntu there is no
-# vanilla session to add.
+# Hardware-specific: NVIDIA driver from RPM Fusion, built as an akmod against
+# the running kernel; skipped on other hosts. mokutil is needed to enroll the
+# module signing key when Secure Boot is on. NVIDIA's PCI vendor id is 0x10de.
+if grep -q "0x10de" /sys/bus/pci/devices/*/vendor 2>/dev/null; then
+  PACKAGES+=(akmod-nvidia mokutil)
+fi
+
+# Hardware-specific: Tuxedo's own repo provides the Control Center, and
+# tuxedo-drivers (DKMS) comes with it as a dependency. Skipped on other hosts.
+if grep -qi tuxedo /sys/class/dmi/sys_vendor 2>/dev/null; then
+  PACKAGES+=(tuxedo-control-center)
+fi
+
+# RPM Fusion provides the NVIDIA driver and multimedia packages Fedora ships
+# without. The release packages are installed by URL; they are not in Fedora's
+# own repos.
+RPMFUSION_REPOS=(
+  rpmfusion-free-release
+  rpmfusion-nonfree-release
+)
 
 # input: read raw keyboard devices. uinput: inject events. Only needed to run
 # kanata by hand; the service runs as a DynamicUser with its own groups.
@@ -62,6 +80,13 @@ for package in "${PACKAGES[@]}"; do
   fi
 done
 
+missing_repos=()
+for repo in "${RPMFUSION_REPOS[@]}"; do
+  if ! rpm -q "$repo" >/dev/null 2>&1; then
+    missing_repos+=("$repo")
+  fi
+done
+
 missing_groups=()
 for group in "${GROUPS_WANTED[@]}"; do
   if ! id -nG "$TARGET_USER" | tr ' ' '\n' | grep -qx "$group"; then
@@ -69,7 +94,8 @@ for group in "${GROUPS_WANTED[@]}"; do
   fi
 done
 
-if [ ${#missing_packages[@]} -eq 0 ] && [ ${#missing_groups[@]} -eq 0 ]; then
+if [ ${#missing_packages[@]} -eq 0 ] && [ ${#missing_groups[@]} -eq 0 ] \
+  && [ ${#missing_repos[@]} -eq 0 ]; then
   echo "Fedora prerequisites already in place."
   exit 0
 fi
@@ -79,9 +105,39 @@ if [ "$(id -u)" -ne 0 ]; then
   exec sudo -E bash "${BASH_SOURCE[0]}" "$@"
 fi
 
+if [ ${#missing_repos[@]} -gt 0 ]; then
+  echo "Enabling RPM Fusion: ${missing_repos[*]}"
+  dnf install -y \
+    "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+    "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm"
+fi
+
+# The repo file pins nothing: baseurl and gpgkey both use $releasever, so it
+# works for any Fedora release. dnf fetches the GPG key from the declared URL
+# on first install.
+if grep -qi tuxedo /sys/class/dmi/sys_vendor 2>/dev/null && [ ! -s /etc/yum.repos.d/tuxedo.repo ]; then
+  echo "Adding the Tuxedo package repository..."
+  curl -fsSL "https://rpm.tuxedocomputers.com/fedora/tuxedo.repo" -o /etc/yum.repos.d/tuxedo.repo
+fi
+
 if [ ${#missing_packages[@]} -gt 0 ]; then
   echo "Installing: ${missing_packages[*]}"
   dnf install -y "${missing_packages[@]}"
+fi
+
+# Secure Boot refuses the unsigned akmod. Instead of disabling Secure Boot,
+# akmods signs the locally built module with its own key; mokutil queues the
+# key for enrollment, confirmed on the MOK screen at the next reboot.
+if rpm -q akmod-nvidia >/dev/null 2>&1 && command -v mokutil >/dev/null 2>&1 \
+  && [ -d /sys/firmware/efi ] && mokutil --sb-state 2>/dev/null | grep -qi "enabled"; then
+  if [ ! -e /etc/pki/akmods/certs/public_key.der ]; then
+    echo "Generating the akmod signing key..."
+    kmodgenca -a
+  fi
+  if ! mokutil --test-key /etc/pki/akmods/certs/public_key.der >/dev/null 2>&1; then
+    echo "Secure Boot is on; enrolling the akmod signing key (choose a password)."
+    mokutil --import /etc/pki/akmods/certs/public_key.der
+  fi
 fi
 
 # System Manager declares this group too, but it activates after this script.
@@ -92,19 +148,22 @@ for group in "${missing_groups[@]}"; do
   usermod -aG "$group" "$TARGET_USER"
 done
 
-systemctl enable --now docker
+systemctl enable --now docker nix-daemon
 
 cat <<EOF
 
 Fedora prerequisites installed. Steps Fedora or IT must still own:
 
-  - Graphics drivers:  Nvidia via RPM Fusion (akmod-nvidia), if needed
-  - Tuxedo drivers:    tuxedo-drivers DKMS, built from source on Fedora
   - Check Point Harmony Endpoint: vendor .deb; needs conversion or a vendor RPM
   - Red Hat IdM:       ipa-client-install, run with domain credentials by IT
   - SELinux:           enforcing by default; expect to audit denials for the
                        agent sandbox and the Nix store rather than disable it
   - Firewall:          firewalld is active by default, unlike Ubuntu's ufw
+
+If akmod-nvidia was installed, reboot: the NVIDIA module builds on the next
+boot and startup can take a few minutes. Verify with nvidia-smi afterwards.
+With Secure Boot, confirm the MOK enrollment screen at that reboot (the menu
+is QWERTY); skipping it leaves the driver unable to load.
 
 Log out and back in (or reboot) so the new group memberships apply.
 EOF

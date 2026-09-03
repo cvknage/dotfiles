@@ -14,7 +14,7 @@
 in {
   imports = [
     ../../../kanata/kanata_install_system_manager.nix
-    ../../modules/agents/system.nix
+    ../../modules/system-manager/agents/default.nix
     ../../modules/system-manager/docker.nix
   ];
 

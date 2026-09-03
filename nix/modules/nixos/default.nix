@@ -1,6 +1,6 @@
 {...}: {
   imports = [
-    ../agents/docker.nix
+    ./agents
     ./zsa
   ];
 }

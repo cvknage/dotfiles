@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: let
-  policy = import ../../agents/policy.nix {
+  policy = import ../../shared/agents/policy/default.nix {
     inherit lib;
     homeDirectory = config.home.homeDirectory;
     xdgConfigHome = config.xdg.configHome;
@@ -13,7 +13,7 @@
     isWork = homeContext.isWork config;
     orderBefore = lib.hm.dag.entryBefore;
   };
-  sandbox = import ../../agents/outer-sandbox.nix {
+  sandbox = import ./sandbox/default.nix {
     inherit lib pkgs policy;
   };
 in {
@@ -21,9 +21,9 @@ in {
   _module.args.agentSandbox = sandbox;
 
   imports = [
-    ../mcp
-    ../claude-code
-    ../codex
-    ../opencode
+    ./claude-code
+    ./codex
+    ./mcp
+    ./opencode
   ];
 }
