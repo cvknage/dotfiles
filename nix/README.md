@@ -12,19 +12,56 @@ Configuration for [`nix`](https://nixos.org/learn/)
 
 Install Nix with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer).
 
+Then run `bash init.sh` from the repo root, which also bootstraps the secrets key (see [Secrets](#secrets)).  
+Or follow the manual steps below:
+
+**NixOS:** bootstrap [`nixos-rebuild`](https://nixos.org/manual/nixos/unstable/#sec-changing-config) with:
+
+```bash
+nix-shell -p git
+sudo nixos-rebuild switch --flake . --option extra-experimental-features "nix-command flakes"
+```
+
+> A fresh install has neither `git` nor flakes, so both are supplied for this one run. Clone this repo from the
+> shell; afterwards they come from this configuration.
+
 **macOS:** bootstrap [`nix-darwin`](https://github.com/LnL7/nix-darwin) with:
 
 ```bash
 nix run nix-darwin -- switch --flake .
 ```
 
-**GNU/Linux (not NixOS):** bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with:
+**Ubuntu:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
 
 ```bash
-nix run home-manager/master -- switch --flake .
+bash nix/hosts/ubuntu/bootstrap.sh
+nix run ./nix#ubuntu-rebuild ./nix
 ```
 
-Or run `bash init.sh` from the repo root, which also bootstraps the secrets key (see [Secrets](#secrets)).
+`ubuntu-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment.
+
+Ubuntu stays authoritative for boot, drivers, GNOME, networking, and Docker. `bootstrap.sh` prints the driver,
+endpoint-security, and IdM steps it leaves to Ubuntu.
+
+On first apply:
+
+- `sudo systemctl restart docker` to pick up the agent-boundary drop-ins.
+- Log out and back in for the `docker`, `input`, and `uinput` groups, and so the desktop picks up `XDG_DATA_DIRS`.
+- Pick "GNOME" rather than "Ubuntu" at the login screen. `bootstrap.sh` installs the upstream session, which is
+  what the managed dconf settings and GNOME extensions target. If the option is missing, `/usr/share/wayland-sessions/`
+  has no `gnome.desktop`; install `vanilla-gnome-desktop` with `--no-install-recommends` instead.
+- On X11, copy `xkb/us_en_macintosh` into `/usr/share/X11/xkb/symbols/` — only Wayland reads the copy Home Manager
+  writes to `~/.config/xkb/symbols`.
+
+**Home Manager:** bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with:
+
+```bash
+nix run home-manager/master -- switch --flake '.#chris@work'
+sudo nix run ./nix#install-agent-policy
+```
+
+> Standalone Home Manager has no system tier, so re-run `install-agent-policy` after every switch, and run the
+> `sudo non-nixos-gpu-setup` command it prints so GPU-accelerated apps have drivers. Ubuntu does both for you.
 
 ## Secrets
 
@@ -73,22 +110,28 @@ inputs instead: `nix flake update nixpkgs --flake .`
 
 Update the configuration and rebuild the system.
 
+**NixOS:**
+
+```bash
+sudo nixos-rebuild switch --flake .
+```
+
 **macOS:**
 
 ```bash
 sudo darwin-rebuild switch --flake .
 ```
 
-**GNU/Linux (not NixOS):**
+**Ubuntu:**
 
 ```bash
-home-manager switch --flake .
+nix run ./nix#ubuntu-rebuild ./nix
 ```
 
-**NixOS:**
+**Home Manager:**
 
 ```bash
-sudo nixos-rebuild switch --flake .
+home-manager switch --flake '.#chris@work'
 ```
 
 ### Search for packages
@@ -260,4 +303,3 @@ Uninstall `nix` with the [Determinate Nix Installer](https://github.com/Determin
 ```bash
 /nix/nix-installer uninstall
 ```
-

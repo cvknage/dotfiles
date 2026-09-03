@@ -5,6 +5,11 @@
 # Idempotent. Exits 1 with instructions until the deploy key is authorized.
 set -euo pipefail
 
+# A fresh NixOS install has flakes disabled. Appended, so an existing
+# NIX_CONFIG survives, and additive, so enabled features are kept.
+NIX_CONFIG="$(printf '%s\nextra-experimental-features = nix-command flakes' "${NIX_CONFIG:-}")"
+export NIX_CONFIG
+
 SECRETS_REPO="cvknage/dotfiles-secrets"
 KEY="$HOME/.ssh/keys/dotfiles-secrets"
 
@@ -25,7 +30,10 @@ if GIT_SSH_COMMAND="$NO_ALIAS_SSH" \
   nix flake prefetch "git+ssh://github-secrets/$SECRETS_REPO" >/dev/null; then
   # sudo rebuilds evaluate as root with separate fetch caches; prime those too until the system ssh alias exists.
   if { [ "$(uname)" = "Darwin" ] || [ -e /etc/NIXOS ]; } && ! grep -qrs 'Host github-secrets' /etc/ssh/; then
-    sudo GIT_SSH_COMMAND="$NO_ALIAS_SSH" nix flake prefetch "git+ssh://github-secrets/$SECRETS_REPO" >/dev/null
+    # Via `env`, so sudo's env_reset cannot drop these; it only filters
+    # variables assigned to sudo itself, not arguments to the command.
+    sudo env GIT_SSH_COMMAND="$NO_ALIAS_SSH" NIX_CONFIG="$NIX_CONFIG" \
+      nix flake prefetch "git+ssh://github-secrets/$SECRETS_REPO" >/dev/null
   fi
   echo "Deploy key is authorized; $SECRETS_REPO is primed in the nix store."
   exit 0

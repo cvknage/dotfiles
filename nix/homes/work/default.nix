@@ -94,6 +94,11 @@ in {
   #   categories = ["Network" "WebBrowser"];
   # };
 
+  # The layout selected below. NixOS installs it system-wide; on distros where
+  # /usr/share/X11/xkb is host-owned, libxkbcommon reads it from here instead.
+  # Wayland sessions only: the X server does not consult the user path.
+  home.file."${config.xdg.configHome}/xkb/symbols/us_en_macintosh".source = ../../../xkb/us_en_macintosh;
+
   # Configure GNOME desktop settings using dconf
   dconf = {
     settings = {

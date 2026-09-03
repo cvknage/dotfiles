@@ -12,6 +12,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    system-manager = {
+      url = "github:numtide/system-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -53,6 +57,7 @@
     home-manager,
     nix-darwin,
     nix-homebrew,
+    system-manager,
     tuxedo-nixos,
     ...
   }: let
@@ -60,6 +65,7 @@
     user = "chris";
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
+    workHomeConfiguration = "${user}@work";
     inherit (nixpkgs) lib;
     extraArgs = {
       inherit inputs user;
@@ -120,19 +126,16 @@
       };
     };
 
-    # Install the root-owned policy after standalone Home Manager switches.
-    apps.${linuxArchitecture}.install-agent-policy = {
-      type = "app";
-      meta.description = "Install the root-owned agent policy into /etc";
-      program = lib.getExe (import ./modules/agents/install.nix {
-        inherit inputs lib;
-        pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
-        homeDirectory = "/home/${user}";
-      });
+    systemConfigs.ubuntu = system-manager.lib.makeSystemConfig {
+      specialArgs = extraArgs // {inherit self;};
+      modules = [
+        ./hosts/ubuntu/configuration.nix
+      ];
     };
 
-    # Standalone Home Manager cannot install the root-owned /etc policy.
-    homeConfigurations."${user}@full-tuxedo" = home-manager.lib.homeManagerConfiguration {
+    # Shared by every standalone Linux work host, regardless of hostname or
+    # distro. Standalone Home Manager cannot install the root-owned /etc policy.
+    homeConfigurations.${workHomeConfiguration} = home-manager.lib.homeManagerConfiguration {
       # Mirror the shared system module's package configuration.
       pkgs = import nixpkgs {
         system = linuxArchitecture;
@@ -142,8 +145,35 @@
       modules = [
         ./homes/shared
         ./homes/work
+        ./homes/work/generic-linux.nix
       ];
       extraSpecialArgs = extraArgs;
+    };
+
+    apps.${linuxArchitecture} = {
+      # Install the root-owned policy after standalone Home Manager switches.
+      # Not needed on Ubuntu, where System Manager owns the /etc policy.
+      install-agent-policy = {
+        type = "app";
+        meta.description = "Install the root-owned agent policy into /etc";
+        program = lib.getExe (import ./modules/agents/install.nix {
+          inherit inputs lib;
+          pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+          homeDirectory = "/home/${user}";
+        });
+      };
+
+      # Both Ubuntu configuration tiers in one command.
+      ubuntu-rebuild = {
+        type = "app";
+        meta.description = "Apply the System Manager and Home Manager tiers on Ubuntu";
+        program = lib.getExe (import ./hosts/ubuntu/rebuild.nix {
+          inherit inputs;
+          homeConfiguration = workHomeConfiguration;
+          pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+          system = linuxArchitecture;
+        });
+      };
     };
   };
 }

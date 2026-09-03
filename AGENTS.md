@@ -4,7 +4,8 @@
 > `agents/AGENTS.md`.
 
 ## 0. Mental Model
-1. This repository is the single source of truth for macOS (nix-darwin), NixOS, and standalone Home Manager environments.
+1. This repository is the single source of truth for macOS (nix-darwin), NixOS, Ubuntu (System Manager + standalone
+   Home Manager), and standalone Home Manager environments.
 2. Everything is orchestrated through the flake in `nix/`; resist ad-hoc OS/package changes.
 3. Secrets are delivered via `sops-nix` + the `secrets` flake input—never open decrypted payloads, only reference the managed paths.
 
@@ -16,12 +17,20 @@
 - **Flake validation:** `nix flake check ./nix` — evaluates recognized outputs and runs checks for the current system.
 - **NixOS target:** `nix build ./nix#nixosConfigurations.penguin-tuxedo.config.system.build.toplevel`.
 - **macOS target:** `nix build ./nix#darwinConfigurations.logic.system`.
-- **Home Manager target:** `nix build './nix#homeConfigurations."chris@full-tuxedo".activationPackage'`.
+- **Home Manager target:** `nix build './nix#homeConfigurations."chris@work".activationPackage'`.
+- **System Manager target:** `nix build ./nix#systemConfigs.ubuntu`.
 - **macOS rebuild:** `sudo darwin-rebuild switch --flake ./nix` (automatically manages Homebrew through `nix-homebrew`).
 - **NixOS rebuild:** `sudo nixos-rebuild switch --flake ./nix` (pulls in shared + host-specific modules).
-- **Standalone Home Manager:** `home-manager switch --flake './nix#chris@full-tuxedo'`.
+- **Standalone Home Manager:** `home-manager switch --flake './nix#chris@work'` — one configuration for every
+  standalone Linux work host, regardless of hostname or distro.
+- **Ubuntu rebuild:** `nix run ./nix#ubuntu-rebuild ./nix` — applies the System Manager tier then the Home Manager tier.
+  The flake directory is optional and defaults to `~/.dotfiles/nix`.
+  Individual tiers: `nix run github:numtide/system-manager -- switch --flake ./nix#ubuntu --sudo`.
+- **Ubuntu prerequisites:** `bash nix/hosts/ubuntu/bootstrap.sh` installs the Ubuntu-owned packages the Nix tiers
+  depend on. Idempotent, and elevates only when something is missing.
 - **Standalone agent policy:** after every standalone Home Manager switch, run
-  `sudo nix run ./nix#install-agent-policy`.
+  `sudo nix run ./nix#install-agent-policy`. Not needed on Ubuntu or NixOS, where the system tier owns the
+  `/etc` policy via `nix/modules/agents/system.nix`.
 - **Format Nix:** `nix fmt ./nix` (Alejandra via flake). For single files: `alejandra path/to/file.nix` if available.
 - **Lua formatting:** `cd neovim && stylua .` (configs expect 2 spaces / 120 cols; formatting on save is normally enabled).
 - **Shell linting:** use `bash -n script.sh` for syntax checks and `shellcheck script.sh` (install via Nix if missing) before committing substantive shell changes.
@@ -31,7 +40,7 @@
 - `agents/` — global instructions shared by all configured coding agents.
 - `shell/` and `rust/` — shared shell behavior and Rust toolchain configuration.
 - `btop/`, `direnv/`, `equaliser/`, `ghostty/`, `git/`, `gitui/`, `k9s/`, `kanata/`, `neovim/`, `starship/`,
-  `tmux/`, `wezterm/`, and `yazi/` — tool-specific configuration.
+  `tmux/`, `wezterm/`, `xkb/`, and `yazi/` — tool-specific configuration.
 - `wallpapers/` — platform theming assets.
 
 ## 4. Workflow Expectations
@@ -112,7 +121,9 @@
 ## 10. Testing & Verification Tips
 - Prefer the smallest relevant target build from section 2 before a full rebuild.
 - When adjusting Neovim configs, open `nvim` and run `:checkhealth`.
-- For kanata configs on non-NixOS hosts, follow `kanata/kanata_install_darwin.nix` and test via `kanata --config ...` before enabling at boot.
+- kanata's hardened systemd unit lives once in `kanata/kanata_linux.nix`; `kanata_install_nixos.nix` and
+  `kanata_install_ubuntu.nix` only add the platform's uinput plumbing. macOS uses `kanata_install_darwin.nix`.
+- On new hosts, test via `kanata --cfg kanata/kanata_us.kbd` before enabling the service at boot.
 
 ## 11. Commit & Review Hygiene
 - Prepare diffs with `git status` and `git diff` for inspection.
