@@ -23,13 +23,18 @@ in {
     hostPlatform = "x86_64-linux";
   };
 
+  # System Manager only asserts support for nixos, ubuntu and debian. Fedora is
+  # untested upstream, so this tier is experimental here even though the modules
+  # it uses are distro-agnostic.
+  system-manager.allowAnyDistro = true;
+
   # Nix is installed and upgraded by nix-installer. Do not let System Manager
   # replace that installation or its daemon configuration.
   nix.enable = false;
 
-  # Ubuntu and Red Hat IdM own users and groups. System Manager's default
+  # Fedora and Red Hat IdM own users and groups. System Manager's default
   # userborn tier would try to align groups like input, kvm, and render with
-  # nixpkgs GIDs, which do not match Ubuntu's.
+  # nixpkgs GIDs, which do not match Fedora's.
   services.userborn.enable = false;
 
   environment.systemPackages = with pkgs; [
@@ -39,9 +44,11 @@ in {
     gnupg
 
     # NixOS gets this from programs.localsend, which also opens port 53317.
-    # System Manager only mocks networking.firewall, so if `sudo ufw status`
-    # reports active, open the port with Ubuntu's own tool (both protocols):
-    #   sudo ufw allow 53317 comment 'localsend'
+    # System Manager only mocks networking.firewall, and Fedora runs firewalld
+    # by default, so the port has to be opened with Fedora's own tool:
+    #   sudo firewall-cmd --permanent --add-port=53317/tcp
+    #   sudo firewall-cmd --permanent --add-port=53317/udp
+    #   sudo firewall-cmd --reload
     localsend
   ];
 

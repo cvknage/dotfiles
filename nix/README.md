@@ -53,10 +53,56 @@ On first apply:
 - On X11, copy `xkb/us_en_macintosh` into `/usr/share/X11/xkb/symbols/` — only Wayland reads the copy Home Manager
   writes to `~/.config/xkb/symbols`.
 
+**Fedora:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
+
+```bash
+bash nix/hosts/fedora/bootstrap.sh
+nix run ./nix#fedora-rebuild ./nix
+```
+
+> Experimental. `bootstrap.sh` installs Fedora's own `nix` package rather than using the Determinate installer:
+> Fedora 44 ships 2.34.8, the version the flake already pins, built against Fedora's SELinux policy. That should
+> avoid the denials that stop systemd running `/nix/store` binaries, but it is untested here — the checks below
+> settle it. Also sets `system-manager.allowAnyDistro`, and needs no GNOME session package.
+
+### Verifying a rebuild
+
+Both tiers fail quietly in places. Run these after `ubuntu-rebuild` or `fedora-rebuild`.
+
+Ubuntu and Fedora both:
+
+```bash
+readlink /run/opengl-driver                                  # a /nix/store path, not empty
+systemctl cat docker | grep agent-boundary                   # drop-in loaded
+systemctl show docker -p ProtectHome                         # ProtectHome=tmpfs, so it took effect
+systemctl status uinput-setup kanata                         # both active
+command -v kanata                                            # under /run/system-manager/sw/bin
+systemctl --user show-environment | grep XDG_DATA_DIRS       # includes ~/.nix-profile/share
+systemctl --user status sops-nix git-signing-agent-relay     # both active; secrets render here
+ls /etc/claude-code/managed-settings.json /etc/codex/requirements.toml
+```
+
+Ubuntu only:
+
+```bash
+ls /usr/share/wayland-sessions/                              # gnome.desktop, for the upstream session
+sudo ufw status                                              # if active, 53317 open for localsend
+```
+
+Fedora only:
+
+```bash
+sudo ausearch -m avc -ts recent                              # no output
+sudo firewall-cmd --list-ports                               # 53317/tcp and 53317/udp for localsend
+```
+
+> Denials naming `/nix/store` or `default_t` are the known Fedora problem: systemd refusing to run services from the
+> store. The two `--user` services above are the canary.
+
 **Home Manager:** bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with:
 
 ```bash
-nix run home-manager/master -- switch --flake '.#chris@work'
+nix run home-manager/master -- switch --flake '.#ckn@work'
 sudo nix run ./nix#install-agent-policy
 ```
 
@@ -122,16 +168,17 @@ sudo nixos-rebuild switch --flake .
 sudo darwin-rebuild switch --flake .
 ```
 
-**Ubuntu:**
+**Ubuntu / Fedora:**
 
 ```bash
 nix run ./nix#ubuntu-rebuild ./nix
+nix run ./nix#fedora-rebuild ./nix
 ```
 
 **Home Manager:**
 
 ```bash
-home-manager switch --flake '.#chris@work'
+home-manager switch --flake '.#ckn@work'
 ```
 
 ### Search for packages
@@ -158,6 +205,16 @@ nix flake update home-manager --flake .
 ```
 
 Then rebuild the system.
+
+### Updating Nix itself
+
+`nix flake update` moves nixpkgs, not the Nix binary. Which tier owns Nix differs:
+
+- **NixOS and macOS:** the flake, so `nix flake update nixpkgs` and a rebuild. `nix.enable = true` puts
+  `nix.package` under the flake's control.
+- **Fedora:** `dnf`. Nix comes from Fedora's repos, so `dnf upgrade` moves it with the rest of the system.
+- **Ubuntu and standalone Home Manager:** the Determinate installer, so `sudo determinate-nixd upgrade`. Neither tier
+  can own the Nix package — System Manager's `nix` module writes `nix.conf` and nothing else.
 
 ### Install old versions of packages
 

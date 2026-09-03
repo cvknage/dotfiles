@@ -9,10 +9,13 @@ if [ -e /etc/NIXOS ]; then
   TARGET="nixos"
 elif [ "$(uname)" = "Darwin" ]; then
   TARGET="darwin"
-elif [ -r /etc/os-release ] && [ "$(. /etc/os-release && echo "$ID")" = "ubuntu" ]; then
-  TARGET="ubuntu"
 else
-  TARGET="home-manager"
+  DISTRO_ID=""
+  [ -r /etc/os-release ] && DISTRO_ID="$(. /etc/os-release && echo "$ID")"
+  case "$DISTRO_ID" in
+    ubuntu | fedora) TARGET="$DISTRO_ID" ;;
+    *) TARGET="home-manager" ;;
+  esac
 fi
 
 # A fresh NixOS install has no git; nix-shell provides it without needing flakes.
@@ -30,13 +33,21 @@ if [ -L $DOTFILES_DIR ] || [ ! -d $DOTFILES_DIR ]; then
   ln -s $SCRIPT_DIR $DOTFILES_DIR
 fi
 
-# Ubuntu-owned prerequisites; must run before the Nix installer.
-if [ "$TARGET" = "ubuntu" ]; then
-  bash "$SCRIPT_DIR/nix/hosts/ubuntu/bootstrap.sh"
+# Distro-owned prerequisites; must run before the Nix installer.
+if [ -f "$SCRIPT_DIR/nix/hosts/$TARGET/bootstrap.sh" ]; then
+  bash "$SCRIPT_DIR/nix/hosts/$TARGET/bootstrap.sh"
 fi
 
 if ! command -v nix >/dev/null; then
-  curl -fsSL https://install.determinate.systems/nix | sh -s -- install --prefer-upstream-nix
+  # Where the installer ends up owning Nix, take Determinate Nix (the default)
+  # for its supported upgrade path. macOS keeps upstream Nix because nix-darwin
+  # manages the package itself. Fedora never reaches this: its bootstrap
+  # installs Fedora's own nix package.
+  case $TARGET in
+    ubuntu | home-manager) installer_flags=() ;;
+    *) installer_flags=(--prefer-upstream-nix) ;;
+  esac
+  curl -fsSL https://install.determinate.systems/nix | sh -s -- install "${installer_flags[@]}"
 
   # The determinate systems nix installer finishes with the line below:
   # To get started using Nix, open a new shell or run `. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`
@@ -69,8 +80,9 @@ case $TARGET in
       sudo darwin-rebuild switch --flake ./nix
     fi
     ;;
-  ubuntu)
-    nix run ./nix#ubuntu-rebuild ./nix
+  ubuntu | fedora)
+    # Applies both tiers; see nix/lib/rebuild-app.nix
+    nix run "./nix#$TARGET-rebuild" ./nix
     ;;
   home-manager)
     if ! command -v home-manager >/dev/null; then

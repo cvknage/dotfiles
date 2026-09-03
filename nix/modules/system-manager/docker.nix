@@ -1,6 +1,6 @@
-# Docker is installed and updated by Ubuntu. System Manager owns only these
-# systemd drop-ins; defining `systemd.services.docker` here would replace
-# Ubuntu's unit and drop its ExecStart.
+# Docker is installed and updated by the host distro. System Manager owns only
+# these systemd drop-ins; defining `systemd.services.docker` here would replace
+# the host's unit and drop its ExecStart.
 {
   lib,
   user,
