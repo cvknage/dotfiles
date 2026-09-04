@@ -150,8 +150,8 @@
       };
       modules = [
         ./homes/shared
+        ./homes/shared/generic-linux.nix
         ./homes/work
-        ./homes/work/generic-linux.nix
       ];
       extraSpecialArgs = workArgs;
     };

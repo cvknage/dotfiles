@@ -2,7 +2,11 @@
 # Nix profile's share directory on XDG_DATA_DIRS through
 # ~/.config/environment.d, which is what makes GUI apps installed here appear
 # in the desktop's launcher. Never import this from the NixOS module path.
-{lib, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   targets.genericLinux.enable = true;
 
   # The module above sources nix.sh from .bashrc, and nix.sh has no re-source
@@ -54,4 +58,43 @@
   #   nix store prefetch-file --json \
   #     "https://download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION.run" \
   #     | jq -r .hash
+
+  # Ghostty's own .desktop sets DBusActivatable=true, so GNOME launches it by
+  # asking the systemd user manager to start app-com.mitchellh.ghostty.service
+  # instead of running Exec= directly. That unit lives under the Home Manager
+  # profile's share/systemd/user, which the systemd user manager's UnitPath
+  # never includes -- UnitPath is fixed from whatever XDG_DATA_DIRS it inherits
+  # at its own startup, before Home Manager's environment.d additions are ever
+  # applied, and no environment.d ordering can change that. NixOS's own
+  # home-manager module integration doesn't have this gap, so this belongs
+  # here rather than a NixOS-reachable file. This user-priority override
+  # (searched before the Nix-profile one) drops DBusActivatable so the
+  # app-grid icon runs Exec= directly, same as launching from a terminal.
+  home.file."${config.xdg.dataHome}/applications/com.mitchellh.ghostty.desktop".text = ''
+    [Desktop Entry]
+    Version=1.0
+    Name=Ghostty
+    Type=Application
+    Comment=A terminal emulator
+    TryExec=ghostty
+    Exec=ghostty --gtk-single-instance=true
+    Icon=com.mitchellh.ghostty
+    Categories=System;TerminalEmulator;
+    Keywords=terminal;tty;pty;
+    StartupNotify=true
+    StartupWMClass=com.mitchellh.ghostty
+    Terminal=false
+    Actions=new-window;
+    X-GNOME-UsesNotifications=true
+    X-TerminalArgExec=-e
+    X-TerminalArgTitle=--title=
+    X-TerminalArgAppId=--class=
+    X-TerminalArgDir=--working-directory=
+    X-TerminalArgHold=--wait-after-command
+    X-KDE-Shortcuts=Ctrl+Alt+T
+
+    [Desktop Action new-window]
+    Name=New Window
+    Exec=ghostty --gtk-single-instance=true
+  '';
 }
