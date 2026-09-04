@@ -44,8 +44,8 @@ Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docke
 endpoint-security, SELinux, firewall, and IdM enrollment steps it leaves to Fedora.
 
 > Experimental: System Manager only asserts support for `nixos`, `ubuntu`, and `debian`, so this host sets
-> `system-manager.allowAnyDistro`. `bootstrap.sh` installs Fedora's own `nix` package (2.34.8, matching the flake's
-> pin) rather than the Determinate installer, but that alone doesn't stop systemd (`init_t`) from being denied
+> `system-manager.allowAnyDistro`. `bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
+> installer, but that alone doesn't stop systemd (`init_t`) from being denied
 > access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `fedora-rebuild` relabels each
 > new generation's closure before System Manager activates it.
 

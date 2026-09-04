@@ -10,8 +10,7 @@ set -euo pipefail
 
 PACKAGES=(
   # Fedora packages Nix itself, built against Fedora's SELinux policy, so the
-  # Determinate installer is not used here. Fedora 44 ships 2.34.8, the same
-  # version the flake pins for NixOS and macOS. Updates come from dnf.
+  # Determinate installer is not used here. Updates come from dnf.
   nix
   nix-daemon
 
@@ -87,9 +86,12 @@ for package in "${PACKAGES[@]}"; do
   fi
 done
 
+# Release packages are versioned to match the Fedora release (e.g. 44), so a
+# plain `rpm -q` presence check would miss a stale release package left over
+# from before a Fedora version upgrade.
 missing_repos=()
 for repo in "${RPMFUSION_REPOS[@]}"; do
-  if ! rpm -q "$repo" >/dev/null 2>&1; then
+  if [ "$(rpm -q --qf '%{VERSION}' "$repo" 2>/dev/null)" != "$(rpm -E %fedora)" ]; then
     missing_repos+=("$repo")
   fi
 done
