@@ -38,6 +38,19 @@ in {
   # nixpkgs GIDs, which do not match Fedora's.
   services.userborn.enable = false;
 
+  # Matches homes/work/default.nix's GNOME dconf input source, so the GDM
+  # greeter and console (which don't read per-user dconf) use the same
+  # AltGr layout kanata's Linux config assumes (kanata/kanata_us.kbd).
+  environment.etc."X11/xorg.conf.d/00-keyboard.conf".text = ''
+    Section "InputClass"
+            Identifier "system-keyboard"
+            MatchIsKeyboard "on"
+            Option "XkbLayout" "us"
+            Option "XkbModel" "pc105"
+            Option "XkbVariant" "mac"
+    EndSection
+  '';
+
   environment.systemPackages = with pkgs; [
     bubblewrap
     git
