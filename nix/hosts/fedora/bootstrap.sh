@@ -48,7 +48,7 @@ fi
 
 # Hardware-specific: Tuxedo's own repo provides the Control Center, and
 # tuxedo-drivers (DKMS) comes with it as a dependency. Skipped on other hosts.
-if grep -qi tuxedo /sys/class/dmi/sys_vendor 2>/dev/null; then
+if grep -qi tuxedo /sys/class/dmi/id/sys_vendor 2>/dev/null; then
   PACKAGES+=(tuxedo-control-center)
 fi
 
@@ -135,7 +135,7 @@ fi
 # The repo file pins nothing: baseurl and gpgkey both use $releasever, so it
 # works for any Fedora release. dnf fetches the GPG key from the declared URL
 # on first install.
-if grep -qi tuxedo /sys/class/dmi/sys_vendor 2>/dev/null && [ ! -s /etc/yum.repos.d/tuxedo.repo ]; then
+if grep -qi tuxedo /sys/class/dmi/id/sys_vendor 2>/dev/null && [ ! -s /etc/yum.repos.d/tuxedo.repo ]; then
   echo "Adding the Tuxedo package repository..."
   curl -fsSL "https://rpm.tuxedocomputers.com/fedora/tuxedo.repo" -o /etc/yum.repos.d/tuxedo.repo
 fi
