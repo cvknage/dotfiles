@@ -4,7 +4,7 @@
 > `agents/AGENTS.md`.
 
 ## 0. Mental Model
-1. This repository is the single source of truth for macOS (nix-darwin), NixOS, Ubuntu and Fedora (System Manager +
+1. This repository is the single source of truth for macOS (nix-darwin), NixOS, Fedora (System Manager +
    standalone Home Manager), and standalone Home Manager environments.
 2. Everything is orchestrated through the flake in `nix/`; resist ad-hoc OS/package changes.
 3. Secrets are delivered via `sops-nix` + the `secrets` flake input—never open decrypted payloads, only reference the managed paths.
@@ -18,15 +18,14 @@
 - **NixOS target:** `nix build ./nix#nixosConfigurations.penguin-tuxedo.config.system.build.toplevel`.
 - **macOS target:** `nix build ./nix#darwinConfigurations.logic.system`.
 - **Home Manager target:** `nix build './nix#homeConfigurations."ckn@work".activationPackage'`.
-- **System Manager targets:** `nix build ./nix#systemConfigs.ubuntu` / `...#systemConfigs.fedora`.
+- **System Manager target:** `nix build ./nix#systemConfigs.fedora`.
 - **macOS rebuild:** `sudo darwin-rebuild switch --flake ./nix` (automatically manages Homebrew through `nix-homebrew`).
 - **NixOS rebuild:** `sudo nixos-rebuild switch --flake ./nix` (pulls in shared + host-specific modules).
 - **Standalone Home Manager:** `home-manager switch --flake './nix#ckn@work'` — one configuration for every
   standalone Linux work host, regardless of hostname or distro.
-- **Ubuntu / Fedora rebuild:** `nix run ./nix#ubuntu-rebuild ./nix` (or `#fedora-rebuild`) — applies the System
-  Manager tier then the Home Manager tier. The flake directory is optional and defaults to `~/.dotfiles/nix`.
-  Both come from `nix/lib/rebuild-app.nix`.
-  Individual tiers: `nix run github:numtide/system-manager -- switch --flake ./nix#ubuntu --sudo`.
+- **Fedora rebuild:** `nix run ./nix#fedora-rebuild ./nix` — applies the System Manager tier then the Home Manager
+  tier. The flake directory is optional and defaults to `~/.dotfiles/nix`; comes from `nix/lib/rebuild-app.nix`.
+  Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#fedora --sudo`.
 - **Distro prerequisites:** `bash nix/hosts/<distro>/bootstrap.sh` installs the host-owned packages the Nix tiers
   depend on. Idempotent, and elevates only when something is missing.
 - **Fedora is experimental:** System Manager only asserts support for nixos, ubuntu and debian, so

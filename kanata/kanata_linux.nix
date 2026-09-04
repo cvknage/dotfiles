@@ -1,4 +1,4 @@
-# Hardened systemd definitions shared by the NixOS and Ubuntu kanata setups.
+# Hardened systemd definitions shared by the NixOS and System Manager kanata setups.
 {pkgs}: rec {
   # Permissions for /dev/uinput. `static_node` also applies them when the
   # uinput module loads after udev has started. `TAG+="systemd"` is needed or

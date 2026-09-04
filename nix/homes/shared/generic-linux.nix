@@ -41,7 +41,7 @@
   # GPU-accelerated Nix apps from crashing: they link against /run/opengl-driver,
   # which only NixOS provides. Home Manager cannot create it without root, so it
   # prints a `sudo non-nixos-gpu-setup` command on every switch that needs one.
-  # On Ubuntu the system tier owns that symlink instead, so the command is only
+  # A System Manager tier owns that symlink instead, so the command is only
   # needed on hosts running Home Manager with no system tier.
   #
   # On a host using the proprietary Nvidia driver, also set:

@@ -8,8 +8,8 @@
 }: let
   kanata = import ./kanata_linux.nix {inherit pkgs;};
 
-  # The host's own kmod and udev, found by PATH rather than absolute path:
-  # Fedora merged /usr/sbin into /usr/bin, Ubuntu has not.
+  # The host's own kmod and udev, found by PATH rather than absolute path --
+  # merged sbin/bin layouts vary by distro.
   uinputSetup = pkgs.writeShellScript "uinput-setup" ''
     PATH=/usr/sbin:/usr/bin:/sbin:/bin
     modprobe uinput

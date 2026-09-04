@@ -31,28 +31,6 @@ sudo nixos-rebuild switch --flake . --option extra-experimental-features "nix-co
 nix run nix-darwin -- switch --flake .
 ```
 
-**Ubuntu:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
-
-```bash
-bash nix/hosts/ubuntu/bootstrap.sh
-nix run ./nix#ubuntu-rebuild ./nix
-```
-
-`ubuntu-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment.
-
-Ubuntu stays authoritative for boot, drivers, GNOME, networking, and Docker. `bootstrap.sh` prints the driver,
-endpoint-security, and IdM steps it leaves to Ubuntu.
-
-On first apply:
-
-- `sudo systemctl restart docker` to pick up the agent-boundary drop-ins.
-- Log out and back in for the `docker`, `input`, and `uinput` groups, and so the desktop picks up `XDG_DATA_DIRS`.
-- Pick "GNOME" rather than "Ubuntu" at the login screen. `bootstrap.sh` installs the upstream session, which is
-  what the managed dconf settings and GNOME extensions target. If the option is missing, `/usr/share/wayland-sessions/`
-  has no `gnome.desktop`; install `vanilla-gnome-desktop` with `--no-install-recommends` instead.
-- On X11, copy `xkb/us_en_macintosh` into `/usr/share/X11/xkb/symbols/` — only Wayland reads the copy Home Manager
-  writes to `~/.config/xkb/symbols`.
-
 **Fedora:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
 
 ```bash
@@ -85,7 +63,8 @@ sudo nix run ./nix#install-agent-policy
 ```
 
 > Standalone Home Manager has no system tier, so re-run `install-agent-policy` after every switch, and run the
-> `sudo non-nixos-gpu-setup` command it prints so GPU-accelerated apps have drivers. Ubuntu does both for you.
+> `sudo non-nixos-gpu-setup` command it prints so GPU-accelerated apps have drivers. A System Manager host (e.g.
+> Fedora) does both for you.
 
 ## Secrets
 
@@ -146,10 +125,9 @@ sudo nixos-rebuild switch --flake .
 sudo darwin-rebuild switch --flake .
 ```
 
-**Ubuntu / Fedora:**
+**Fedora:**
 
 ```bash
-nix run ./nix#ubuntu-rebuild ./nix
 nix run ./nix#fedora-rebuild ./nix
 ```
 
@@ -191,8 +169,8 @@ Then rebuild the system.
 - **NixOS and macOS:** the flake, so `nix flake update nixpkgs` and a rebuild. `nix.enable = true` puts
   `nix.package` under the flake's control.
 - **Fedora:** `dnf`. Nix comes from Fedora's repos, so `dnf upgrade` moves it with the rest of the system.
-- **Ubuntu and standalone Home Manager:** the Determinate installer, so `sudo determinate-nixd upgrade`. Neither tier
-  can own the Nix package — System Manager's `nix` module writes `nix.conf` and nothing else.
+- **Standalone Home Manager:** the Determinate installer, so `sudo determinate-nixd upgrade`. It can't own the Nix
+  package itself — System Manager's `nix` module writes `nix.conf` and nothing else.
 
 ### Install old versions of packages
 
@@ -222,8 +200,9 @@ Each rebuild keeps the previous generation as a GC root, so old store paths stic
 generations first, then collect.
 
 - **NixOS / macOS:** one system profile, `/nix/var/nix/profiles/system`. Home Manager as a module rides along in it.
-- **Ubuntu / Fedora:** two independent profiles — System Manager's, `/nix/var/nix/profiles/system-manager-profiles/system-manager`,
-  and standalone Home Manager's, `~/.local/state/nix/profiles/home-manager`.
+- **System Manager hosts (e.g. Fedora):** two independent profiles — System Manager's,
+  `/nix/var/nix/profiles/system-manager-profiles/system-manager`, and standalone Home Manager's,
+  `~/.local/state/nix/profiles/home-manager`.
 - **Standalone Home Manager** (no system tier): just the Home Manager profile above.
 
 **NixOS**
@@ -248,7 +227,7 @@ sudo darwin-rebuild switch --delete-generations +3
 sudo nix-collect-garbage
 ```
 
-**Ubuntu / Fedora**
+**System Manager**
 
 `system-manager` has no `--list-generations` of its own; manage its profile directly:
 
@@ -287,7 +266,7 @@ sudo nixos-rebuild switch --rollback   # NixOS
 sudo darwin-rebuild --rollback         # macOS
 ```
 
-**Ubuntu / Fedora and standalone Home Manager** don't — switch the profile, then run that
+**System Manager and standalone Home Manager** don't — switch the profile, then run that
 generation's own activation script (each generation carries one):
 
 ```bash
@@ -311,7 +290,7 @@ nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uni
 /nix/nix-installer uninstall
 ```
 
-**Ubuntu / Fedora:**  
+**System Manager hosts (e.g. Fedora):**  
 Deactivate `system-manager` first, same reasoning as `nix-darwin` above — it leaves managed config pointing at a
 store that's about to disappear:
 
@@ -319,13 +298,8 @@ store that's about to disappear:
 nix run github:numtide/system-manager -- deactivate --sudo
 ```
 
-Then remove `nix` itself. Ubuntu uses the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling):
-
-```bash
-/nix/nix-installer uninstall
-```
-
-Fedora's `nix` is a plain `dnf` package (see the Fedora section above), not the Determinate installer:
+Then remove `nix` itself, however that host's tier owns it (see "Updating Nix itself" above). Fedora's is a plain
+`dnf` package, not the Determinate installer:
 
 ```bash
 sudo systemctl disable --now nix-daemon

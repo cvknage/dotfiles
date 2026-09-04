@@ -131,7 +131,7 @@
 
     # One per System Manager host. Fedora is experimental: System Manager only
     # asserts support for nixos, ubuntu and debian.
-    systemConfigs = lib.genAttrs ["ubuntu" "fedora"] (host:
+    systemConfigs = lib.genAttrs ["fedora"] (host:
       system-manager.lib.makeSystemConfig {
         specialArgs = workArgs // {inherit self;};
         modules = [

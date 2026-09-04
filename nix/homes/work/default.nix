@@ -77,7 +77,7 @@ in {
   };
 
   programs.firefox = {
-    # Standalone Fedora/Ubuntu already ship Firefox; NixOS doesn't.
+    # Standalone Linux hosts already ship Firefox; NixOS doesn't.
     enable = !config.targets.genericLinux.enable;
     configPath = "${config.xdg.configHome}/mozilla/firefox";
   };

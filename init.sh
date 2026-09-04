@@ -13,7 +13,7 @@ else
   DISTRO_ID=""
   [ -r /etc/os-release ] && DISTRO_ID="$(. /etc/os-release && echo "$ID")"
   case "$DISTRO_ID" in
-    ubuntu | fedora) TARGET="$DISTRO_ID" ;;
+    fedora) TARGET="$DISTRO_ID" ;;
     *) TARGET="home-manager" ;;
   esac
 fi
@@ -56,7 +56,7 @@ if ! command -v nix >/dev/null; then
   # manages the package itself. Fedora never reaches this: its bootstrap
   # installs Fedora's own nix package.
   case $TARGET in
-    ubuntu | home-manager) installer_flags=() ;;
+    home-manager) installer_flags=() ;;
     *) installer_flags=(--prefer-upstream-nix) ;;
   esac
   curl -fsSL https://install.determinate.systems/nix | sh -s -- install "${installer_flags[@]}"
@@ -92,7 +92,7 @@ case $TARGET in
       sudo darwin-rebuild switch --flake ./nix
     fi
     ;;
-  ubuntu | fedora)
+  fedora)
     # Applies both tiers; see nix/lib/rebuild-app.nix
     nix run "./nix#$TARGET-rebuild" ./nix
     ;;

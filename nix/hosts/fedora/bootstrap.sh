@@ -198,7 +198,7 @@ Fedora prerequisites installed. Steps Fedora or IT must still own:
   - Red Hat IdM:       ipa-client-install, run with domain credentials by IT
   - SELinux:           enforcing by default; expect to audit denials for the
                        agent sandbox and the Nix store rather than disable it
-  - Firewall:          firewalld is active by default, unlike Ubuntu's ufw
+  - Firewall:          firewalld is active by default
 
 If akmod-nvidia was installed, reboot: the NVIDIA module builds on the next
 boot and startup can take a few minutes. Verify with nvidia-smi afterwards.
