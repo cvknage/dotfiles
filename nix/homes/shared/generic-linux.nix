@@ -59,17 +59,10 @@
   #     "https://download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION.run" \
   #     | jq -r .hash
 
-  # Ghostty's own .desktop sets DBusActivatable=true, so GNOME launches it by
-  # asking the systemd user manager to start app-com.mitchellh.ghostty.service
-  # instead of running Exec= directly. That unit lives under the Home Manager
-  # profile's share/systemd/user, which the systemd user manager's UnitPath
-  # never includes -- UnitPath is fixed from whatever XDG_DATA_DIRS it inherits
-  # at its own startup, before Home Manager's environment.d additions are ever
-  # applied, and no environment.d ordering can change that. NixOS's own
-  # home-manager module integration doesn't have this gap, so this belongs
-  # here rather than a NixOS-reachable file. This user-priority override
-  # (searched before the Nix-profile one) drops DBusActivatable so the
-  # app-grid icon runs Exec= directly, same as launching from a terminal.
+  # Ghostty's DBusActivatable=true routes launches through systemd's UnitPath,
+  # which never picks up the Home Manager profile (locked in at manager
+  # startup, before environment.d ever runs). Drop it so the icon just execs
+  # directly.
   home.file."${config.xdg.dataHome}/applications/com.mitchellh.ghostty.desktop".text = ''
     [Desktop Entry]
     Version=1.0

@@ -60,56 +60,22 @@ bash nix/hosts/fedora/bootstrap.sh
 nix run ./nix#fedora-rebuild ./nix
 ```
 
-> Experimental. `bootstrap.sh` installs Fedora's own `nix` package rather than using the Determinate installer:
-> Fedora 44 ships 2.34.8, the version the flake already pins, built against Fedora's SELinux policy. That does
-> not avoid the denials that stop systemd running `/nix/store` binaries — they happen regardless of which `nix`
-> built the store paths — so `bootstrap.sh` also labels the whole store `bin_t` (`semanage fcontext` + one
-> `restorecon -RF /nix/store`) and `fedora-rebuild` relabels each new generation's closure before System Manager
-> activates it. Also sets `system-manager.allowAnyDistro`, and needs no GNOME session package.
+`fedora-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment.
 
-### Verifying a rebuild
+Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `bootstrap.sh` prints the
+endpoint-security, SELinux, firewall, and IdM enrollment steps it leaves to Fedora.
 
-Both tiers fail quietly in places. Run these after `ubuntu-rebuild` or `fedora-rebuild`.
+> Experimental: System Manager only asserts support for `nixos`, `ubuntu`, and `debian`, so this host sets
+> `system-manager.allowAnyDistro`. `bootstrap.sh` installs Fedora's own `nix` package (2.34.8, matching the flake's
+> pin) rather than the Determinate installer, but that alone doesn't stop systemd (`init_t`) from being denied
+> access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `fedora-rebuild` relabels each
+> new generation's closure before System Manager activates it.
 
-Ubuntu and Fedora both:
+On first apply:
 
-```bash
-readlink /run/opengl-driver                                  # a /nix/store path, not empty
-systemctl cat docker | grep agent-boundary                   # drop-in loaded
-systemctl show docker -p ProtectHome                         # ProtectHome=tmpfs, so it took effect
-systemctl status uinput-setup kanata                         # both active
-command -v kanata                                            # under /run/system-manager/sw/bin
-systemctl --user show-environment | grep XDG_DATA_DIRS       # includes ~/.nix-profile/share
-systemctl --user status sops-nix git-signing-agent-relay     # both active; secrets render here
-ls /etc/claude-code/managed-settings.json /etc/codex/requirements.toml
-```
-
-Ubuntu only:
-
-```bash
-ls /usr/share/wayland-sessions/                              # gnome.desktop, for the upstream session
-sudo ufw status                                              # if active, 53317 open for localsend
-```
-
-Fedora only:
-
-```bash
-sudo ausearch -m avc -ts recent                              # no output
-sudo firewall-cmd --list-ports                               # 53317/tcp and 53317/udp for localsend
-```
-
-> Denials naming `/nix/store` or `default_t` are the known Fedora problem: systemd refusing to run services from the
-> store. The two `--user` services above are the canary.
-
-`fedora-rebuild` prints a couple of lines that look like failures but are not:
-
-- `error (ignored): SQLite database '.../eval-cache-v6/....sqlite' is busy` — the relabeling step's own `nix build`
-  and System Manager's internal one race for the flake eval-cache lock moments apart. Nix labels it `(ignored)`
-  and re-evaluates without the cache; nothing is actually lost.
-- `Unit userborn.service not found` during activation — System Manager unconditionally tries to restart
-  `userborn.service` as a fixed step, regardless of whether it is enabled. This host's config sets
-  `services.userborn.enable = false` (Fedora owns users/groups), so the unit genuinely does not exist. Logged as
-  `ERROR`, but non-fatal: the very next line is `userborn.service completed`, and activation proceeds normally.
+- Log out and back in (or reboot) for the `docker`, `input`, and `uinput` groups.
+- If `akmod-nvidia` was installed, reboot — the driver builds on first boot, and Secure Boot needs the MOK
+  enrollment screen confirmed (the menu is QWERTY).
 
 **Home Manager:** bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with:
 
@@ -250,125 +216,118 @@ Find the git commit hash for a specific `nixpkgs`, by searching for the desired 
 - [Nixhub](https://www.nixhub.io/)  
 - [Nix package versions](https://lazamar.co.uk/nix-versions/)  
 
-### Generations Explained
+### Generations and garbage collection
 
-Nix keeps **system and user generations** as snapshots of the system or profile state. This affects cleaning and garbage collection.
+Each rebuild keeps the previous generation as a GC root, so old store paths stick around until it's deleted. Delete
+generations first, then collect.
 
-- **System generations**:  
-  Created by `nixos-rebuild switch` or `darwin-rebuild switch`. Stored under `/nix/var/nix/profiles/system`. Includes the system state and, if Home Manager is used as a module, also Home Manager state.
-
-- **User generations**:  
-  Created by `nix-env` or standalone Home Manager (`home-manager switch`). Stored under `/nix/var/nix/profiles/per-user/$USER/`. These only affect the user’s profile and packages.
-
-- **Home Manager generations**:  
-  - **Module mode**: Included in system generations. No separate cleanup required.  
-  - **Standalone mode**: Maintains its own generations under `/nix/var/nix/profiles/per-user/$USER/home-manager`. Needs user-level cleanup.
-
-### Clean store and generations
-
-Nix stores all packages and build outputs in `/nix/store`. Old system states (“generations”) keep store paths alive until deleted. Cleaning involves:
-
-1. Removing old generations
-2. Running garbage collection
-
-#### Clean store only
-
-To remove unreferenced store paths:
-
-```bash
-nix-collect-garbage
-```
-
-#### Clean generations and free disk space
+- **NixOS / macOS:** one system profile, `/nix/var/nix/profiles/system`. Home Manager as a module rides along in it.
+- **Ubuntu / Fedora:** two independent profiles — System Manager's, `/nix/var/nix/profiles/system-manager-profiles/system-manager`,
+  and standalone Home Manager's, `~/.local/state/nix/profiles/home-manager`.
+- **Standalone Home Manager** (no system tier): just the Home Manager profile above.
 
 **NixOS**
 
-List system generations:
-
 ```bash
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
-```
-
-Delete older generations while keeping the last 3:
-
-```bash
 sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system +3
-```
-
-Run garbage collection:
-
-```bash
 sudo nix-collect-garbage
+sudo nixos-rebuild switch --flake .   # rebuild the boot menu
 ```
 
-Rebuild the boot menu:
-
-```bash
-sudo nixos-rebuild switch --flake .
-```
-
-> Avoid `sudo nix-collect-garbage -d` if you want to keep the last 3 generations. That deletes all old generations.
+> The last command isn't optional: the boot menu still lists deleted generations until it runs, and selecting one
+> of those entries fails to boot since their store paths are gone.
+>
+> `nix-collect-garbage -d` deletes *all* old generations, not just the unreferenced store paths.
 
 **macOS (nix-darwin)**
 
-List generations:
-
 ```bash
 sudo darwin-rebuild --list-generations
+sudo darwin-rebuild switch --delete-generations +3
+sudo nix-collect-garbage
 ```
 
-Delete older generations while keeping the last 3:
+**Ubuntu / Fedora**
+
+`system-manager` has no `--list-generations` of its own; manage its profile directly:
 
 ```bash
-sudo darwin-rebuild switch --delete-generations +3
+sudo nix-env --list-generations --profile /nix/var/nix/profiles/system-manager-profiles/system-manager
+sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system-manager-profiles/system-manager +3
 ```
 
-Run garbage collection:
+Then clean the standalone Home Manager profile:
+
+```bash
+home-manager generations
+home-manager remove-generations <id>...
+```
+
+Both share the same store, so one collection covers them:
 
 ```bash
 sudo nix-collect-garbage
 ```
 
-> `nix-collect-garbage -d` without `sudo` only affects your user profile.
-
-#### Home Manager
-
-**Module mode (NixOS / macOS)**
-
-- State is included in system generations.
-- Cleanup happens with system GC (`sudo nix-collect-garbage`).
-
-**Standalone mode**
-
-Profile at `/nix/var/nix/profiles/per-user/$USER/home-manager`
-
-List generations:
+**Standalone Home Manager (no system tier)**
 
 ```bash
 home-manager generations
+home-manager remove-generations <id>...
+nix-collect-garbage   # no sudo -- user profile only
 ```
 
-Delete old generations:
+### Roll back a generation
+
+**NixOS / macOS** have a dedicated flag:
 
 ```bash
-nix-collect-garbage
+sudo nixos-rebuild switch --rollback   # NixOS
+sudo darwin-rebuild --rollback         # macOS
 ```
 
-> `sudo` is not needed in standalone mode.
+**Ubuntu / Fedora and standalone Home Manager** don't — switch the profile, then run that
+generation's own activation script (each generation carries one):
+
+```bash
+sudo nix-env --switch-generation <N> --profile /nix/var/nix/profiles/system-manager-profiles/system-manager
+sudo /nix/var/nix/profiles/system-manager-profiles/system-manager/bin/activate
+```
+
+```bash
+nix-env --switch-generation <N> --profile ~/.local/state/nix/profiles/home-manager
+~/.local/state/nix/profiles/home-manager/activate
+```
 
 ## Uninstall
 
 **macOS:**  
-[`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer/blob/main/docs/quirks.md#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail) with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
-``` bash
+[`nix-darwin`](https://github.com/LnL7/nix-darwin/blob/master/README.md#uninstalling) [**MUST be uninstalled before removing `nix`**](https://github.com/DeterminateSystems/nix-installer/blob/main/docs/quirks.md#using-macos-after-removing-nix-while-nix-darwin-was-still-installed-network-requests-fail),
+via the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling):
+
+```bash
 nix --extra-experimental-features "nix-command flakes" run nix-darwin#darwin-uninstaller
-```
-``` bash
 /nix/nix-installer uninstall
 ```
 
-**GNU/Linux (not NixOS):**  
-Uninstall `nix` with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling)
+**Ubuntu / Fedora:**  
+Deactivate `system-manager` first, same reasoning as `nix-darwin` above — it leaves managed config pointing at a
+store that's about to disappear:
+
+```bash
+nix run github:numtide/system-manager -- deactivate --sudo
+```
+
+Then remove `nix` itself. Ubuntu uses the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer?tab=readme-ov-file#uninstalling):
+
 ```bash
 /nix/nix-installer uninstall
+```
+
+Fedora's `nix` is a plain `dnf` package (see the Fedora section above), not the Determinate installer:
+
+```bash
+sudo systemctl disable --now nix-daemon
+sudo dnf remove nix nix-daemon
 ```

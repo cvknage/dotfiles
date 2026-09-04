@@ -77,7 +77,8 @@ in {
   };
 
   programs.firefox = {
-    enable = true;
+    # Standalone Fedora/Ubuntu already ship Firefox; NixOS doesn't.
+    enable = !config.targets.genericLinux.enable;
     configPath = "${config.xdg.configHome}/mozilla/firefox";
   };
   programs.chromium = {
