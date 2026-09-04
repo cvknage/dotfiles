@@ -163,6 +163,12 @@
       # The system profile carries tools that are not in the user profile,
       # including the Docker client enabled by the NixOS Docker module.
       "/run/current-system"
+
+      # Symlinks to /usr/lib{,64} on FHS distros. Without these, no host
+      # binary's dynamic linker can be found, and exec fails with a
+      # misleading "No such file or directory" instead of a linker error.
+      "/lib"
+      "/lib64"
     ];
 
   # Translate the path model above into the common whole-process sandbox shape.

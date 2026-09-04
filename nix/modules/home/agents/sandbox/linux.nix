@@ -54,6 +54,16 @@
           --dir "$HOME/.local/share"
           --dir "$HOME/.local/state"
         )
+
+        # systemd-resolved's stub-resolv.conf needs nss-resolve talking to a
+        # Varlink socket under /run, which this sandbox's fresh /run doesn't
+        # have -- nsswitch's "resolve [!UNAVAIL=return]" then fails DNS
+        # entirely rather than falling back to plain DNS. Route to the
+        # non-stub file (real nameservers, no socket needed) instead.
+        if [ -e /run/systemd/resolve/resolv.conf ]; then
+          sandbox+=(--ro-bind /run/systemd/resolve/resolv.conf /run/systemd/resolve/stub-resolv.conf)
+        fi
+
         socket_paths=(${socketPaths})
 
         for path in ${readOnlyPaths}; do
