@@ -40,9 +40,9 @@ git config user.name "$(git log --reverse --format=%an | head -n 1)"
 git config user.email "$(git log --reverse --format=%ae | head -n 1)"
 
 DOTFILES_DIR="$HOME/.dotfiles"
-if [ -L $DOTFILES_DIR ] || [ ! -d $DOTFILES_DIR ]; then
-  rm $DOTFILES_DIR &>/dev/null
-  ln -s $SCRIPT_DIR $DOTFILES_DIR
+if [ -L "$DOTFILES_DIR" ] || [ ! -d "$DOTFILES_DIR" ]; then
+  rm "$DOTFILES_DIR" &>/dev/null
+  ln -s "$SCRIPT_DIR" "$DOTFILES_DIR"
 fi
 
 # Distro-owned prerequisites; must run before the Nix installer.
@@ -67,7 +67,9 @@ if ! command -v nix >/dev/null; then
   echo "Then, to continue initializing dotfiles, run \`cd ~/.dotfiles/ && bash init.sh\`"
   echo ""
 
-  kill $(jobs -p) &>/dev/null
+  if [ -n "$(jobs -p)" ]; then
+    kill "$(jobs -p)" &>/dev/null
+  fi
   exit 0
 fi
 
@@ -78,7 +80,7 @@ if ! bash "$SCRIPT_DIR/nix/scripts/secrets-bootstrap.sh"; then
   exit 0
 fi
 
-pushd $DOTFILES_DIR &>/dev/null
+pushd "$DOTFILES_DIR" &>/dev/null
 
 case $TARGET in
   nixos)

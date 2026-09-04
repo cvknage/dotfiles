@@ -4,8 +4,8 @@
   user,
   ...
 }: let
-  alias = import ./alias.nix (
-    if pkgs.stdenv.isDarwin
+  alias = import ../../shared/secrets/alias.nix (
+    if pkgs.stdenv.hostPlatform.isDarwin
     then "/Users/${user}"
     else "/home/${user}"
   );

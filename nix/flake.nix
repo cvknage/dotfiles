@@ -1,6 +1,13 @@
 {
   description = "home-manager configuration for nix-darwin and gnu/linux";
 
+  nixConfig = {
+    extra-substituters = ["https://cache.numtide.com"];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-26.05";
@@ -41,12 +48,8 @@
     tuxedo-nixos = {
       url = "github:sund3RRR/tuxedo-nixos";
     };
-    claude-code = {
-      url = "github:sadjow/claude-code-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    codex-cli = {
-      url = "github:sadjow/codex-cli-nix";
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -77,6 +80,9 @@
     sharedModules = [
       ./modules/shared
     ];
+    systemModules = [
+      ./modules/system
+    ];
     nixosModules = [
       home-manager.nixosModules.home-manager
       ./modules/nixos
@@ -105,6 +111,7 @@
             }
           ]
           ++ sharedModules
+          ++ systemModules
           ++ darwinModules;
       };
     };
@@ -125,12 +132,13 @@
             tuxedo-nixos.nixosModules.default
           ]
           ++ sharedModules
+          ++ systemModules
           ++ nixosModules;
       };
     };
 
-    # One per System Manager host. Fedora is experimental: System Manager only
-    # asserts support for nixos, ubuntu and debian.
+    # One per System Manager host. Fedora is experimental:
+    # System Manager only asserts support for ubuntu and debian.
     systemConfigs = lib.genAttrs ["fedora"] (host:
       system-manager.lib.makeSystemConfig {
         specialArgs = workArgs // {inherit self;};
@@ -142,17 +150,14 @@
     # Shared by every standalone Linux work host, regardless of hostname or
     # distro. Standalone Home Manager cannot install the root-owned /etc policy.
     homeConfigurations.${workHomeConfiguration} = home-manager.lib.homeManagerConfiguration {
-      # Mirror the shared system module's package configuration.
-      pkgs = import nixpkgs {
-        system = linuxArchitecture;
-        config.allowUnfree = true;
-        overlays = [(import ./overlays {inherit inputs;}).stable-packages];
-      };
-      modules = [
-        ./homes/shared
-        ./homes/shared/generic-linux.nix
-        ./homes/work
-      ];
+      pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+      modules =
+        sharedModules
+        ++ [
+          ./homes/shared/generic-linux.nix
+          ./homes/shared
+          ./homes/work
+        ];
       extraSpecialArgs = workArgs;
     };
 

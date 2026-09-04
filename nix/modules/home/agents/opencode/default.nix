@@ -3,12 +3,13 @@
   agentSandbox,
   config,
   homeContext,
+  inputs,
   pkgs,
   ...
 }: let
   sandboxedOpenCode = agentSandbox.wrapPackage {
     agent = "opencode";
-    package = pkgs.opencode;
+    package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
     executable = "opencode";
   };
 in {

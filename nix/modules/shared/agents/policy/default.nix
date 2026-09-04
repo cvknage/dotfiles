@@ -18,7 +18,7 @@
       ;
   };
   claude = import ./claude.nix {inherit lib paths;};
-  codex = import ./codex.nix {inherit lib;};
+  codex = import ./codex.nix {inherit lib paths;};
   opencode = import ./opencode.nix {inherit lib orderBefore paths;};
 in {
   inherit

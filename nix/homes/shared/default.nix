@@ -78,9 +78,10 @@
     ];
 in {
   imports = [
-    ../../../rust
+    ../../modules/home/nix.nix
     ../../modules/home/agents
     ../../modules/home/secrets
+    ../../../rust
   ];
 
   home.username = lib.mkDefault user;

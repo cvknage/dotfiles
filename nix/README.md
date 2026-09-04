@@ -10,10 +10,18 @@ Configuration for [`nix`](https://nixos.org/learn/)
 
 ## Install
 
-Install Nix with the [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer).
+Run `bash init.sh` from the repo root. It detects the target, installs Nix if it
+is missing, bootstraps the secrets key (see [Secrets](#secrets)), and rebuilds the
+target.
 
-Then run `bash init.sh` from the repo root, which also bootstraps the secrets key (see [Secrets](#secrets)).  
-Or follow the manual steps below:
+How it gets Nix depends on the target:
+
+- **macOS and standalone Home Manager hosts:** the
+  [Determinate Nix Installer](https://github.com/DeterminateSystems/nix-installer)
+- **Fedora:** the distro's `nix` package
+- **NixOS:** the system image already includes Nix
+
+Manual steps are below if you want to run them yourself:
 
 **NixOS:** bootstrap [`nixos-rebuild`](https://nixos.org/manual/nixos/unstable/#sec-changing-config) with:
 

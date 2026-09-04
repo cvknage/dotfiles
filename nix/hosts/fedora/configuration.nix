@@ -29,7 +29,7 @@ in {
   # it uses are distro-agnostic.
   system-manager.allowAnyDistro = true;
 
-  # Nix is installed and upgraded by nix-installer. Do not let System Manager
+  # Fedora's nix package installs and upgrades Nix. Do not let System Manager
   # replace that installation or its daemon configuration.
   nix.enable = false;
 

@@ -7,7 +7,7 @@
   pkgs,
   ...
 }: let
-  codexCliPackage = inputs.codex-cli.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+  codexCliPackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
   sandboxedCodexCli = agentSandbox.wrapPackage {
     agent = "codex";
     package = codexCliPackage;

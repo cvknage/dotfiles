@@ -7,7 +7,7 @@
   pkgs,
   ...
 }: let
-  claudeCodePackage = inputs.claude-code.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+  claudeCodePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
   sandboxedClaudeCode = agentSandbox.wrapPackage {
     agent = "claude";
     package = claudeCodePackage;
