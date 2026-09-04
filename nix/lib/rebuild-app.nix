@@ -32,6 +32,10 @@ pkgs.writeShellApplication {
       exit 2
     fi
 
+    # Resolved to absolute before the system-manager step below changes
+    # directory, or a relative argument here would break there.
+    flake="$(cd "$flake" && pwd)"
+
     ${pkgs.lib.optionalString (systemConfig == "fedora") ''
       # Fedora's SELinux policy has no fcontext for /nix/store, so systemd
       # (init_t) is denied read access to unit files and drop-ins, and denied
@@ -50,8 +54,13 @@ pkgs.writeShellApplication {
       mapfile -t fedora_closure < <(nix-store -qR "$fedora_out")
       sudo restorecon -RF "''${fedora_closure[@]}"
     ''}
+    # system-manager's own internal `nix build` always drops a ./result
+    # symlink, with no flag to suppress it -- run it from a throwaway
+    # directory instead of the flake directory.
     echo "==> System Manager: $flake#${systemConfig}"
-    system-manager switch --flake "$flake#${systemConfig}" --sudo
+    system_manager_scratch="$(mktemp -d)"
+    (cd "$system_manager_scratch" && system-manager switch --flake "$flake#${systemConfig}" --sudo)
+    rm -rf "$system_manager_scratch"
 
     echo "==> Home Manager: $flake#${homeConfiguration}"
     home-manager switch --flake "$flake#${homeConfiguration}"
