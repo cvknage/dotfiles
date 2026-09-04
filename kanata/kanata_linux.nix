@@ -1,9 +1,11 @@
 # Hardened systemd definitions shared by the NixOS and Ubuntu kanata setups.
 {pkgs}: rec {
   # Permissions for /dev/uinput. `static_node` also applies them when the
-  # uinput module is loaded after udev has started.
+  # uinput module is loaded after udev has started. `TAG+="systemd"` makes
+  # systemd track the device node, so `dev-uinput.device` actually activates
+  # instead of leaving `kanata.service` to time out waiting on it.
   uinputUdevRule = ''
-    KERNEL=="uinput", MODE="0660", GROUP="uinput", OPTIONS+="static_node=uinput"
+    KERNEL=="uinput", MODE="0660", GROUP="uinput", TAG+="systemd", OPTIONS+="static_node=uinput"
   '';
 
   sharedHardening = {

@@ -16,6 +16,7 @@ in {
     ../../../kanata/kanata_install_system_manager.nix
     ../../modules/system-manager/agents/default.nix
     ../../modules/system-manager/docker.nix
+    ../../modules/system-manager/environment-path.nix
   ];
 
   nixpkgs = {

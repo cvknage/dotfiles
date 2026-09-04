@@ -21,7 +21,7 @@
 in {
   imports = [
     ../../modules/home/another-redis-desktop-manager
-    ../../modules/home/claude-desktop
+    # ../../modules/home/claude-desktop
     ../../modules/home/outlook
     ./git-signing.nix
     ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling

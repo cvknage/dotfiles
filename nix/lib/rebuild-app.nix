@@ -32,6 +32,24 @@ pkgs.writeShellApplication {
       exit 2
     fi
 
+    ${pkgs.lib.optionalString (systemConfig == "fedora") ''
+      # Fedora's SELinux policy has no fcontext for /nix/store, so systemd
+      # (init_t) is denied read access to unit files and drop-ins, and denied
+      # execute access to ExecStart scripts, that System Manager symlinks in
+      # from the store (nix/README.md's Fedora section). bootstrap.sh
+      # registers the store-wide fcontext spec once, but each generation's
+      # changed paths land at new store paths, so build first and relabel
+      # that closure before System Manager activates it.
+      # --no-eval-cache: this build and System Manager's own internal build of
+      # the same attribute, moments later, both otherwise touch the flake
+      # eval-cache database at nearly the same time and print harmless but
+      # noisy "SQLite database is busy" lines. Nix already ignores that error
+      # and re-evaluates; skipping the cache on our side avoids the race.
+      echo "==> Relabeling System Manager units for SELinux: $flake#systemConfigs.fedora"
+      fedora_out="$(nix build "$flake#systemConfigs.fedora" --no-link --no-eval-cache --print-out-paths)"
+      mapfile -t fedora_closure < <(nix-store -qR "$fedora_out")
+      sudo restorecon -RF "''${fedora_closure[@]}"
+    ''}
     echo "==> System Manager: $flake#${systemConfig}"
     system-manager switch --flake "$flake#${systemConfig}" --sudo
 

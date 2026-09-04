@@ -25,6 +25,9 @@ PACKAGES=(
   # fusermount3 is setuid and host-owned; gocryptfs (~/Notes) needs it
   fuse3
 
+  # semanage/restorecon, to label the System Manager units below
+  policycoreutils-python-utils
+
   # Fedora's Docker build. Provides docker.service and containerd.service, so
   # the agent-boundary drop-ins apply unchanged. Podman is the Fedora default
   # but the Taskfiles and Testcontainers here expect the Docker daemon.
@@ -94,8 +97,25 @@ for group in "${GROUPS_WANTED[@]}"; do
   fi
 done
 
+# System Manager symlinks unit files, systemd drop-ins, and ExecStart scripts
+# into place from /nix/store, which carries the generic default_t label.
+# Systemd (running as init_t) needs read access to unit/drop-in files and
+# execute access to scripts, and System Manager's store paths don't follow
+# nixpkgs' usual bin/lib/share layout, so no small set of per-pattern specs
+# covers everything it creates. bin_t grants both read and execute, so label
+# the whole store with it. See the Fedora section in nix/README.md.
+SELINUX_FCONTEXT="/nix/store(/.*)? bin_t"
+# semanage needs root even to list contexts, and this check runs before the
+# elevation below, so read the (world-readable) local customizations file
+# directly instead of shelling out to semanage.
+SELINUX_LOCAL_CONTEXTS=/etc/selinux/targeted/contexts/files/file_contexts.local
+missing_selinux_contexts=0
+if ! grep -qF "${SELINUX_FCONTEXT% *} " "$SELINUX_LOCAL_CONTEXTS" 2>/dev/null; then
+  missing_selinux_contexts=1
+fi
+
 if [ ${#missing_packages[@]} -eq 0 ] && [ ${#missing_groups[@]} -eq 0 ] \
-  && [ ${#missing_repos[@]} -eq 0 ]; then
+  && [ ${#missing_repos[@]} -eq 0 ] && [ "$missing_selinux_contexts" -eq 0 ]; then
   echo "Fedora prerequisites already in place."
   exit 0
 fi
@@ -147,6 +167,22 @@ for group in "${missing_groups[@]}"; do
   echo "Adding $TARGET_USER to group $group"
   usermod -aG "$group" "$TARGET_USER"
 done
+
+if [ "$missing_selinux_contexts" -eq 1 ]; then
+  echo "Registering the SELinux context for /nix/store..."
+  pattern="${SELINUX_FCONTEXT% *}"
+  type="${SELINUX_FCONTEXT##* }"
+  # Idempotent: fall back to modify if the local-customizations check above
+  # couldn't tell the spec was already registered (e.g. unreadable file).
+  semanage fcontext -a -t "$type" "$pattern" 2>/dev/null || semanage fcontext -m -t "$type" "$pattern"
+fi
+
+# Relabel the whole store so the spec above is in effect immediately. Each
+# later `fedora-rebuild` relabels only its own new generation; see
+# rebuild-app.nix. This has to run before enabling docker below: systemd
+# (init_t) needs it to read docker.service's agent-boundary drop-in, without
+# which enabling the unit fails with "Access denied".
+restorecon -RF /nix/store
 
 systemctl enable --now docker nix-daemon
 

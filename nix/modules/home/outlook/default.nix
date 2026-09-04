@@ -13,7 +13,7 @@
               categories = ["Network" "Office" "Email"];
               icon = pkgs.fetchurl {
                 url = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Microsoft_Outlook_Icon_%282025%E2%80%93present%29.svg/1280px-Microsoft_Outlook_Icon_%282025%E2%80%93present%29.svg.png";
-                sha256 = "sha256-Fds4sX9TbsfRRHkHPTpqDAcNZSbYPU1XNYuU30WOttY=";
+                sha256 = "sha256-TJV1gOT4UFK2x6Hrpjw+GUHVjws43ndrHQqAss06rBo=";
               };
             };
             settings = {

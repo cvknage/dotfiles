@@ -61,9 +61,11 @@ nix run ./nix#fedora-rebuild ./nix
 ```
 
 > Experimental. `bootstrap.sh` installs Fedora's own `nix` package rather than using the Determinate installer:
-> Fedora 44 ships 2.34.8, the version the flake already pins, built against Fedora's SELinux policy. That should
-> avoid the denials that stop systemd running `/nix/store` binaries, but it is untested here — the checks below
-> settle it. Also sets `system-manager.allowAnyDistro`, and needs no GNOME session package.
+> Fedora 44 ships 2.34.8, the version the flake already pins, built against Fedora's SELinux policy. That does
+> not avoid the denials that stop systemd running `/nix/store` binaries — they happen regardless of which `nix`
+> built the store paths — so `bootstrap.sh` also labels the whole store `bin_t` (`semanage fcontext` + one
+> `restorecon -RF /nix/store`) and `fedora-rebuild` relabels each new generation's closure before System Manager
+> activates it. Also sets `system-manager.allowAnyDistro`, and needs no GNOME session package.
 
 ### Verifying a rebuild
 
@@ -98,6 +100,16 @@ sudo firewall-cmd --list-ports                               # 53317/tcp and 533
 
 > Denials naming `/nix/store` or `default_t` are the known Fedora problem: systemd refusing to run services from the
 > store. The two `--user` services above are the canary.
+
+`fedora-rebuild` prints a couple of lines that look like failures but are not:
+
+- `error (ignored): SQLite database '.../eval-cache-v6/....sqlite' is busy` — the relabeling step's own `nix build`
+  and System Manager's internal one race for the flake eval-cache lock moments apart. Nix labels it `(ignored)`
+  and re-evaluates without the cache; nothing is actually lost.
+- `Unit userborn.service not found` during activation — System Manager unconditionally tries to restart
+  `userborn.service` as a fixed step, regardless of whether it is enabled. This host's config sets
+  `services.userborn.enable = false` (Fedora owns users/groups), so the unit genuinely does not exist. Logged as
+  `ERROR`, but non-fatal: the very next line is `userborn.service completed`, and activation proceeds normally.
 
 **Home Manager:** bootstrap [`home-manager`](https://github.com/nix-community/home-manager) with:
 
