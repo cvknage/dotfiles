@@ -37,6 +37,10 @@ PACKAGES=(
   # NetworkManager VPN plugin, matching networkmanager-openvpn on NixOS
   NetworkManager-openvpn
   NetworkManager-openvpn-gnome
+
+  # Red Hat IdM client; ipa-client-install itself stays manual (needs a
+  # personal enrollment password from IT)
+  freeipa-client
 )
 
 # Hardware-specific: NVIDIA driver from RPM Fusion, built as an akmod against
