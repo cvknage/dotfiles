@@ -42,7 +42,7 @@
 - `agents/` — global instructions shared by all configured coding agents.
 - `shell/` and `rust/` — shared shell behavior and Rust toolchain configuration.
 - `btop/`, `direnv/`, `equaliser/`, `ghostty/`, `git/`, `gitui/`, `k9s/`, `kanata/`, `neovim/`, `starship/`,
-  `tmux/`, `wezterm/`, `xkb/`, and `yazi/` — tool-specific configuration.
+  `tmux/`, `wezterm/`, and `yazi/` — tool-specific configuration.
 - `wallpapers/` — platform theming assets.
 
 ## 4. Workflow Expectations

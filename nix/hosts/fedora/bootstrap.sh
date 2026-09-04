@@ -118,8 +118,19 @@ if ! grep -qF "${SELINUX_FCONTEXT% *} " "$SELINUX_LOCAL_CONTEXTS" 2>/dev/null; t
   missing_selinux_contexts=1
 fi
 
+# GNOME's dconf-managed input source (homes/work/default.nix) uses the
+# stock "us" layout's "mac" (ANSI) variant. Without it as the system default
+# too, the GDM greeter and console fall back to plain "us", which doesn't
+# match the AltGr combos kanata's Linux config assumes (kanata/kanata_us.kbd).
+missing_xkb_layout=0
+if ! localectl status | grep -q "X11 Layout: us$" \
+  || ! localectl status | grep -q "X11 Variant: mac$"; then
+  missing_xkb_layout=1
+fi
+
 if [ ${#missing_packages[@]} -eq 0 ] && [ ${#missing_groups[@]} -eq 0 ] \
-  && [ ${#missing_repos[@]} -eq 0 ] && [ "$missing_selinux_contexts" -eq 0 ]; then
+  && [ ${#missing_repos[@]} -eq 0 ] && [ "$missing_selinux_contexts" -eq 0 ] \
+  && [ "$missing_xkb_layout" -eq 0 ]; then
   echo "Fedora prerequisites already in place."
   exit 0
 fi
@@ -179,6 +190,11 @@ if [ "$missing_selinux_contexts" -eq 1 ]; then
   # Idempotent: fall back to modify if the local-customizations check above
   # couldn't tell the spec was already registered (e.g. unreadable file).
   semanage fcontext -a -t "$type" "$pattern" 2>/dev/null || semanage fcontext -m -t "$type" "$pattern"
+fi
+
+if [ "$missing_xkb_layout" -eq 1 ]; then
+  echo "Setting the us/mac (ANSI) keyboard layout..."
+  localectl set-x11-keymap us pc105 mac
 fi
 
 # Relabel the whole store so the spec above is in effect immediately. Each

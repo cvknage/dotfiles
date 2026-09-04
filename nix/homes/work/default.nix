@@ -94,22 +94,26 @@ in {
   #   categories = ["Network" "WebBrowser"];
   # };
 
-  # The layout selected below. NixOS installs it system-wide; on distros where
-  # /usr/share/X11/xkb is host-owned, libxkbcommon reads it from here instead.
-  # Wayland sessions only: the X server does not consult the user path.
-  home.file."${config.xdg.configHome}/xkb/symbols/us_en_macintosh".source = ../../../xkb/us_en_macintosh;
-
   # Configure GNOME desktop settings using dconf
   dconf = {
     settings = {
       # Select keyboard layout
       "org/gnome/desktop/input-sources" = {
         sources = [
-          # Laout should to be: "U.S. English (Macintosh)" which is simila to "U.S. Internationl - PC" layout on Mac.
-          # This makes using Kanata and ZSA Voyager the same experience on both platforms.
-          # The "us+mac" layout used to work, but '`' (grave) and '§' (section) keys got swapped in a NixOS update:
-          # (lib.hm.gvariant.mkTuple ["xkb" "us+mac"])
-          (lib.hm.gvariant.mkTuple ["xkb" "us_en_macintosh"]) # Use custom "U.S. English (Macintosh)" layout.
+          # "U.S. English (Macintosh, ABC, ANSI)" -- similar to "U.S.
+          # International - PC" on macOS, so kanata's and the ZSA Voyager's
+          # AltGr combos are the same on both platforms. Standalone Linux
+          # uses the stock layout (comes with a working IBus engine); NixOS
+          # keeps its own custom us_en_macintosh (hosts/penguin-tuxedo),
+          # since IBus won't recognize a custom layout by name.
+          (lib.hm.gvariant.mkTuple [
+            "xkb"
+            (
+              if config.targets.genericLinux.enable
+              then "us+mac"
+              else "us_en_macintosh"
+            )
+          ])
         ];
         xkb-options = [];
       };

@@ -11,7 +11,14 @@
   # Use the "us(mac)" layout as a bae and swap the '`' (grave) and '§' (section) keys.
   # The intention is to make a layout that is similar to the "U.S. Internationl - PC" layout on Mac.
   # "us(mac)" used to be similar, but '`' (grave) and '§' (section) keys got swapped in a NixOS update.
-  usEnglishMacintoshSymbolsFile = ../../../xkb/us_en_macintosh;
+  usEnglishMacintoshSymbolsFile = pkgs.writeText "us_en_macintosh" ''
+    partial alphanumeric_keys
+    xkb_symbols "us_en_macintosh" {
+      include "us(mac)"
+      key <TLDE> { [ grave, asciitilde ] };
+      key <LSGT> { [ section, plusminus ] };
+    };
+  '';
 in {
   imports = [
     # Include the results of the hardware scan.
