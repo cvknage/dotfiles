@@ -95,8 +95,8 @@ case $TARGET in
     fi
     ;;
   fedora)
-    # Applies both tiers; see nix/lib/rebuild-app.nix
-    nix run "./nix#$TARGET-rebuild" ./nix
+    # Applies both tiers; see nix/apps/rebuild.nix
+    nix run "./nix#$TARGET-rebuild"
     ;;
   home-manager)
     if ! command -v home-manager >/dev/null; then

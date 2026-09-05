@@ -180,7 +180,7 @@
         lib.nameValuePair "${host}-rebuild" {
           type = "app";
           meta.description = "Apply the System Manager and Home Manager tiers on ${host}";
-          program = lib.getExe (import ./lib/rebuild-app.nix {
+          program = lib.getExe (import ./apps/rebuild.nix {
             inherit inputs;
             systemConfig = host;
             homeConfiguration = workHomeConfiguration;

@@ -23,8 +23,8 @@
 - **NixOS rebuild:** `sudo nixos-rebuild switch --flake ./nix` (pulls in shared + host-specific modules).
 - **Standalone Home Manager:** `home-manager switch --flake './nix#ckn@work'` — one configuration for every
   standalone Linux work host, regardless of hostname or distro.
-- **Fedora rebuild:** `nix run ./nix#fedora-rebuild ./nix` — applies the System Manager tier then the Home Manager
-  tier. The flake directory is optional and defaults to `~/.dotfiles/nix`; comes from `nix/lib/rebuild-app.nix`.
+- **Fedora rebuild:** `nix run ./nix#fedora-rebuild` — applies the System Manager tier then the Home Manager
+  tier, always against `~/.dotfiles/nix`; comes from `nix/apps/rebuild.nix`.
   Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#fedora --sudo`.
 - **Distro prerequisites:** `bash nix/hosts/<distro>/bootstrap.sh` installs the host-owned packages the Nix tiers
   depend on. Idempotent, and elevates only when something is missing.

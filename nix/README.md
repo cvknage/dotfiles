@@ -43,7 +43,7 @@ nix run nix-darwin -- switch --flake .
 
 ```bash
 bash nix/hosts/fedora/bootstrap.sh
-nix run ./nix#fedora-rebuild ./nix
+nix run ./nix#fedora-rebuild
 ```
 
 `fedora-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment.
@@ -136,7 +136,7 @@ sudo darwin-rebuild switch --flake .
 **Fedora:**
 
 ```bash
-nix run ./nix#fedora-rebuild ./nix
+nix run ./nix#fedora-rebuild
 ```
 
 **Home Manager:**

@@ -16,24 +16,9 @@ pkgs.writeShellApplication {
     inputs.home-manager.packages.${system}.default
   ];
   text = ''
-    # The flake directory is a bare positional: `nix run` claims any argument
-    # starting with a dash, so a `--flake` flag would need a `--` separator.
-    flake="''${1:-$HOME/.dotfiles/nix}"
-
-    if [ "$#" -gt 1 ]; then
-      echo "${systemConfig}-rebuild: expected at most one argument" >&2
-      echo "usage: ${systemConfig}-rebuild [flake-directory]" >&2
-      exit 2
-    fi
-
-    # Each tier appends its own attribute, so the path must not carry one.
-    if [ "$flake" != "''${flake%#*}" ]; then
-      echo "${systemConfig}-rebuild: pass the flake directory without an attribute, not '$flake'" >&2
-      exit 2
-    fi
-
-    # Resolved to absolute before the system-manager step below changes
-    # directory, or a relative argument here would break there.
+    # init.sh symlinks ~/.dotfiles to this checkout, and each tier appends
+    # its own attribute, so the path must not carry one.
+    flake="$HOME/.dotfiles/nix"
     flake="$(cd "$flake" && pwd)"
 
     ${pkgs.lib.optionalString (systemConfig == "fedora") ''

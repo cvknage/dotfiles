@@ -185,7 +185,7 @@ fi
 
 # Relabel the whole store so the spec above is in effect immediately. Each
 # later `fedora-rebuild` relabels only its own new generation; see
-# rebuild-app.nix. This has to run before enabling docker below: systemd
+# apps/rebuild.nix. This has to run before enabling docker below: systemd
 # (init_t) needs it to read docker.service's agent-boundary drop-in, without
 # which enabling the unit fails with "Access denied".
 restorecon -RF /nix/store
