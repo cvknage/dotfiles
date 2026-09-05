@@ -55,11 +55,17 @@ in {
   programs.bash = {
     enable = true;
     initExtra = ''
-      # ''${builtins.readFile ../../../shell/bash/PS1}
       ${builtins.readFile ../../../shell/bash/config}
       ${builtins.readFile ../../../shell/colours}
+      ${builtins.readFile ../../../shell/prompt}
 
       ${builtins.readFile ../../../shell/common}
+
+      if prompt_is_fancy_terminal && command -v starship >/dev/null; then
+        eval "$(starship init bash)"
+      else
+        ${builtins.readFile ../../../shell/bash/PS1}
+      fi
 
       export DOCKER_REGISTRY_HOSTNAME="$(cat ${config.sops.secrets.docker_registry_hostname.path})"
       export GITHUB_USER="$(cat ${config.sops.secrets.github_user.path})"

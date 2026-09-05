@@ -1,0 +1,17 @@
+# vim: set filetype=sh :
+
+# Starship's prompt needs Nerd Font glyphs.
+prompt_is_fancy_terminal() {
+  [ -t 0 ] || return 1
+  case "$TERM" in
+    "" | dumb) return 1 ;;
+  esac
+
+  case "$TERM_PROGRAM" in
+    ghostty | Ghostty | WezTerm) return 0 ;;
+  esac
+  case "$TERM" in
+    xterm-ghostty | ghostty | wezterm) return 0 ;;
+  esac
+  [ -n "$GHOSTTY_RESOURCES_DIR" ]
+}

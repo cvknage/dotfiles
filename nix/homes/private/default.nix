@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }: {
@@ -15,11 +16,23 @@
   programs.zsh = {
     enable = true;
     dotDir = "${config.xdg.configHome}/zsh";
-    initContent = ''
-      # ''${builtins.readFile ../../../shell/zsh/PS1}
-      ${builtins.readFile ../../../shell/zsh/config}
-      ${builtins.readFile ../../../shell/colours}
-    '';
+    completionInit = "";
+    initContent = lib.mkMerge [
+      # Before Home Manager's own blocks so compinit runs before fzf registers its completions.
+      (lib.mkBefore ''
+        ${builtins.readFile ../../../shell/zsh/config}
+        ${builtins.readFile ../../../shell/colours}
+      '')
+      ''
+        ${builtins.readFile ../../../shell/prompt}
+
+        if prompt_is_fancy_terminal && command -v starship >/dev/null; then
+          eval "$(starship init zsh)"
+        else
+          ${builtins.readFile ../../../shell/zsh/PS1}
+        fi
+      ''
+    ];
     profileExtra = ''
       ${builtins.readFile ../../../shell/common}
       if [ -f "${config.sops.secrets.mutation_strings.path}" ]; then
