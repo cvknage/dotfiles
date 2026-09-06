@@ -91,6 +91,7 @@
   # Immutable runtimes and user-level tool configuration. The rest of the home
   # directory is absent from the OS sandbox.
   sharedReadOnlyPaths = inHome [
+    ".agents/skills"
     ".bashrc"
     ".cargo"
     ".config/direnv"
@@ -141,6 +142,8 @@
       ".local/share/direnv/allow"
       ".local/share/nvim"
       ".local/share/pnpm/store"
+      # Shared memory-graph store for the memory MCP server.
+      ".local/state/agent-memory"
     ];
 
   systemReadOnlyPaths =

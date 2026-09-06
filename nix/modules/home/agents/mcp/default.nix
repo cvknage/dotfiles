@@ -5,93 +5,81 @@
   pkgs,
   ...
 }: let
-  /*
-  mkPythonCmd = name: command:
+  # MCP servers inherit the agent's environment, so package managers inside
+  # them reuse the agent's shared caches instead of a temp dir per server.
+  mkMcpCmd = name: runtimeInputs: env: command:
     pkgs.writeShellApplication {
       name = "mcp-${name}";
-      runtimeInputs = [
-        pkgs.python3
-        pkgs.uv
-      ];
-      text = ''
-        exec ${command} "$@"
-      '';
+      inherit runtimeInputs;
+      text =
+        lib.concatStrings
+        (lib.mapAttrsToList (key: value: ''
+            export ${key}=${value}
+          '')
+          env)
+        + ''
+          exec ${command} "$@"
+        '';
     };
-  */
-  # Agent launchers provide the shared writable tool caches. MCP wrappers
-  # inherit those paths instead of replacing them with per-process temp caches.
-  mkNpxCmd = name:
-    pkgs.writeShellApplication {
-      name = "mcp-${name}";
-      runtimeInputs = [pkgs.nodejs];
-      text = ''
-        exec npx "$@"
-      '';
-    };
-  mkNixCmd = name:
-    pkgs.writeShellApplication {
-      name = "mcp-${name}";
-      runtimeInputs = [pkgs.nix];
-      text = ''
-        export NIX_REMOTE=daemon
-        exec nix "$@"
-      '';
-    };
-  /*
-  mkAzureCmd = name:
-    pkgs.writeShellApplication {
-      name = "mcp-${name}";
-      runtimeInputs = [
-        pkgs.nodejs
-        pkgs.azure-cli
-      ];
-      text = ''
-        export LD_LIBRARY_PATH="${lib.makeLibraryPath [pkgs.icu]}:''${LD_LIBRARY_PATH:-}"
-        exec npx "$@"
-      '';
-    };
-  */
 in {
   programs.mcp = {
     enable = true;
     servers = {
+      # Durable agent knowledge, persisted to a local graph file.
+      memory = {
+        command = lib.getExe (mkMcpCmd "memory" [] {
+          MEMORY_FILE_PATH = ''"$HOME/.local/state/agent-memory/graph.jsonl"'';
+        } (lib.getExe pkgs.mcp-server-memory));
+      };
       nixos = {
-        command = lib.getExe (mkNixCmd "nixos");
+        command = lib.getExe (mkMcpCmd "nixos" [pkgs.nix] {
+          NIX_REMOTE = "daemon";
+        } "nix");
         args = ["run" "github:utensils/mcp-nixos" "--"];
       };
       context7 = {
-        command = lib.getExe (mkNpxCmd "context7");
+        command = lib.getExe (mkMcpCmd "context7" [pkgs.nodejs] {} "npx");
         args = ["-y" "@upstash/context7-mcp"];
       };
-      # kubernetes = lib.mkIf (homeContext.isWork config) {
-      #   type = "local";
-      #   command = lib.getExe (mkNpxCmd "kubernetes");
-      #   args = ["-y" "kubernetes-mcp-server@latest"];
-      # };
-      # figma = lib.mkIf isWorkContext {
-      #   type = "remote";
-      #   url = "https://mcp.figma.com/mcp";
-      # };
-      # github = lib.mkIf isWorkContext {
-      #   type = "remote";
-      #   url = "https://api.githubcopilot.com/mcp/";
-      #   headers = {
-      #     Authorization = "Bearer {env:GITHUB_TOKEN}";
-      #   };
-      # };
-      # azure = lib.mkIf isWorkContext {
-      #   type = "local";
-      #   command = lib.getExe (mkAzureCmd "azure");
-      #   args = ["-y" "@azure/mcp@latest" "server" "start"];
-      #   env = {
-      #     AZURE_TOKEN_CREDENTIALS = "dev";
-      #   };
-      # };
       atlassian = lib.mkIf (homeContext.isWork config) {
         type = "local";
-        command = lib.getExe (mkNpxCmd "atlassian");
+        command = lib.getExe (mkMcpCmd "atlassian" [pkgs.nodejs] {} "npx");
         args = ["-y" "mcp-remote" "https://mcp.atlassian.com/v1/mcp"];
       };
+      /*
+      kubernetes = lib.mkIf (homeContext.isWork config) {
+        type = "local";
+        command = lib.getExe (mkMcpCmd "kubernetes" [pkgs.nodejs] {} "npx");
+        args = ["-y" "kubernetes-mcp-server@latest"];
+      };
+      */
+      /*
+      figma = lib.mkIf (homeContext.isWork config) {
+        type = "remote";
+        url = "https://mcp.figma.com/mcp";
+      };
+      */
+      /*
+      github = lib.mkIf (homeContext.isWork config) {
+        type = "remote";
+        url = "https://api.githubcopilot.com/mcp/";
+        headers = {
+          Authorization = "Bearer {env:GITHUB_TOKEN}";
+        };
+      };
+      */
+      /*
+      azure = lib.mkIf (homeContext.isWork config) {
+        type = "local";
+        command = lib.getExe (mkMcpCmd "azure" [pkgs.nodejs pkgs.azure-cli] {
+          LD_LIBRARY_PATH = ''"${lib.makeLibraryPath [pkgs.icu]}:''${LD_LIBRARY_PATH:-}"'';
+        } "npx");
+        args = ["-y" "@azure/mcp@latest" "server" "start"];
+        env = {
+          AZURE_TOKEN_CREDENTIALS = "dev";
+        };
+      };
+      */
     };
   };
 }

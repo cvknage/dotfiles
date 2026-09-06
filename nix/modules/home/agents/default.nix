@@ -25,5 +25,6 @@ in {
     ./codex
     ./mcp
     ./opencode
+    ./skills
   ];
 }

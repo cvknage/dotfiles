@@ -68,6 +68,7 @@ $RECYCLE.BIN/
 Session.vim
 
 # Agents
+**/.agent-sessions/
 **/.claude/settings.local.json
 **/.claude/.cc-writes/
 

@@ -14,6 +14,7 @@
     "git clone"
     "git config"
     "git init"
+    "git remote"
     "git worktree"
 
     "gh release"
