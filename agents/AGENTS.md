@@ -22,14 +22,10 @@
 - Before multi-step work, write the session plan via the `spec` skill: small milestones, each with
   a concrete done-check. While working, accumulate high-value findings, decisions, and dead ends —
   not routine observations — and flush them via the `note` skill once per exploration sweep or
-  milestone, batched into a single call, not one call per finding. `spec`, `note`, and `reset`
-  persist `.agent-sessions/plan.md` and `.agent-sessions/notes.md` through the `agent-sessions` MCP
-  server's `write_plan`/`append_note`/`reset_session` tools (plain file I/O, no LLM turn spent on
-  it) rather than editing those files directly — compose the finished plan or batched bullet text
-  yourself and pass it as the tool's argument; fall back to editing the files directly only if that
-  MCP server is unavailable.
-- Write decisions, gotchas, and cross-project learnings that outlive the task to the memory graph
-  via its tools — dated, with reasons and pointers. Consult it for the current project when
+  milestone, batched into a single call, not one call per finding. Session state is accessed only
+  through the `agent-sessions` MCP server's tools.
+- Write decisions, gotchas, and cross-project learnings that outlive the task to the `memory` MCP
+  server's knowledge graph — dated, with reasons and pointers. Consult it for the current project when
   starting unfamiliar work, and before re-exploring ground a past session may have covered;
   verify claims against code and correct stale entries instead of working around them.
 - After each passing milestone, propose a commit. When the same fix has failed twice, or when work

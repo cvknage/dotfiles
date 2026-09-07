@@ -1,4 +1,7 @@
-"""Plain-code file I/O for .agent-sessions/ -- no LLM turn needed."""
+"""Plain-code file I/O for .agent-sessions/.
+
+The file operation itself needs no LLM turn.
+"""
 
 import shutil
 from datetime import date
@@ -7,6 +10,32 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 mcp = FastMCP("agent-sessions")
+
+
+@mcp.tool()
+def read_plan(repo_root: str) -> str:
+    """Return the current session plan, or a notice if none exists.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+    """
+    path = Path(repo_root) / ".agent-sessions" / "plan.md"
+    if not path.exists():
+        return "No session plan recorded."
+    return path.read_text(encoding="utf-8")
+
+
+@mcp.tool()
+def read_notes(repo_root: str) -> str:
+    """Return the session log, or a notice if none exists.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+    """
+    path = Path(repo_root) / ".agent-sessions" / "notes.md"
+    if not path.exists():
+        return "No session log recorded."
+    return path.read_text(encoding="utf-8")
 
 
 @mcp.tool()
