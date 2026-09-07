@@ -51,6 +51,16 @@ in {
     EndSection
   '';
 
+  # Fedora's default fs.inotify.max_user_instances (128) is too low for the Roslyn
+  # language server's per-project file watchers on large .slnx solutions; it throws
+  # and aborts loading the remaining projects, breaking cross-file go-to-definition.
+  # System Manager has no boot.kernel.sysctl (NixOS-only), so drop a sysctl.d file
+  # for Fedora's own systemd-sysctl to pick up instead.
+  environment.etc."sysctl.d/99-inotify-limits.conf".text = ''
+    fs.inotify.max_user_instances = 1024
+    fs.inotify.max_user_watches = 524288
+  '';
+
   environment.systemPackages = with pkgs; [
     bubblewrap
     git
