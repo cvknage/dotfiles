@@ -190,6 +190,26 @@ in {
     "${config.home.homeDirectory}/.nix-profile/share/applications/FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
   ];
 
+  # Drop from GNOME's app grid and search
+  xdg.desktopEntries = {
+    firefoxpwa = {
+      name = "firefoxpwa";
+      noDisplay = true;
+    };
+    nvim = {
+      name = "Neovim wrapper";
+      noDisplay = true;
+    };
+    yazi = {
+      name = "Yazi File Manager";
+      noDisplay = true;
+    };
+    btop = {
+      name = "btop++";
+      noDisplay = true;
+    };
+  };
+
   home.sessionVariables = {
     HOME_CONFIGURATION_CONTEXT = "work";
   };
