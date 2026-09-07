@@ -90,4 +90,29 @@
     Name=New Window
     Exec=ghostty --gtk-single-instance=true
   '';
+
+  # systemd --user computes PATH/XDG_DATA_DIRS once at manager startup, and
+  # Fedora's KillUserProcesses=no keeps it alive across a logout, so a
+  # rebuild's new profile paths need pushing into the live manager by hand.
+  home.activation.refreshSystemdUserEnvironment = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    generator=/usr/lib/systemd/user-environment-generators/30-systemd-environment-d-generator
+    if [ -x "$generator" ] && [ -n "''${XDG_RUNTIME_DIR:-}" ] \
+      && command -v systemctl >/dev/null && command -v dbus-update-activation-environment >/dev/null; then
+      names=""
+      while IFS= read -r line; do
+        case "$line" in
+          *=*)
+            export "$line"
+            names="$names ''${line%%=*}"
+            ;;
+        esac
+      done < <("$generator" 2>/dev/null)
+      if [ -n "$names" ]; then
+        # shellcheck disable=SC2086
+        systemctl --user import-environment $names 2>/dev/null || true
+        # shellcheck disable=SC2086
+        dbus-update-activation-environment --systemd $names 2>/dev/null || true
+      fi
+    fi
+  '';
 }
