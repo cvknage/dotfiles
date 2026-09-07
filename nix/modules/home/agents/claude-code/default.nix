@@ -8,6 +8,12 @@
   ...
 }: let
   claudeCodePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+
+  claudePaceStatusline = pkgs.runCommand "claude-pace-statusline" {nativeBuildInputs = [pkgs.makeWrapper];} ''
+    install -Dm755 ${inputs.claude-pace}/claude-pace.sh $out/bin/claude-pace-statusline
+    wrapProgram $out/bin/claude-pace-statusline \
+      --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.git pkgs.coreutils]}
+  '';
   sandboxedClaudeCode = agentSandbox.wrapPackage {
     agent = "claude";
     package = claudeCodePackage;
@@ -87,7 +93,14 @@
     trap - EXIT
   '';
 
-  settings = agentPolicy.claude.settings;
+  settings =
+    agentPolicy.claude.settings
+    // {
+      statusLine = {
+        type = "command";
+        command = "${claudePaceStatusline}/bin/claude-pace-statusline";
+      };
+    };
 in {
   # Out-of-store symlink so Claude Code can update settings at runtime.
   home.file.".claude/settings.json" = lib.mkForce {

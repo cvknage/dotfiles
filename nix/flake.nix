@@ -52,6 +52,12 @@
       # Not following: numtide's cache is only built against its own nixpkgs pin.
       url = "github:numtide/llm-agents.nix";
     };
+    claude-pace = {
+      # Claude Code statusline: https://github.com/Astro-Han/claude-pace
+      url = "github:Astro-Han/claude-pace/v0.9.4";
+      # url = "github:Astro-Han/claude-pace"; # main, untagged
+      flake = false;
+    };
   };
 
   outputs = inputs @ {

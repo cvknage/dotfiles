@@ -51,6 +51,23 @@
         "type": "github"
       }
     },
+    "claude-pace": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785219779,
+        "narHash": "sha256-9X1/3sceYrOjedovJow76+NNvAAg8zqukWk9e6GTSxw=",
+        "owner": "Astro-Han",
+        "repo": "claude-pace",
+        "rev": "b39e8fc8756da0b5c9322fb074386f874750103c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Astro-Han",
+        "ref": "v0.9.4",
+        "repo": "claude-pace",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -369,6 +386,7 @@
     },
     "root": {
       "inputs": {
+        "claude-pace": "claude-pace",
         "home-manager": "home-manager",
         "homebrew-bundle": "homebrew-bundle",
         "homebrew-cask": "homebrew-cask",
