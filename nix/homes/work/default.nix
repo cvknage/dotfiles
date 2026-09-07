@@ -130,10 +130,48 @@ in {
           "appindicatorsupport@rgcjonas.gmail.com"
           "auto-move-windows@gnome-shell-extensions.gcampax.github.com"
         ];
+        # Dash pinned apps -- dconf resets anything set by hand on every switch
+        favorite-apps = [
+          "org.gnome.Nautilus.desktop"
+          "com.mitchellh.ghostty.desktop"
+          "firefox.desktop"
+          "slack.desktop"
+          "teams-for-linux.desktop"
+          "FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
+        ];
       };
       "org/gnome/desktop/background" = {
         picture-uri = "file://${config.home.homeDirectory}/.dotfiles/wallpapers/sun.jpg";
         picture-uri-dark = "file://${config.home.homeDirectory}/.dotfiles/wallpapers/moon.jpg";
+      };
+      "org/gnome/mutter" = {
+        dynamic-workspaces = false;
+      };
+      "org/gnome/desktop/wm/preferences" = {
+        num-workspaces = 3;
+      };
+      "org/gnome/desktop/wm/keybindings" = {
+        switch-to-workspace-1 = ["<Super>1"];
+        switch-to-workspace-2 = ["<Super>2"];
+        switch-to-workspace-3 = ["<Super>3"];
+        activate-window-menu = []; # Alt+Space is tmux's prefix, not GNOME's window menu
+      };
+      # Freed from switch-to-application-1/2/3 so Super+1/2/3 only switch workspaces
+      "org/gnome/shell/keybindings" = {
+        switch-to-application-1 = [];
+        switch-to-application-2 = [];
+        switch-to-application-3 = [];
+      };
+      # Pin apps to workspaces (auto-move-windows extension, enabled above)
+      "org/gnome/shell/extensions/auto-move-windows" = {
+        application-list = [
+          "com.mitchellh.ghostty.desktop:1"
+          "firefox.desktop:2"
+          "chromium-browser.desktop:2"
+          "slack.desktop:3"
+          "teams-for-linux.desktop:3"
+          "FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop:3" # Outlook PWA
+        ];
       };
     };
   };
