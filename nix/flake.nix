@@ -49,8 +49,8 @@
       url = "github:sund3RRR/tuxedo-nixos";
     };
     llm-agents = {
+      # Not following: numtide's cache is only built against its own nixpkgs pin.
       url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 

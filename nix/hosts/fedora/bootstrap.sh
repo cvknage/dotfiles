@@ -103,6 +103,15 @@ for group in "${GROUPS_WANTED[@]}"; do
   fi
 done
 
+# System Manager's nix.enable is false here (see configuration.nix), so nothing
+# else declares trusted-users; without it flake.nix's numtide extra-substituter
+# and key are silently rejected by the daemon.
+NIX_CONF=/etc/nix/nix.conf
+missing_trusted_user=0
+if ! grep -qE "^trusted-users[[:space:]]*=.*\<${TARGET_USER}\>" "$NIX_CONF" 2>/dev/null; then
+  missing_trusted_user=1
+fi
+
 # System Manager symlinks unit files, systemd drop-ins, and ExecStart scripts
 # into place from /nix/store, which carries the generic default_t label.
 # Systemd (running as init_t) needs read access to unit/drop-in files and
@@ -121,7 +130,8 @@ if ! grep -qF "${SELINUX_FCONTEXT% *} " "$SELINUX_LOCAL_CONTEXTS" 2>/dev/null; t
 fi
 
 if [ ${#missing_packages[@]} -eq 0 ] && [ ${#missing_groups[@]} -eq 0 ] \
-  && [ ${#missing_repos[@]} -eq 0 ] && [ "$missing_selinux_contexts" -eq 0 ]; then
+  && [ ${#missing_repos[@]} -eq 0 ] && [ "$missing_selinux_contexts" -eq 0 ] \
+  && [ "$missing_trusted_user" -eq 0 ]; then
   echo "Fedora prerequisites already in place."
   exit 0
 fi
@@ -189,6 +199,16 @@ fi
 # (init_t) needs it to read docker.service's agent-boundary drop-in, without
 # which enabling the unit fails with "Access denied".
 restorecon -RF /nix/store
+
+if [ "$missing_trusted_user" -eq 1 ]; then
+  echo "Adding $TARGET_USER to nix.conf trusted-users..."
+  if grep -qE "^trusted-users[[:space:]]*=" "$NIX_CONF" 2>/dev/null; then
+    sed -i -E "s/^(trusted-users[[:space:]]*=.*)/\1 ${TARGET_USER}/" "$NIX_CONF"
+  else
+    echo "trusted-users = root ${TARGET_USER}" >>"$NIX_CONF"
+  fi
+  systemctl restart nix-daemon
+fi
 
 systemctl enable --now docker nix-daemon
 
