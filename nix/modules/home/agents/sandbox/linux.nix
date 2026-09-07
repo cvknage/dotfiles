@@ -7,6 +7,8 @@
 }: let
   inherit (common) agentTools direnvRunner mkLaunchSetup;
 
+  tiocstiSeccompFilter = import ./tiocsti-seccomp.nix {inherit pkgs;};
+
   mkLinuxRunner = agent: profile: let
     readOnlyPaths = lib.escapeShellArgs profile.readOnlyPaths;
     socketPaths = lib.escapeShellArgs profile.socketPaths;
@@ -30,10 +32,13 @@
 
         ${mkLaunchSetup agent profile}
 
+        # Keeps the controlling terminal for SIGWINCH; TIOCSTI is blocked below instead of using --new-session
+        exec {seccomp_fd}<"${tiocstiSeccompFilter}"
+
         home_parent="$(dirname "$HOME")"
         sandbox=(
           --die-with-parent
-          --new-session
+          --seccomp "$seccomp_fd"
           --unshare-all
           --share-net
           --ro-bind /nix /nix
