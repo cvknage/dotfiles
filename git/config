@@ -14,3 +14,5 @@
 	path = ~/.config/git-identity/git-work.inc
 [includeIf "gitdir:~/Code/"]
 	path = ~/.config/git-identity/git-work.inc
+[user]
+	name = Christophe Knage
