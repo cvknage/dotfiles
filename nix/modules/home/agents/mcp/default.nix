@@ -21,6 +21,14 @@
           exec ${command} "$@"
         '';
     };
+
+  # Mechanical file I/O for .agent-sessions/ -- no LLM turn or subagent needed for the file operation itself
+  sessionsServer =
+    pkgs.writers.writePython3 "mcp-agent-sessions"
+    {
+      libraries = [pkgs.python3Packages.mcp];
+    }
+    (builtins.readFile ./agent-sessions-server.py);
 in {
   programs.mcp = {
     enable = true;
@@ -30,6 +38,11 @@ in {
         command = lib.getExe (mkMcpCmd "memory" [] {
           MEMORY_FILE_PATH = ''"$HOME/.local/state/agent-memory/graph.jsonl"'';
         } (lib.getExe pkgs.mcp-server-memory));
+      };
+      sessions = {
+        # writers.writePython3's $out is already the executable (via a
+        # bin/ symlink), unlike writeShellApplication -- no getExe' here.
+        command = "${sessionsServer}";
       };
       nixos = {
         command = lib.getExe (mkMcpCmd "nixos" [pkgs.nix] {
