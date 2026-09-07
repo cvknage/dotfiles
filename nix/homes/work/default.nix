@@ -83,8 +83,7 @@ in {
   };
 
   programs.firefox = {
-    # Standalone Linux hosts already ship Firefox; NixOS doesn't.
-    enable = !config.targets.genericLinux.enable;
+    enable = true;
     configPath = "${config.xdg.configHome}/mozilla/firefox";
   };
   programs.chromium = {
@@ -138,6 +137,20 @@ in {
       };
     };
   };
+
+  # Launch on login
+  xdg.autostart.enable = true;
+  xdg.autostart.entries = [
+    (
+      if config.targets.genericLinux.enable
+      then "${config.xdg.dataHome}/applications/com.mitchellh.ghostty.desktop"
+      else "${pkgs.ghostty}/share/applications/com.mitchellh.ghostty.desktop"
+    )
+    "${config.programs.firefox.finalPackage}/share/applications/firefox.desktop"
+    "${pkgs.slack}/share/applications/slack.desktop"
+    "${pkgs.stable.teams-for-linux}/share/applications/teams-for-linux.desktop"
+    "${config.home.homeDirectory}/.nix-profile/share/applications/FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
+  ];
 
   home.sessionVariables = {
     HOME_CONFIGURATION_CONTEXT = "work";
