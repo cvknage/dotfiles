@@ -11,34 +11,41 @@
 
 ## 1. Getting Set Up
 - Run `bash init.sh` once after cloning; it links `~/.dotfiles`, installs Nix if needed, then performs the appropriate rebuild (`darwin-rebuild`, `nixos-rebuild`, or `home-manager switch`).
-- MCP servers (NixOS, Context7, etc.) are configured in `nix/modules/home/agents/mcp`; prefer using them whenever applicable.
+- MCP servers (NixOS, Context7, etc.) are configured in `nix/modules/home-manager/agents/mcp`; prefer using them whenever applicable.
 
 ## 2. Command Reference (Build/Lint/Test)
 - **Flake validation:** `nix flake check ./nix` — evaluates recognized outputs and runs checks for the current system.
 - **NixOS target:** `nix build ./nix#nixosConfigurations.penguin-tuxedo.config.system.build.toplevel`.
 - **macOS target:** `nix build ./nix#darwinConfigurations.logic.system`.
 - **Home Manager target:** `nix build './nix#homeConfigurations."ckn@work".activationPackage'`.
-- **System Manager target:** `nix build ./nix#systemConfigs.fedora`.
+- **System Manager target:** `nix build ./nix#linuxConfigurations.ckn-laptop.system`.
 - **macOS rebuild:** `sudo darwin-rebuild switch --flake ./nix` (automatically manages Homebrew through `nix-homebrew`).
 - **NixOS rebuild:** `sudo nixos-rebuild switch --flake ./nix` (pulls in shared + host-specific modules).
 - **Standalone Home Manager:** `home-manager switch --flake './nix#ckn@work'` — one configuration for every
   standalone Linux work host, regardless of hostname or distro.
-- **Fedora rebuild:** `nix run ./nix#fedora-rebuild` — applies the System Manager tier then the Home Manager
-  tier, always against `~/.dotfiles/nix`; comes from `nix/apps/rebuild.nix`.
-  Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#fedora --sudo`.
-- **Distro prerequisites:** `bash nix/hosts/<distro>/bootstrap.sh` installs the host-owned packages the Nix tiers
+- **Fedora rebuild:** `nix run ./nix#linux-rebuild -- switch --flake ./nix` — the generic System Manager rebuild
+  app takes an action (`switch` or `build`), points at the machine through the flake ref (`--flake ./nix#ckn-laptop`,
+  or bare `./nix` for the box's own hostname; machine keys of `linuxConfigurations` in `nix/flake.nix`), and
+  installs `fedora-rebuild` on the box's PATH for later runs; always against `~/.dotfiles/nix`; comes from
+  `nix/apps/rebuild.nix`.
+  Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#ckn-laptop --sudo`.
+- **Distro prerequisites:** `bash nix/contexts/shared/system/fedora-bootstrap.sh` installs the distro-owned packages the Nix tiers
   depend on. Idempotent, and elevates only when something is missing.
 - **Fedora is experimental:** System Manager only asserts support for nixos, ubuntu and debian, so
-  `nix/hosts/fedora/configuration.nix` sets `system-manager.allowAnyDistro`.
+  `nix/contexts/shared/system/fedora.nix` sets `system-manager.allowAnyDistro`.
 - **Standalone agent policy:** after every standalone Home Manager switch, run
   `sudo nix run ./nix#install-agent-policy`. Not needed where a system tier exists, which owns the
-  `/etc` policy via `nix/modules/agents/system.nix`.
+  `/etc` policy via its platform agents module (`nix/modules/{nixos,darwin,system-manager}/agents`).
 - **Format Nix:** `nix fmt ./nix` (Alejandra via flake). For single files: `alejandra path/to/file.nix` if available.
 - **Lua formatting:** `cd neovim && stylua .` (configs expect 2 spaces / 120 cols; formatting on save is normally enabled).
 - **Shell linting:** use `bash -n script.sh` for syntax checks and `shellcheck script.sh` (install via Nix if missing) before committing substantive shell changes.
 
 ## 3. Repo Map & Ownership
-- `nix/` — flakes, overlays, modules, and home profiles (`work`, `private`, `shared`). Anything user/system-facing ultimately flows through here.
+- `nix/` — flakes, overlays, modules, and the configuration axes: `nix/hardware/<machine>` (hardware only) and
+  `nix/contexts/{shared,<role>}/{system,home}` — `contexts/shared/system/<distro>` is the base tier every machine
+  of that distro gets, `<role>` contexts carry role bits. A new machine is one composition entry in `nix/flake.nix`;
+  machine keys in `linuxConfigurations` must equal the machine's short hostname. Anything user/system-facing
+  ultimately flows through here.
 - `agents/` — global instructions shared by all configured coding agents.
 - `shell/` and `rust/` — shared shell behavior and Rust toolchain configuration.
 - `btop/`, `direnv/`, `equaliser/`, `ghostty/`, `git/`, `gitui/`, `k9s/`, `kanata/`, `neovim/`, `starship/`,
@@ -48,13 +55,13 @@
 ## 4. Workflow Expectations
 1. Prefer `nix fmt`, `nix flake check`, and attribute-scoped builds over bespoke scripts.
 2. Never run `brew install` directly—Homebrew state is managed declaratively via `nix-homebrew` in `nix/modules/darwin`.
-3. Do not open decrypted SOPS files; access values through the paths exposed in Home Manager modules (see `nix/homes/work/default.nix`).
+3. Do not open decrypted SOPS files; access values through the paths exposed in Home Manager modules (see `nix/contexts/work/home/default.nix`).
 
 ## 5. Environment Context
 - `HOME_CONFIGURATION_CONTEXT` selects work/private shells, packages, and configuration. Preserve it when adding
   context-dependent modules.
-- Work profile (`nix/homes/work`) injects secrets for Docker registries, GitHub tokens, etc.; reference them via `config.sops.secrets.<name>.path`.
-- Private profile (`nix/homes/private`) focuses on zsh and Ollama; avoid work-only tooling there.
+- Work profile (`nix/contexts/work/home`) injects secrets for Docker registries, GitHub tokens, etc.; reference them via `config.sops.secrets.<name>.path`.
+- Private profile (`nix/contexts/private/home`) focuses on zsh and Ollama; avoid work-only tooling there.
 - `shell/common` provides shared GitUI theming, worktree cloning, and Docker helpers. Source it rather than duplicating
   logic.
 
@@ -75,7 +82,7 @@
   container workflows without exposing unrelated private host data.
 - The launcher activates an allowed project direnv environment before starting the agent so flake-provided compilers and
   tools are available without granting broad access to the host filesystem.
-- Security behavior is defined in `nix/modules/shared/agents/` and `nix/modules/home/agents/`, with platform
+- Security behavior is defined in `nix/modules/shared/agents/` and `nix/modules/home-manager/agents/`, with platform
   installation under `nix/modules/nixos/agents/` and `nix/modules/darwin/agents/`. Configuration changes become effective
   only after activation and an agent restart.
 
@@ -91,7 +98,7 @@
 - Inputs should use `inputs.<name>.follows` where practical; avoid hard pin divergence without a comment.
 - Modules belong under `nix/modules/<platform>/<topic>`; shared logic sits in `nix/modules/shared`.
 - Prefer `lib.mkIf`, `lib.mkOptionDefault`, and `lib.optionals` to keep conditionals declarative.
-- When adding Home Manager secrets, use the existing pattern in `nix/homes/work/default.nix` (SOPS module import, `genAttrs` for multi-secret lists).
+- When adding Home Manager secrets, use the existing pattern in `nix/contexts/work/home/default.nix` (SOPS module import, `genAttrs` for multi-secret lists).
 
 **Shell (bash/zsh)**
 - Start scripts with `#!/usr/bin/env bash` and `set -e` (or `set -euo pipefail` if safe); keep functions in `shell/common` when they need cross-shell reuse.
@@ -109,7 +116,7 @@
 
 **Rust / Other Languages**
 - Rust toolchain is managed via `rust/` and `rustup`; run `cargo fmt` + `cargo clippy` in affected projects before merging.
-- Go/Node/Python tooling is typically project-local; when editing global helpers, prefer version managers provided via Home Manager (see `nix/homes/work/global-dev-tools.nix`).
+- Go/Node/Python tooling is typically project-local; when editing global helpers, prefer version managers provided via Home Manager (see `nix/contexts/work/home/global-dev-tools.nix`).
 
 ## 8. Error Handling & Logging
 - In shell scripts, check command availability with `command -v` before use (see `init.sh`).
@@ -118,7 +125,7 @@
 
 ## 9. Dependency & Package Guidance
 - Add new system packages via the appropriate module (`nix/modules/darwin`, `nix/modules/nixos`, or shared overlays). Avoid `nix-env -i`.
-- For Home Manager packages, prefer per-context modules (`homes/work`, `homes/private`) to avoid leaking work-only tools into private machines.
+- For Home Manager packages, prefer per-context modules (`contexts/work/home`, `contexts/private/home`) to avoid leaking work-only tools into private machines.
 - Use overlays under `nix/overlays` to patch upstream packages; keep them minimal and documented.
 
 ## 10. Testing & Verification Tips

@@ -17,6 +17,12 @@
 - Keep dependency lockfile changes intentional, using the ecosystem's supported update commands.
 - Preserve existing user changes; avoid unrelated files and new documentation unless asked.
 
+## Git Commits
+
+- Never add `Co-Authored-By` trailers or any other AI/agent attribution to
+  commit messages — not even when tooling defaults or templates suggest it.
+  Commit messages are authored by the user, full stop.
+
 ## Session State
 
 - Before multi-step work, write the session plan via the `spec` skill: small milestones, each with

@@ -67,22 +67,28 @@
     nix-darwin,
     nix-homebrew,
     system-manager,
-    tuxedo-nixos,
     ...
   }: let
     owner = "Christophe Knage";
     privateUser = "chris";
     workUser = "ckn";
+
     darwinArchitecture = "aarch64-darwin";
     linuxArchitecture = "x86_64-linux";
-    workHomeConfiguration = "${workUser}@work";
     inherit (nixpkgs) lib;
+
     mkArgs = user: {
       inherit inputs user;
       homeContext = import ./lib/home-context.nix;
     };
     privateArgs = mkArgs privateUser;
     workArgs = mkArgs workUser;
+
+    # Like nixpkgs.lib.nixosSystem, but for System Manager machines.
+    mkGenericLinuxSystem = import ./lib/mk-generic-linux-system.nix {
+      inherit inputs nixpkgs;
+    };
+
     sharedModules = [
       ./modules/shared
     ];
@@ -92,11 +98,17 @@
     nixosModules = [
       home-manager.nixosModules.home-manager
       ./modules/nixos
+      ./modules/shared/desktops/gnome/system.nix
+      ./contexts/shared/system/nixos
     ];
     darwinModules = [
       home-manager.darwinModules.home-manager
       nix-homebrew.darwinModules.nix-homebrew
       ./modules/darwin
+      ./contexts/shared/system/darwin
+    ];
+    fedoraModules = [
+      ./contexts/shared/system/fedora
     ];
   in {
     formatter.${darwinArchitecture} = nixpkgs.legacyPackages.${darwinArchitecture}.alejandra;
@@ -108,10 +120,10 @@
         specialArgs = privateArgs // {inherit self;};
         modules =
           [
-            ./hosts/logic/configuration.nix
+            ./contexts/private/system/darwin.nix
             {
               home-manager = {
-                users.${privateUser} = import ./homes/private;
+                users.${privateUser} = import ./contexts/private/home;
                 extraSpecialArgs = privateArgs;
               };
             }
@@ -128,14 +140,15 @@
         specialArgs = privateArgs // {inherit owner;};
         modules =
           [
-            ./hosts/penguin-tuxedo/configuration.nix
+            ./hardware/tuxedo-stellaris-gen6
+            ./contexts/work/system/nixos.nix
+            {dotfiles.desktops.gnome.enable = true;}
             {
               home-manager = {
-                users.${privateUser} = import ./homes/work;
+                users.${privateUser} = import ./contexts/work/home;
                 extraSpecialArgs = privateArgs;
               };
             }
-            tuxedo-nixos.nixosModules.default
           ]
           ++ sharedModules
           ++ systemModules
@@ -143,57 +156,71 @@
       };
     };
 
-    # One per System Manager host. Fedora is experimental:
-    # System Manager only asserts support for ubuntu and debian.
-    systemConfigs = lib.genAttrs ["fedora"] (host:
-      system-manager.lib.makeSystemConfig {
+    # One per System Manager host: a machine-and-user bundle with both tiers.
+    # Keys are short hostnames; the <distro>-rebuild app selects by them.
+    # Fedora is experimental: System Manager only asserts support for nixos,
+    # ubuntu and debian.
+    linuxConfigurations = {
+      ckn-laptop = mkGenericLinuxSystem {
+        distro = "fedora";
+        selinux = true;
+        system = linuxArchitecture;
         specialArgs = workArgs // {inherit self;};
-        modules = [
-          ./hosts/${host}/configuration.nix
-        ];
-      });
+        modules =
+          [
+            {dotfiles.desktops.gnome.enable = true;}
+            {
+              home-manager = {
+                users.${workUser} = import ./contexts/work/home;
+                extraSpecialArgs = workArgs;
+              };
+            }
+          ]
+          ++ sharedModules
+          ++ systemModules
+          ++ fedoraModules;
+      };
+    };
 
-    # Shared by every standalone Linux work host, regardless of hostname or
-    # distro. Standalone Home Manager cannot install the root-owned /etc policy.
-    homeConfigurations.${workHomeConfiguration} = home-manager.lib.homeManagerConfiguration {
+    # Standalone Home Manager, kept as a backup for work hosts where
+    # System Manager cannot be used at all.
+    homeConfigurations."${workUser}@work" = home-manager.lib.homeManagerConfiguration {
       pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
       modules =
-        sharedModules
-        ++ [
-          ./homes/shared/generic-linux.nix
-          ./homes/shared
-          ./homes/work
-        ];
+        [
+          ./contexts/shared/home/generic-linux.nix
+          ./contexts/shared/home
+          ./contexts/work/home
+          {dotfiles.desktops.gnome.enable = true;}
+        ]
+        ++ sharedModules;
       extraSpecialArgs = workArgs;
     };
 
-    apps.${linuxArchitecture} =
-      {
-        # Install the root-owned policy after standalone Home Manager switches.
-        # Not needed where System Manager owns the /etc policy.
-        install-agent-policy = {
-          type = "app";
-          meta.description = "Install the root-owned agent policy into /etc";
-          program = lib.getExe (import ./apps/install-agent-policy.nix {
-            inherit inputs lib;
-            pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
-            homeDirectory = "/home/${workUser}";
-          });
-        };
-      }
-      # Both configuration tiers in one command, per System Manager host.
-      // lib.mapAttrs' (host: _:
-        lib.nameValuePair "${host}-rebuild" {
-          type = "app";
-          meta.description = "Apply the System Manager and Home Manager tiers on ${host}";
-          program = lib.getExe (import ./apps/rebuild.nix {
-            inherit inputs;
-            systemConfig = host;
-            homeConfiguration = workHomeConfiguration;
-            pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
-            system = linuxArchitecture;
-          });
-        })
-      self.systemConfigs;
+    apps.${linuxArchitecture} = {
+      # Install the root-owned policy after standalone Home Manager switches.
+      # Not needed where System Manager owns the /etc policy.
+      install-agent-policy = {
+        type = "app";
+        meta.description = "Install the root-owned agent policy into /etc";
+        program = lib.getExe (import ./apps/install-agent-policy.nix {
+          inherit inputs lib;
+          pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+          homeDirectory = "/home/${workUser}";
+        });
+      };
+
+      # The generic System Manager rebuild app; see the file for its CLI.
+      linux-rebuild = {
+        type = "app";
+        meta.description = "Install <distro>-rebuild and apply the System Manager and Home Manager tiers";
+        program = lib.getExe (import ./apps/rebuild.nix {
+          inherit inputs;
+          name = "linux-rebuild";
+          pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+          system = linuxArchitecture;
+        });
+      };
+    };
   };
 }

@@ -42,19 +42,20 @@ nix run nix-darwin -- switch --flake .
 **Fedora:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
 
 ```bash
-bash nix/hosts/fedora/bootstrap.sh
-nix run ./nix#fedora-rebuild
+bash nix/contexts/shared/system/fedora-bootstrap.sh
+nix run ./nix#linux-rebuild -- switch --flake ./nix
 ```
 
-`fedora-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment.
+`linux-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment, and
+installs `fedora-rebuild` on the box's PATH for later runs.
 
-Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `bootstrap.sh` prints the
+Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `fedora-bootstrap.sh` prints the
 endpoint-security, SELinux, firewall, and IdM enrollment steps it leaves to Fedora.
 
 > Experimental: System Manager only asserts support for `nixos`, `ubuntu`, and `debian`, so this host sets
-> `system-manager.allowAnyDistro`. `bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
+> `system-manager.allowAnyDistro`. `fedora-bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
 > installer, but that alone doesn't stop systemd (`init_t`) from being denied
-> access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `fedora-rebuild` relabels each
+> access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `linux-rebuild` relabels each
 > new generation's closure before System Manager activates it.
 
 On first apply:
@@ -89,7 +90,7 @@ Each machine has one keypair, `~/.ssh/keys/dotfiles-secrets`:
 - **sops age identity** — converted by sops-nix at activation (`sops.age.sshKeyPaths`)
 
 The flake input is fetched via the `github-secrets` ssh alias: github.com,
-offering only this keypair. It is defined once in `modules/shared/secrets/alias.nix`
+offering only this keypair. It is defined once in `lib/secrets-alias.nix`
 and rendered into `/etc/ssh` (system configs) and `~/.ssh/config` (standalone home-manager).
 `scripts/secrets-bootstrap.sh` creates the keypair and primes the input for the first rebuild.
 
@@ -113,7 +114,7 @@ Follow the printed instructions:
 
 ### Without a key
 
-Homes that do not import `modules/home/secrets` build without a key — flake
+Homes that do not import `modules/home-manager/secrets` build without a key — flake
 inputs are fetched lazily. `nix flake update` needs repo access; update named
 inputs instead: `nix flake update nixpkgs --flake .`
 
@@ -133,10 +134,11 @@ sudo nixos-rebuild switch --flake .
 sudo darwin-rebuild switch --flake .
 ```
 
-**Fedora:**
+**Fedora:** after the first run, `fedora-rebuild` (installed by `linux-rebuild`) is on the PATH:
 
 ```bash
-nix run ./nix#fedora-rebuild
+nix run ./nix#linux-rebuild -- switch --flake ./nix   # first run
+fedora-rebuild switch --flake ./nix                   # afterwards
 ```
 
 **Home Manager:**

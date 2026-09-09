@@ -46,8 +46,8 @@ if [ -L "$DOTFILES_DIR" ] || [ ! -d "$DOTFILES_DIR" ]; then
 fi
 
 # Distro-owned prerequisites; must run before the Nix installer.
-if [ -f "$SCRIPT_DIR/nix/hosts/$TARGET/bootstrap.sh" ]; then
-  bash "$SCRIPT_DIR/nix/hosts/$TARGET/bootstrap.sh"
+if [ -f "$SCRIPT_DIR/nix/contexts/shared/system/$TARGET/bootstrap.sh" ]; then
+  bash "$SCRIPT_DIR/nix/contexts/shared/system/$TARGET/bootstrap.sh"
 fi
 
 if ! command -v nix >/dev/null; then
@@ -95,8 +95,15 @@ case $TARGET in
     fi
     ;;
   fedora)
-    # Applies both tiers; see nix/apps/rebuild.nix
-    nix run "./nix#$TARGET-rebuild"
+    # The generic linux app installs <distro>-rebuild for the box's distro,
+    # so later runs skip `nix run` like darwin-rebuild. init.sh always runs
+    # on the target box, so the flake ref needs no #<machine>: the app
+    # defaults to the box's own short hostname.
+    if ! command -v fedora-rebuild >/dev/null; then
+      nix run ./nix#linux-rebuild -- switch --flake ./nix
+    else
+      fedora-rebuild switch --flake ./nix
+    fi
     ;;
   home-manager)
     if ! command -v home-manager >/dev/null; then

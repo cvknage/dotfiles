@@ -4,7 +4,7 @@
     useUserPackages = true;
     backupFileExtension = "hm-backup";
     sharedModules = [
-      ../../../homes/shared
+      ../../../contexts/shared/home
     ];
   };
 }

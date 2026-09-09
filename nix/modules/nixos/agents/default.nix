@@ -6,7 +6,7 @@
   ...
 }: let
   homeDirectory = "/home/${user}";
-  files = import ../../shared/agents/policy/managed-files.nix {
+  files = import ../../../lib/agents/policy/managed-files.nix {
     inherit homeDirectory inputs lib pkgs;
   };
 in {
