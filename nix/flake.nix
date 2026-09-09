@@ -69,25 +69,25 @@
     system-manager,
     ...
   }: let
-    owner = "Christophe Knage";
-    privateUser = "chris";
-    workUser = "ckn";
-
-    darwinArchitecture = "aarch64-darwin";
-    linuxArchitecture = "x86_64-linux";
     inherit (nixpkgs) lib;
+
+    aarch64Darwin = "aarch64-darwin";
+    x86_64Linux = "x86_64-linux";
 
     mkArgs = user: {
       inherit inputs user;
       homeContext = import ./lib/home-context.nix;
     };
-    privateArgs = mkArgs privateUser;
-    workArgs = mkArgs workUser;
-
     # Like nixpkgs.lib.nixosSystem, but for System Manager machines.
     mkGenericLinuxSystem = import ./lib/mk-generic-linux-system.nix {
       inherit inputs nixpkgs;
     };
+
+    owner = "Christophe Knage";
+    privateUser = "chris";
+    workUser = "ckn";
+    privateArgs = mkArgs privateUser;
+    workArgs = mkArgs workUser;
 
     sharedModules = [
       ./modules/shared
@@ -111,12 +111,12 @@
       ./contexts/shared/system/fedora
     ];
   in {
-    formatter.${darwinArchitecture} = nixpkgs.legacyPackages.${darwinArchitecture}.alejandra;
-    formatter.${linuxArchitecture} = nixpkgs.legacyPackages.${linuxArchitecture}.alejandra;
+    formatter.${aarch64Darwin} = nixpkgs.legacyPackages.${aarch64Darwin}.alejandra;
+    formatter.${x86_64Linux} = nixpkgs.legacyPackages.${x86_64Linux}.alejandra;
 
     darwinConfigurations = {
       logic = nix-darwin.lib.darwinSystem {
-        system = darwinArchitecture;
+        system = aarch64Darwin;
         specialArgs = privateArgs // {inherit self;};
         modules =
           [
@@ -136,7 +136,7 @@
 
     nixosConfigurations = {
       penguin-tuxedo = nixpkgs.lib.nixosSystem {
-        system = linuxArchitecture;
+        system = x86_64Linux;
         specialArgs = privateArgs // {inherit owner;};
         modules =
           [
@@ -156,15 +156,11 @@
       };
     };
 
-    # One per System Manager host: a machine-and-user bundle with both tiers.
-    # Keys are short hostnames; the <distro>-rebuild app selects by them.
-    # Fedora is experimental: System Manager only asserts support for nixos,
-    # ubuntu and debian.
     linuxConfigurations = {
       ckn-laptop = mkGenericLinuxSystem {
         distro = "fedora";
         selinux = true;
-        system = linuxArchitecture;
+        system = x86_64Linux;
         specialArgs = workArgs // {inherit self;};
         modules =
           [
@@ -185,7 +181,7 @@
     # Standalone Home Manager, kept as a backup for work hosts where
     # System Manager cannot be used at all.
     homeConfigurations."${workUser}@work" = home-manager.lib.homeManagerConfiguration {
-      pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+      pkgs = nixpkgs.legacyPackages.${x86_64Linux};
       modules =
         [
           ./contexts/shared/home/generic-linux.nix
@@ -197,7 +193,7 @@
       extraSpecialArgs = workArgs;
     };
 
-    apps.${linuxArchitecture} = {
+    apps.${x86_64Linux} = {
       # Install the root-owned policy after standalone Home Manager switches.
       # Not needed where System Manager owns the /etc policy.
       install-agent-policy = {
@@ -205,7 +201,7 @@
         meta.description = "Install the root-owned agent policy into /etc";
         program = lib.getExe (import ./apps/install-agent-policy.nix {
           inherit inputs lib;
-          pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
+          pkgs = nixpkgs.legacyPackages.${x86_64Linux};
           homeDirectory = "/home/${workUser}";
         });
       };
@@ -213,12 +209,12 @@
       # The generic System Manager rebuild app; see the file for its CLI.
       linux-rebuild = {
         type = "app";
-        meta.description = "Install <distro>-rebuild and apply the System Manager and Home Manager tiers";
+        meta.description = "Apply the System Manager and Home Manager tiers of a machine";
         program = lib.getExe (import ./apps/rebuild.nix {
           inherit inputs;
           name = "linux-rebuild";
-          pkgs = nixpkgs.legacyPackages.${linuxArchitecture};
-          system = linuxArchitecture;
+          pkgs = nixpkgs.legacyPackages.${x86_64Linux};
+          system = x86_64Linux;
         });
       };
     };

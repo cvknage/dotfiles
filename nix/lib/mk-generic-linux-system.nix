@@ -25,7 +25,7 @@
   };
 in
   {
-    distro, # System Manager distro; names the <distro>-rebuild app
+    distro, # System Manager distro; names the <distro>-rebuild alias the home tier installs as a package
     selinux ? false, # relabel the store closure for SELinux-enforcing distros
     system,
     specialArgs ? {},

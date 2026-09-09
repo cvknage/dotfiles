@@ -6,8 +6,9 @@
 #   linux-rebuild <action> [--flake <path>[#<machine>]]
 #
 # The action is switch (apply both tiers) or build (build them without
-# switching). The machine defaults to the box's short hostname; the distro is
-# read from the machine's bundle and never assumed.
+# switching). The machine defaults to the box's short hostname and must be a
+# key of linuxConfigurations. The distro is not used here; the home tier
+# (mk-generic-linux-system.nix) uses it to name the <distro>-rebuild alias.
 {
   inputs,
   name,
