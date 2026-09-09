@@ -55,6 +55,13 @@
   #     "https://download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION.run" \
   #     | jq -r .hash
 
+  # Fedora doesn't enable gcr-ssh-agent's socket or declare SSH_AUTH_SOCK, so GNOME starts it racily; do both up front.
+  xdg.configFile."environment.d/91-gcr-ssh-agent.conf".text = "SSH_AUTH_SOCK=%t/gcr/ssh\n";
+
+  home.activation.enableGcrSshAgentSocket = lib.hm.dag.entryAfter ["writeBoundary"] ''
+    $DRY_RUN_CMD systemctl --user enable --now gcr-ssh-agent.socket 2>/dev/null || true
+  '';
+
   # systemd --user computes PATH/XDG_DATA_DIRS once at manager startup, and
   # Fedora's KillUserProcesses=no keeps it alive across a logout, so a
   # rebuild's new profile paths need pushing into the live manager by hand.

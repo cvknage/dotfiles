@@ -46,13 +46,10 @@ bash nix/contexts/shared/system/fedora-bootstrap.sh
 nix run ./nix#linux-rebuild -- switch --flake ./nix
 ```
 
-`linux-rebuild` applies `system-manager` for the system tier, then `home-manager` for the user environment, and
-installs `fedora-rebuild` on the box's PATH for later runs.
-
 Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `fedora-bootstrap.sh` prints the
 endpoint-security, SELinux, firewall, and IdM enrollment steps it leaves to Fedora.
 
-> Experimental: System Manager only asserts support for `nixos`, `ubuntu`, and `debian`, so this host sets
+> Experimental: System Manager only asserts support for `ubuntu`, and `debian`, so this host sets
 > `system-manager.allowAnyDistro`. `fedora-bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
 > installer, but that alone doesn't stop systemd (`init_t`) from being denied
 > access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `linux-rebuild` relabels each
@@ -134,11 +131,10 @@ sudo nixos-rebuild switch --flake .
 sudo darwin-rebuild switch --flake .
 ```
 
-**Fedora:** after the first run, `fedora-rebuild` (installed by `linux-rebuild`) is on the PATH:
+**Fedora:**
 
 ```bash
-nix run ./nix#linux-rebuild -- switch --flake ./nix   # first run
-fedora-rebuild switch --flake ./nix                   # afterwards
+fedora-rebuild switch --flake ./nix
 ```
 
 **Home Manager:**

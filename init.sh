@@ -95,10 +95,6 @@ case $TARGET in
     fi
     ;;
   fedora)
-    # The generic linux app installs <distro>-rebuild for the box's distro,
-    # so later runs skip `nix run` like darwin-rebuild. init.sh always runs
-    # on the target box, so the flake ref needs no #<machine>: the app
-    # defaults to the box's own short hostname.
     if ! command -v fedora-rebuild >/dev/null; then
       nix run ./nix#linux-rebuild -- switch --flake ./nix
     else

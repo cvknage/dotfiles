@@ -1,8 +1,7 @@
-# Docker is installed and updated by the host distro. System Manager owns only
-# these systemd drop-ins; defining `systemd.services.docker` here would replace
-# the host's unit and drop its ExecStart.
+# Docker is host-managed; System Manager only owns these drop-ins. docker/containerd skip mount-namespace hardening (breaks all container creation), so docker-agent-proxy enforces the denylist instead, at its own socket.
 {
   lib,
+  pkgs,
   user,
   ...
 }: let
@@ -12,16 +11,35 @@
     isDarwin = false;
     xdgConfigHome = "${homeDirectory}/.config";
   };
-  restrictedFilesystemView = ''
-    [Service]
-    PrivateMounts=true
-    ProtectHome=tmpfs
-    ${lib.concatMapStringsSep "\n" (path: "BindPaths=${path}") policy.workspaceRoots}
-    ${lib.concatMapStringsSep "\n" (path: "InaccessiblePaths=-${path}") policy.deniedPaths}
-  '';
+  dockerAgentProxy = pkgs.callPackage ../../pkgs/docker-agent-proxy {};
 in {
   environment.etc = {
-    "systemd/system/docker.service.d/10-agent-boundary.conf".text = restrictedFilesystemView;
-    "systemd/system/containerd.service.d/10-agent-boundary.conf".text = restrictedFilesystemView;
+    # Force overlay2: Fedora's moby-engine default containerd snapshotter extracts kind's node images incorrectly.
+    "docker/daemon.json".text = builtins.toJSON {
+      features.containerd-snapshotter = false;
+    };
+  };
+
+  systemd.services.docker-agent-proxy = {
+    description = "Docker Engine API proxy enforcing the agent sandbox's bind-mount denylist";
+    after = ["docker.socket" "docker.service"];
+    wants = ["docker.socket" "docker.service"];
+    wantedBy = ["multi-user.target"];
+    serviceConfig = {
+      Type = "simple";
+      ExecStart = lib.escapeShellArgs [
+        (lib.getExe dockerAgentProxy)
+        "-listen"
+        policy.dockerProxySocketPath
+        "-upstream"
+        "/run/docker.sock"
+        "-group"
+        "docker"
+        "-denied"
+        (lib.concatStringsSep "," policy.deniedPaths)
+      ];
+      Restart = "on-failure";
+      RestartSec = 1;
+    };
   };
 }

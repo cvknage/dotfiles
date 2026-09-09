@@ -33,16 +33,20 @@ in {
 
   # Matches the GNOME dconf input source in nix/contexts/work/home/, so the GDM
   # greeter and console (which don't read per-user dconf) use the same
-  # AltGr layout kanata's Linux config assumes (kanata/kanata_us.kbd).
-  environment.etc."X11/xorg.conf.d/00-keyboard.conf".text = ''
-    Section "InputClass"
-            Identifier "system-keyboard"
-            MatchIsKeyboard "on"
-            Option "XkbLayout" "us"
-            Option "XkbModel" "pc105"
-            Option "XkbVariant" "mac"
-    EndSection
-  '';
+  # AltGr layout kanata's Linux config assumes (kanata/kanata_us.kbd). Fedora
+  # ships its own unmanaged file at this path, so back it up and take it over.
+  environment.etc."X11/xorg.conf.d/00-keyboard.conf" = {
+    replaceExisting = true;
+    text = ''
+      Section "InputClass"
+              Identifier "system-keyboard"
+              MatchIsKeyboard "on"
+              Option "XkbLayout" "us"
+              Option "XkbModel" "pc105"
+              Option "XkbVariant" "mac"
+      EndSection
+    '';
+  };
 
   # Fedora's default fs.inotify.max_user_instances (128) is too low for the Roslyn
   # language server's per-project file watchers on large .slnx solutions; it throws

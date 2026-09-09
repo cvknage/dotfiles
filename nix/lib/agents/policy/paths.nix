@@ -77,9 +77,21 @@
     if isWork
     then "${gitIdentityDirectory}/ssh-agent.sock"
     else "";
-  serviceSockets =
-    ["/nix/var/nix/daemon-socket/socket"]
-    ++ lib.optionals (!isDarwin) ["/run/docker.sock"];
+  # The sandbox never talks to the real docker.sock; docker-agent-proxy enforces deniedPaths instead.
+  dockerProxySocketPath = "/run/docker-agent-proxy.sock";
+  serviceSocketMappings =
+    [
+      {
+        host = "/nix/var/nix/daemon-socket/socket";
+        sandbox = "/nix/var/nix/daemon-socket/socket";
+      }
+    ]
+    ++ lib.optionals (!isDarwin) [
+      {
+        host = dockerProxySocketPath;
+        sandbox = "/run/docker.sock";
+      }
+    ];
 
   toolCachePaths = {
     npm = "${homeDirectory}/.npm";
@@ -190,7 +202,7 @@
       sharedReadOnlyPaths
       ++ systemReadOnlyPaths
       ++ lib.optionals isWork [gitIdentityDirectory];
-    socketPaths = serviceSockets;
+    socketPaths = map (m: "${m.host}:${m.sandbox}") serviceSocketMappings;
     writePaths = workspaceRoots ++ sharedWritablePaths ++ runtimeRoots ++ runtimeFiles ++ kubernetesStateRoots;
     ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot];
     ensureFiles = runtimeFiles;
@@ -283,6 +295,7 @@ in {
     claudeGlobalSettingsPaths
     claudeProjectSettingsPaths
     deniedPaths
+    dockerProxySocketPath
     homeDirectory
     opencodeGlobalSettingsPaths
     opencodeProjectSettingsPaths

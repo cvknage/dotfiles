@@ -24,6 +24,7 @@ in {
   inherit
     (paths)
     deniedPaths
+    dockerProxySocketPath
     homeDirectory
     outerSandboxProfiles
     sshAgentSocket

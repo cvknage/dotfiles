@@ -102,11 +102,6 @@
       };
     };
 in {
-  # Out-of-store symlink so Claude Code can update settings at runtime.
-  home.file.".claude/settings.json" = lib.mkForce {
-    source = config.lib.file.mkOutOfStoreSymlink mutableSettingsPath;
-  };
-
   # Merge managed settings into the mutable state file on activation.
   # Nix-controlled hooks, permissions, and sandbox keys always win; other user/plugin keys are preserved.
   home.activation.claudeCodeMaterializeSettings =

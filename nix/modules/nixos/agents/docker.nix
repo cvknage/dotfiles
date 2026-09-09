@@ -1,8 +1,8 @@
-# Give the rootful development daemon the same private-path boundary as the
-# agents while preserving its normal socket, networking, devices, and storage.
+# docker/containerd skip mount-namespace hardening (breaks all container creation, confirmed on the Fedora sibling); docker-agent-proxy enforces the denylist instead, at its own socket.
 {
   config,
   lib,
+  pkgs,
   user,
   ...
 }: let
@@ -12,16 +12,29 @@
     isDarwin = false;
     xdgConfigHome = "${homeDirectory}/.config";
   };
-  restrictedServiceConfig = {
-    PrivateMounts = true;
-    ProtectHome = "tmpfs";
-    BindPaths = policy.workspaceRoots;
-    InaccessiblePaths = map (path: "-${path}") policy.deniedPaths;
-  };
+  dockerAgentProxy = pkgs.callPackage ../../../pkgs/docker-agent-proxy {};
 in
   lib.mkIf config.virtualisation.docker.enable {
-    # Docker delegates container setup and bind mounts to containerd, so both
-    # services must receive the same filesystem view.
-    systemd.services.docker.serviceConfig = restrictedServiceConfig;
-    systemd.services.containerd.serviceConfig = restrictedServiceConfig;
+    systemd.services.docker-agent-proxy = {
+      description = "Docker Engine API proxy enforcing the agent sandbox's bind-mount denylist";
+      after = ["docker.socket" "docker.service"];
+      wants = ["docker.socket" "docker.service"];
+      wantedBy = ["multi-user.target"];
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = lib.escapeShellArgs [
+          (lib.getExe dockerAgentProxy)
+          "-listen"
+          policy.dockerProxySocketPath
+          "-upstream"
+          "/run/docker.sock"
+          "-group"
+          "docker"
+          "-denied"
+          (lib.concatStringsSep "," policy.deniedPaths)
+        ];
+        Restart = "on-failure";
+        RestartSec = 1;
+      };
+    };
   }

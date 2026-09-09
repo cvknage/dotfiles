@@ -1,7 +1,9 @@
 # The linux counterpart of darwin-rebuild: applies both tiers of the matching
-# linuxConfigurations machine and installs <distro>-rebuild on the box's PATH.
+# linuxConfigurations machine. The Home Manager tier (mk-generic-linux-system.nix)
+# installs the <distro>-rebuild alias for it as a proper package, so later runs
+# skip `nix run` without needing a fresh shell to pick up a new PATH entry.
 #
-#   linux-rebuild <action> [<distro>] [<machine>] [--flake <path>[#<machine>]]
+#   linux-rebuild <action> [--flake <path>[#<machine>]]
 #
 # The action is switch (apply both tiers) or build (build them without
 # switching). The machine defaults to the box's short hostname; the distro is
@@ -16,7 +18,7 @@
 in
   pkgs.writeShellApplication {
     inherit name;
-    meta.description = "Install <distro>-rebuild and apply the System Manager and Home Manager tiers";
+    meta.description = "Apply the System Manager and Home Manager tiers";
     runtimeInputs = [
       inputs.system-manager.packages.${system}.default
     ];
@@ -26,6 +28,7 @@ in
       flake_ref="$HOME/.dotfiles/nix"
 
       machine=""
+      action=""
 
       while [ $# -gt 0 ]; do
         case "$1" in
@@ -70,32 +73,31 @@ in
         machine="$(hostname -s)"
       fi
 
-      # Fail loudly, with the configured machines, when the target is not one
-      # of them. The distro is never assumed: it is read from the machine's
-      # bundle and names the installed command.
-      distro="$(nix eval --raw "$flake#linuxConfigurations.$machine.distro" 2>/dev/null)" || {
+      # Fail loudly, with the configured machines, when the target is not one of them.
+      nix eval --raw "$flake#linuxConfigurations.$machine.distro" >/dev/null 2>&1 || {
         echo "Unknown machine '$machine' for ${name}." >&2
         echo "Configured machines: $(nix eval --json "$flake#linuxConfigurations" --apply 'builtins.attrNames' 2>/dev/null)" >&2
         exit 1
       }
+
+      # --no-eval-cache: this build and System Manager's own internal build of
+      # the same attribute, moments later, both otherwise touch the flake
+      # eval-cache database at nearly the same time and print harmless but
+      # noisy "SQLite database is busy" lines. Nix already ignores that error
+      # and re-evaluates; skipping the cache on our side avoids the race.
+      echo "==> Building System Manager tier: $flake#$machine"
+      system_out="$(nix build "$flake#systemConfigs.$machine" --no-link --no-eval-cache --print-out-paths)"
 
       # Fedora's SELinux policy has no fcontext for /nix/store, so systemd
       # (init_t) is denied read access to unit files and drop-ins, and denied
       # execute access to ExecStart scripts, that System Manager symlinks in
       # from the store (nix/README.md's Fedora section). bootstrap.sh
       # registers the store-wide fcontext spec once, but each generation's
-      # changed paths land at new store paths, so build first and relabel
-      # that closure before System Manager activates it.
-      #
-      # --no-eval-cache: this build and System Manager's own internal build of
-      # the same attribute, moments later, both otherwise touch the flake
-      # eval-cache database at nearly the same time and print harmless but
-      # noisy "SQLite database is busy" lines. Nix already ignores that error
-      # and re-evaluates; skipping the cache on our side avoids the race.
+      # changed paths land at new store paths, so relabel this build's closure
+      # before System Manager applies it below.
       if [ "$(nix eval --json "$flake#linuxConfigurations.$machine.selinux")" = true ]; then
-        echo "==> Relabeling System Manager units for SELinux: $flake#linuxConfigurations.$machine.system"
-        selinux_out="$(nix build "$flake#linuxConfigurations.$machine.system" --no-link --no-eval-cache --print-out-paths)"
-        mapfile -t selinux_closure < <(nix-store -qR "$selinux_out")
+        echo "==> Relabeling System Manager units for SELinux"
+        mapfile -t selinux_closure < <(nix-store -qR "$system_out")
         sudo restorecon -RF "''${selinux_closure[@]}"
       fi
 
@@ -103,34 +105,23 @@ in
       # run its activate script (the home configuration is built into the
       # machine bundle, so there is no homeConfigurations attr to point
       # --flake at).
-      echo "==> Home Manager: $flake#linuxConfigurations.$machine.home"
+      echo "==> Building Home Manager tier: $flake#linuxConfigurations.$machine.home"
       home_out="$(nix build "$flake#linuxConfigurations.$machine.home.activationPackage" --no-link --print-out-paths)"
 
       if [ "$action" = build ]; then
         echo "==> Built both tiers without switching."
-        echo "    System Manager: $selinux_out"
+        echo "    System Manager: $system_out"
         echo "    Home Manager:   $home_out"
         exit 0
       fi
 
-      echo "==> System Manager: $flake#linuxConfigurations.$machine.system"
+      # Applied in the same order NixOS/nix-darwin apply theirs: system tier first, home tier second.
+      echo "==> Applying System Manager tier: $flake#$machine"
       scratch="$(mktemp -d)"
-      (cd "$scratch" && system-manager switch --flake "$flake#linuxConfigurations.$machine.system" --sudo)
+      (cd "$scratch" && system-manager switch --flake "$flake#$machine" --sudo)
       rm -rf "$scratch"
 
+      echo "==> Activating Home Manager tier"
       "$home_out/activate"
-
-      # Install the distro-specific rebuild command, so later runs skip
-      # `nix run` like darwin-rebuild. It is a pure pass-through: the target
-      # machine is the box's own short hostname on every run, so a wrong-box
-      # run fails loudly instead of applying another machine's tiers.
-      install_dir="$HOME/.local/bin"
-      mkdir -p "$install_dir"
-      printf '#!/usr/bin/env bash\nexec nix run "$HOME/.dotfiles/nix#%s" -- "$@"\n' "${name}" >"$install_dir/''${distro}-rebuild"
-      chmod +x "$install_dir/''${distro}-rebuild"
-      case ":$PATH:" in
-        *":$install_dir:"*) ;;
-        *) echo "Note: add $install_dir to PATH to use ''${distro}-rebuild directly." >&2 ;;
-      esac
     '';
   }

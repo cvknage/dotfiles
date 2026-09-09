@@ -222,5 +222,8 @@
         });
       };
     };
+
+    # Aliases each machine's System Manager config under `systemConfigs`, where the CLI's flake resolution expects it.
+    systemConfigs = lib.mapAttrs (_: cfg: cfg.system) self.linuxConfigurations;
   };
 }

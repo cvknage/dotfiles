@@ -36,6 +36,24 @@
         exec {seccomp_fd}<"${tiocstiSeccompFilter}"
 
         home_parent="$(dirname "$HOME")"
+
+        # Root-owned ssh_config.d/crypto-policies map to nobody in --unshare-all's userns; OpenSSH's Include safety check rejects that, breaking SSH, so re-host a user-owned copy and bind it over the real dir.
+        ssh_ownership_fix_dirs=(
+          /etc/ssh/ssh_config.d
+          /etc/crypto-policies/back-ends
+        )
+        ssh_ownership_fix_snapshots=()
+        for src_dir in "''${ssh_ownership_fix_dirs[@]}"; do
+          [ -d "$src_dir" ] || continue
+          snapshot="$HOME/.cache/agent-sandbox/etc-fixups$src_dir"
+          rm -rf "$snapshot.tmp"
+          mkdir -p "$snapshot.tmp"
+          cp -rL "$src_dir/." "$snapshot.tmp/" 2>/dev/null || true
+          rm -rf "$snapshot"
+          mv "$snapshot.tmp" "$snapshot"
+          ssh_ownership_fix_snapshots+=("$snapshot:$src_dir")
+        done
+
         sandbox=(
           --die-with-parent
           --seccomp "$seccomp_fd"
@@ -77,11 +95,19 @@
           fi
         done
 
-        # Expose only explicitly managed service sockets. The Docker daemon has
-        # its own restricted filesystem view, independently of this boundary.
-        for path in "''${socket_paths[@]}"; do
-          if [ -S "$path" ]; then
-            sandbox+=(--ro-bind "$path" "$path")
+        # Shadow the real (root-owned, ssh-hostile) directories with the re-hosted copies.
+        for entry in "''${ssh_ownership_fix_snapshots[@]}"; do
+          snapshot="''${entry%%:*}"
+          real_dir="''${entry#*:}"
+          sandbox+=(--ro-bind "$snapshot" "$real_dir")
+        done
+
+        # Each entry is "host:sandbox" (Docker maps docker-agent-proxy's socket to /run/docker.sock).
+        for entry in "''${socket_paths[@]}"; do
+          host_path="''${entry%%:*}"
+          sandbox_path="''${entry#*:}"
+          if [ -S "$host_path" ]; then
+            sandbox+=(--ro-bind "$host_path" "$sandbox_path")
           fi
         done
 

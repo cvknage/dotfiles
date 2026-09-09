@@ -145,6 +145,10 @@
       trap '${pkgs.coreutils}/bin/rm -rf "$tmp_dir"' EXIT
 
       ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
+      ${pkgs.coreutils}/bin/mkdir -p "${config.home.homeDirectory}/${configDir}"
+
+      # Single-hop symlink direct to the mutable config: Codex's config writer only resolves one hop.
+      ${pkgs.coreutils}/bin/ln -sfn "$state_config" "${config.home.homeDirectory}/${configDir}/${configFileName}"
 
       if [ -e "$state_config" ]; then
         ${pkgs.coreutils}/bin/cp "$state_config" "$user_config"
@@ -165,10 +169,6 @@
     '';
   };
 in {
-  home.file."${configDir}/${configFileName}" = lib.mkForce {
-    source = config.lib.file.mkOutOfStoreSymlink mutableConfigPath;
-  };
-
   home.activation.codexMaterializeConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
     ${materializeConfig}/bin/codex-materialize-config
   '';

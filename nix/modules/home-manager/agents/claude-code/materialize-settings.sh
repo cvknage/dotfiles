@@ -4,6 +4,9 @@ state_dir="$(@coreutils@/bin/dirname "$state_settings")"
 @coreutils@/bin/mkdir -p "$HOME/.claude"
 @coreutils@/bin/mkdir -p "$state_dir"
 
+# Single-hop symlink direct to mutableSettingsPath: the plugin installer only resolves one hop (see default.nix).
+@coreutils@/bin/ln -sfn "$state_settings" "$HOME/.claude/settings.json"
+
 tmp_dir="$(@coreutils@/bin/mktemp -d)"
 user_settings="$tmp_dir/user.json"
 managed_settings="$tmp_dir/managed.json"

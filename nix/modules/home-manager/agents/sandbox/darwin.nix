@@ -59,8 +59,10 @@
       profile.readOnlyPaths
       ++ lib.optional (ownCredentialPath != null) ownCredentialPath
     );
-    socketReadAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "file-read*") profile.socketPaths;
-    socketNetworkAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "network-outbound") profile.socketPaths;
+    # socketPaths entries are "host:sandbox" pairs; Seatbelt has no mount namespace, so only the host path matters.
+    socketHostPaths = map (entry: lib.head (lib.splitString ":" entry)) profile.socketPaths;
+    socketReadAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "file-read*") socketHostPaths;
+    socketNetworkAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "network-outbound") socketHostPaths;
     # Writable roots need read too: O_RDWR opens and readdir are reads.
     # Matches bwrap --bind, which grants both.
     writeAllows = lib.concatMapStrings (mkSeatbeltAllowRule "file-read* file-write*") profile.writePaths;

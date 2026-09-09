@@ -26,8 +26,8 @@
 - **Fedora rebuild:** `nix run ./nix#linux-rebuild -- switch --flake ./nix` — the generic System Manager rebuild
   app takes an action (`switch` or `build`), points at the machine through the flake ref (`--flake ./nix#ckn-laptop`,
   or bare `./nix` for the box's own hostname; machine keys of `linuxConfigurations` in `nix/flake.nix`), and
-  installs `fedora-rebuild` on the box's PATH for later runs; always against `~/.dotfiles/nix`; comes from
-  `nix/apps/rebuild.nix`.
+  applies the Home Manager tier, which installs `fedora-rebuild` as a package (`nix/lib/mk-generic-linux-system.nix`)
+  for later runs; always against `~/.dotfiles/nix`; comes from `nix/apps/rebuild.nix`.
   Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#ckn-laptop --sudo`.
 - **Distro prerequisites:** `bash nix/contexts/shared/system/fedora-bootstrap.sh` installs the distro-owned packages the Nix tiers
   depend on. Idempotent, and elevates only when something is missing.
@@ -78,11 +78,16 @@
   managed policy remains authoritative when present; otherwise the system-managed policy applies. Nix owns the security
   keys in mutable user settings while preserving unrelated runtime and plugin settings.
 - Docker remains rootful for compatibility with existing Taskfiles, Testcontainers, kind, and other development tools.
-  The Docker and containerd services receive a restricted filesystem view matching the agent boundary, allowing normal
-  container workflows without exposing unrelated private host data.
+  The docker/containerd daemons themselves keep full host filesystem visibility - systemd mount-namespace hardening on
+  those services breaks all container creation (every container gets an empty rootfs, not just ones touching restricted
+  paths), which is a confirmed upstream incompatibility, not a misconfiguration. Instead, `docker-agent-proxy`
+  (`nix/pkgs/docker-agent-proxy`) sits in front of `docker.sock`, transparently forwarding normal traffic while
+  rejecting container/volume creation requests whose bind-mount source is under a denied path (`~/.ssh`, SOPS secrets,
+  etc.). The agent sandbox talks only to the proxy's socket, bind-mounted onto the conventional `/run/docker.sock` path
+  inside the sandbox; the real socket stays root/docker-group only.
 - The launcher activates an allowed project direnv environment before starting the agent so flake-provided compilers and
   tools are available without granting broad access to the host filesystem.
-- Security behavior is defined in `nix/modules/shared/agents/` and `nix/modules/home-manager/agents/`, with platform
+- Security behavior is defined in `nix/lib/agents/` and `nix/modules/home-manager/agents/`, with platform
   installation under `nix/modules/nixos/agents/` and `nix/modules/darwin/agents/`. Configuration changes become effective
   only after activation and an agent restart.
 

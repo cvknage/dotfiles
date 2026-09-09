@@ -1,7 +1,7 @@
 # Wraps a System Manager machine like nixpkgs.lib.nixosSystem wraps NixOS.
 # System Manager cannot embed the home tier, so the home-manager block in the
-# modules builds it as a sibling generation; the <distro>-rebuild app applies
-# the two in order.
+# modules builds it as a sibling generation; linux-rebuild (nix/apps/rebuild.nix)
+# applies the two in order, and the home tier below installs its <distro>-rebuild alias.
 {
   inputs,
   nixpkgs,
@@ -90,6 +90,14 @@ in
               ../contexts/shared/home/generic-linux.nix
               # Propagate the composition's desktop switch to the home tier.
               {dotfiles.desktops.gnome.enable = lib.mkDefault homeGnomeEnabled;}
+              # Installs <distro>-rebuild as a home package, so it lands in the already-on-PATH profile like darwin-rebuild (see nix/apps/rebuild.nix).
+              ({pkgs, ...}: {
+                home.packages = [
+                  (pkgs.writeShellScriptBin "${distro}-rebuild" ''
+                    exec nix run "$HOME/.dotfiles/nix#linux-rebuild" -- "$@"
+                  '')
+                ];
+              })
             ];
           extraSpecialArgs = homeManagerConfig.extraSpecialArgs or {};
         })
