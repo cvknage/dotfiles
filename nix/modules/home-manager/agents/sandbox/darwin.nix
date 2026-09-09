@@ -177,6 +177,7 @@
         export NUGET_PACKAGES=${lib.escapeShellArg policy.toolCachePaths.nugetPackages}
         export NUGET_HTTP_CACHE_PATH=${lib.escapeShellArg policy.toolCachePaths.nugetHttp}
         export NUGET_PLUGINS_CACHE_PATH=${lib.escapeShellArg policy.toolCachePaths.nugetPlugins}
+        export GIT_SSH_COMMAND="ssh -o BatchMode=yes"
         ${
           if policy.sshAgentSocket != ""
           then "export SSH_AUTH_SOCK=${lib.escapeShellArg policy.sshAgentSocket}"

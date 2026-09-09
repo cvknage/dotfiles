@@ -130,6 +130,7 @@
           --setenv NUGET_PACKAGES ${lib.escapeShellArg policy.toolCachePaths.nugetPackages} \
           --setenv NUGET_HTTP_CACHE_PATH ${lib.escapeShellArg policy.toolCachePaths.nugetHttp} \
           --setenv NUGET_PLUGINS_CACHE_PATH ${lib.escapeShellArg policy.toolCachePaths.nugetPlugins} \
+          --setenv GIT_SSH_COMMAND "ssh -o BatchMode=yes" \
           ${
           if policy.sshAgentSocket != ""
           then "--setenv SSH_AUTH_SOCK ${lib.escapeShellArg policy.sshAgentSocket} \\"

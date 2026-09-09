@@ -125,6 +125,7 @@
     ".nuget"
     ".profile"
     ".rustup"
+    ".ssh/known_hosts"
     ".terminfo"
     ".zprofile"
     ".zshenv"
@@ -154,7 +155,6 @@
       ".local/share/direnv/allow"
       ".local/share/nvim"
       ".local/share/pnpm/store"
-      # Shared memory-graph store for the memory MCP server.
       ".local/state/agent-memory"
     ];
 
