@@ -8,7 +8,7 @@
 }: {
   imports = [./option.nix];
 
-  config = lib.mkIf config.dotfiles.desktops.gnome.enable {
+  config = lib.mkIf config.preferences.desktops.gnome.enable {
     # Enable the GNOME Desktop Environment.
     services.displayManager.gdm.enable = true;
     services.desktopManager.gnome.enable = true;
@@ -28,6 +28,6 @@
     services.xserver.enable = true;
 
     # One switch drives the home tier too; see home.nix.
-    home-manager.users.${user}.dotfiles.desktops.gnome.enable = true;
+    home-manager.users.${user}.preferences.desktops.gnome.enable = true;
   };
 }

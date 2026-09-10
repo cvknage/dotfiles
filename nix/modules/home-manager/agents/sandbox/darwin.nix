@@ -59,6 +59,11 @@
       profile.readOnlyPaths
       ++ lib.optional (ownCredentialPath != null) ownCredentialPath
     );
+
+    # Agents have no business driving an interactive TUI. After readAllows so it wins (last-match-wins) over the general .nix-profile allow.
+    gituiDenyRules = ''
+      (deny file-read* (literal "${escapeSeatbeltPath "${pkgs.gitui}/bin/gitui"}"))
+    '';
     # socketPaths entries are "host:sandbox" pairs; Seatbelt has no mount namespace, so only the host path matters.
     socketHostPaths = map (entry: lib.head (lib.splitString ":" entry)) profile.socketPaths;
     socketReadAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "file-read*") socketHostPaths;
@@ -153,6 +158,7 @@
       ; Deny all of $HOME, then re-open the managed roots.
       ${homeDenyRules}
       ${readAllows}
+      ${gituiDenyRules}
       ${socketReadAllows}
       ${socketNetworkAllows}
       ${writeAllows}

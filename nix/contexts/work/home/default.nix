@@ -5,7 +5,7 @@
   ...
 }: {
   imports = [
-    ./git-signing.nix
+    ./git-identity.nix
     ./linux.nix
     ./gnome.nix
     ./global-dev-tools.nix # Globally installed development tools - prefer project local tooling
@@ -20,7 +20,7 @@
       "github_user"
       "github_token"
       "email"
-      "public_key"
+      "github_public_key"
     ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
 
   home.packages = [

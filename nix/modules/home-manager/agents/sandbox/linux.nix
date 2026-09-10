@@ -95,6 +95,9 @@
           fi
         done
 
+        # Agents have no business driving an interactive TUI.
+        sandbox+=(--ro-bind /dev/null ${lib.escapeShellArg "${pkgs.gitui}/bin/gitui"})
+
         # Shadow the real (root-owned, ssh-hostile) directories with the re-hosted copies.
         for entry in "''${ssh_ownership_fix_snapshots[@]}"; do
           snapshot="''${entry%%:*}"

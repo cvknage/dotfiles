@@ -79,7 +79,7 @@ in
     # composition's modules set (the standalone useGlobalPkgs equivalent).
     overlays = (homeManagerIntegration.nixpkgs or {}).overlays or [];
     # The composition's desktop switch, propagated to the home tier.
-    homeGnomeEnabled = (homeManagerIntegration.dotfiles or {}).desktops.gnome.enable or false;
+    homeGnomeEnabled = (homeManagerIntegration.preferences or {}).desktops.gnome.enable or false;
   in {
     inherit distro selinux;
 
@@ -113,7 +113,7 @@ in
               # non-NixOS distro, so the genericLinux integration applies.
               ../contexts/shared/home/generic-linux.nix
               # Propagate the composition's desktop switch to the home tier.
-              {dotfiles.desktops.gnome.enable = lib.mkDefault homeGnomeEnabled;}
+              {preferences.desktops.gnome.enable = lib.mkDefault homeGnomeEnabled;}
               # Installs <distro>-rebuild as a home package, so it lands in the already-on-PATH profile like darwin-rebuild (see nix/apps/rebuild.nix).
               ({pkgs, ...}: {
                 home.packages = [

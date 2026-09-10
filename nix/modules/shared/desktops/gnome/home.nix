@@ -1,13 +1,14 @@
 # Opt-in GNOME desktop, home tier; applies wherever the switch is on.
 {
   config,
+  dotfiles,
   lib,
   pkgs,
   ...
 }: {
   imports = [./option.nix];
 
-  config = lib.mkIf config.dotfiles.desktops.gnome.enable {
+  config = lib.mkIf config.preferences.desktops.gnome.enable {
     home.packages = with pkgs; [
       gnomeExtensions.auto-move-windows
       gnomeExtensions.appindicator
@@ -45,8 +46,8 @@
         ];
       };
       "org/gnome/desktop/background" = {
-        picture-uri = "file://${config.home.homeDirectory}/.dotfiles/wallpapers/sun.jpg";
-        picture-uri-dark = "file://${config.home.homeDirectory}/.dotfiles/wallpapers/moon.jpg";
+        picture-uri = "file://${dotfiles}/wallpapers/sun.jpg";
+        picture-uri-dark = "file://${dotfiles}/wallpapers/moon.jpg";
       };
       "org/gnome/mutter" = {
         dynamic-workspaces = false;

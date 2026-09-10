@@ -12,6 +12,10 @@
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     isWork = homeContext.isWork config;
     orderBefore = lib.hm.dag.entryBefore;
+    gitIdentityPublicKeyPath =
+      if config.preferences.gitIdentity.enable
+      then "${config.preferences.gitIdentity.keyPath}.pub"
+      else null;
   };
   sandbox = import ./sandbox/default.nix {
     inherit lib pkgs policy;

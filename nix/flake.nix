@@ -142,7 +142,7 @@
           [
             ./hardware/tuxedo-stellaris-gen6
             ./contexts/work/system/nixos.nix
-            {dotfiles.desktops.gnome.enable = true;}
+            {preferences.desktops.gnome.enable = true;}
             {
               home-manager = {
                 users.${privateUser} = import ./contexts/work/home;
@@ -164,7 +164,7 @@
         specialArgs = workArgs // {inherit self;};
         modules =
           [
-            {dotfiles.desktops.gnome.enable = true;}
+            {preferences.desktops.gnome.enable = true;}
             {
               home-manager = {
                 users.${workUser} = import ./contexts/work/home;
@@ -187,7 +187,7 @@
           ./contexts/shared/home/generic-linux.nix
           ./contexts/shared/home
           ./contexts/work/home
-          {dotfiles.desktops.gnome.enable = true;}
+          {preferences.desktops.gnome.enable = true;}
         ]
         ++ sharedModules;
       extraSpecialArgs = workArgs;

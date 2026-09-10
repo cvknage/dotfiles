@@ -1,12 +1,12 @@
 {
   config,
+  dotfiles,
   homeContext,
   lib,
   pkgs,
   user,
   ...
 }: let
-  dotfiles = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.dotfiles";
   easy-dotnet-server = let
     base = pkgs.buildDotnetGlobalTool {
       pname = "easy-dotnet-server";
@@ -109,7 +109,7 @@ in {
     withNodeJs = true;
     withPython3 = true;
     initLua = ''
-      dofile(vim.fn.expand("$HOME/.dotfiles/neovim/logic/init.lua"))
+      dofile("${dotfiles}/neovim/logic/init.lua")
     '';
     extraPackages = neovimExtraPackages;
     extraWrapperArgs =

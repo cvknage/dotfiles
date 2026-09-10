@@ -1,13 +1,13 @@
 # GNOME-specific bits for the work home: app pins, autostart, and the desktop
 # entries that keep the GNOME app grid tidy. Imported only when the
-# composition's dotfiles.desktops.gnome switch is on.
+# composition's preferences.desktops.gnome switch is on.
 {
   config,
   lib,
   pkgs,
   ...
 }: {
-  config = lib.mkIf config.dotfiles.desktops.gnome.enable {
+  config = lib.mkIf config.preferences.desktops.gnome.enable {
     # Ghostty's DBusActivatable=true routes launches through systemd's UnitPath,
     # which never picks up the Home Manager profile (locked in at manager
     # startup, before environment.d ever runs). Drop it so the icon just execs

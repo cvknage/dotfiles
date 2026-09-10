@@ -6,9 +6,11 @@
   isWork ? false,
   orderBefore ? (_: value: value),
   uid ? 1000,
+  gitIdentityPublicKeyPath ? null,
 }: let
   paths = import ./paths.nix {
     inherit
+      gitIdentityPublicKeyPath
       homeDirectory
       isDarwin
       isWork
