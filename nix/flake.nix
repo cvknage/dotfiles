@@ -140,7 +140,7 @@
         specialArgs = privateArgs // {inherit owner;};
         modules =
           [
-            ./hardware/tuxedo-stellaris-gen6
+            ./hardware/tuxedo-stellaris-gen6/nixos
             ./contexts/work/system/nixos.nix
             {preferences.desktops.gnome.enable = true;}
             {
@@ -164,6 +164,7 @@
         specialArgs = workArgs // {inherit self;};
         modules =
           [
+            ./hardware/tuxedo-stellaris-gen6/fedora
             {preferences.desktops.gnome.enable = true;}
             {
               home-manager = {
