@@ -130,7 +130,8 @@ in {
                 export SSH_AUTH_SOCK=${lib.escapeShellArg identitySocket}
               fi
 
-              exec ${prev.gitui}/bin/gitui "$@"
+              # -a keeps argv[0] as "gitui" so tmux-resurrect's anchored process match still finds it.
+              exec -a gitui ${prev.gitui}/bin/gitui "$@"
             '';
           };
         })

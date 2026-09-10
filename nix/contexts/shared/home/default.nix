@@ -113,7 +113,9 @@ in {
     '';
     extraPackages = neovimExtraPackages;
     extraWrapperArgs =
-      lib.optionals (pkgs.stdenv.hostPlatform.isDarwin)
+      # Keeps argv[0] as "nvim" so tmux-resurrect's anchored process/session-restore match still finds it.
+      ["--argv0" "nvim"]
+      ++ lib.optionals (pkgs.stdenv.hostPlatform.isDarwin)
       (lib.concatMap (pkg: [
           "--prefix"
           "PATH"
