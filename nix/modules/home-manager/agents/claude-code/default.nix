@@ -25,6 +25,7 @@
   # settings.json for plugin install/management.
   mutableSettingsPath = agentPolicy.claude.mutableSettingsPath;
   managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
+  materialize = import ../materialize-config.nix {inherit lib pkgs;};
 
   # Claude stores user-scoped MCP servers in ~/.claude/.config.json. Home Manager's
   # generic Claude integration currently materializes them as a plugin below
@@ -54,12 +55,6 @@
   managedMcpFile = pkgs.writeText "claude-code-managed-mcp.json" (builtins.toJSON {
     mcpServers = claudeMcpServers;
   });
-
-  activationScript =
-    builtins.replaceStrings
-    ["@mutableSettingsPath@" "@managedSettingsFile@" "@coreutils@" "@jq@"]
-    [mutableSettingsPath "${managedSettingsFile}" "${pkgs.coreutils}" "${pkgs.jq}"]
-    (builtins.readFile ./materialize-settings.sh);
 
   mcpActivationScript = ''
     state_file="$HOME/.claude/.config.json"
@@ -117,7 +112,18 @@ in {
   # Merge managed settings into the mutable state file on activation.
   # Nix-controlled hooks, permissions, and sandbox keys always win; other user/plugin keys are preserved.
   home.activation.claudeCodeMaterializeSettings =
-    lib.hm.dag.entryAfter ["writeBoundary"] activationScript;
+    lib.hm.dag.entryAfter ["writeBoundary"]
+    (materialize.materializeConfig {
+      format = "json";
+      statePath = mutableSettingsPath;
+      linkPath = "${config.home.homeDirectory}/.claude/settings.json";
+      managedFile = managedSettingsFile;
+      authoritativeKeys = [
+        "hooks"
+        "permissions"
+        "sandbox"
+      ];
+    });
 
   # Nix owns the user-scoped MCP server set. Claude's plugin configuration is
   # stored separately, so runtime plugin installation remains unaffected.

@@ -15,17 +15,16 @@
     executable = "codex";
   };
 
+  materialize = import ../materialize-config.nix {inherit lib pkgs;};
+
   settingsFormat = pkgs.formats.toml {};
   xdgConfigHome = lib.removePrefix config.home.homeDirectory config.xdg.configHome;
   configDir =
     if config.home.preferXdgDirectories
     then "${xdgConfigHome}/codex"
     else ".codex";
-  configFileName = "config.toml";
-  mutableConfigPath = "${config.home.homeDirectory}/${configDir}/.mutable/${configFileName}";
-  legacyMutableConfigPath = "${config.xdg.stateHome}/codex/${configFileName}";
-
-  pythonEnv = pkgs.python3.withPackages (ps: [ps."tomli-w"]);
+  mutableConfigPath = agentPolicy.codex.mutableConfigPath;
+  linkPath = "${config.home.homeDirectory}/${configDir}/config.toml";
 
   mcpServers =
     lib.mapAttrs (
@@ -59,120 +58,34 @@
     // {
       features.child_agents_md = true;
       suppress_unstable_features_warning = true;
+      # ollama's per-launch config layer wipes codex's hooks.state trust on
+      # every launch; baking the content-hash here keeps the reindex hook
+      # trusted. Recapture the hash from a trusted session when the hook
+      # definition changes.
+      hooks.state."${config.home.homeDirectory}/${configDir}/hooks.json:post_tool_use:0:0".trusted_hash = "sha256:655cfe92116fd6fb09b6f8dec597169d9100c8d80f5b9fa07473830674ca491b";
     }
     // lib.optionalAttrs config.programs.mcp.enable {
       mcp_servers = mcpServers;
     };
 
   managedSettingsFile = settingsFormat.generate "codex-managed-config" settings;
-
-  materializeConfigPy = pkgs.writeText "codex-materialize-config.py" ''
-    from __future__ import annotations
-
-    import os
-    from copy import deepcopy
-    from pathlib import Path
-
-    import tomli_w
-
-    state_path = Path(os.environ["STATE_CONFIG"])
-    managed_path = Path(os.environ["MANAGED_CONFIG"])
-    out_path = Path(os.environ["OUT_CONFIG"])
-
-    # Keys nix owns outright, replaced rather than merged. The merge below only
-    # ever adds and overwrites, so without this a server dropped from the flake
-    # would survive in the mutable config forever.
-    AUTHORITATIVE_KEYS = (
-        "approval_policy",
-        "default_permissions",
-        "mcp_servers",
-        "permissions",
-        "sandbox_mode",
-        "sandbox_workspace_write",
-    )
-
-
-    def load_config(path: Path):
-        if not path.exists() or path.stat().st_size == 0:
-            return {}
-
-        try:
-            import tomllib
-
-            with path.open("rb") as handle:
-                return tomllib.load(handle) or {}
-        except Exception:
-            return {}
-
-
-    def merge(user_value, managed_value):
-        if isinstance(user_value, dict) and isinstance(managed_value, dict):
-            merged = dict(user_value)
-            for key, value in managed_value.items():
-                merged[key] = merge(merged.get(key), value) if key in merged else deepcopy(value)
-            return merged
-
-        return deepcopy(managed_value)
-
-
-    managed_config = load_config(managed_path)
-    user_config = load_config(state_path)
-
-    if isinstance(user_config, dict):
-        for key in AUTHORITATIVE_KEYS:
-            user_config.pop(key, None)
-
-    merged_config = merge(user_config, managed_config)
-
-    out_path.write_text(tomli_w.dumps(merged_config), encoding="utf-8")
-  '';
-
-  materializeConfig = pkgs.writeShellApplication {
-    name = "codex-materialize-config";
-    runtimeInputs = [
-      pkgs.coreutils
-      pythonEnv
-    ];
-    text = ''
-      set -euo pipefail
-
-      state_config="${mutableConfigPath}"
-      state_dir="$(${pkgs.coreutils}/bin/dirname "$state_config")"
-      managed_config="${managedSettingsFile}"
-      tmp_dir="$(${pkgs.coreutils}/bin/mktemp -d)"
-      user_config="$tmp_dir/user.${configFileName}"
-      out_config="$tmp_dir/out.${configFileName}"
-
-      trap '${pkgs.coreutils}/bin/rm -rf "$tmp_dir"' EXIT
-
-      ${pkgs.coreutils}/bin/mkdir -p "$state_dir"
-      ${pkgs.coreutils}/bin/mkdir -p "${config.home.homeDirectory}/${configDir}"
-
-      # Single-hop symlink direct to the mutable config: Codex's config writer only resolves one hop.
-      ${pkgs.coreutils}/bin/ln -sfn "$state_config" "${config.home.homeDirectory}/${configDir}/${configFileName}"
-
-      if [ -e "$state_config" ]; then
-        ${pkgs.coreutils}/bin/cp "$state_config" "$user_config"
-      elif [ -e "${legacyMutableConfigPath}" ]; then
-        # Preserve mutable settings from the previous state-directory layout.
-        ${pkgs.coreutils}/bin/cp "${legacyMutableConfigPath}" "$user_config"
-      else
-        ${pkgs.coreutils}/bin/touch "$user_config"
-      fi
-
-      export STATE_CONFIG="$user_config"
-      export MANAGED_CONFIG="$managed_config"
-      export OUT_CONFIG="$out_config"
-
-      ${pythonEnv}/bin/python "${materializeConfigPy}"
-
-      ${pkgs.coreutils}/bin/install -m 0644 "$out_config" "$state_config"
-    '';
-  };
 in {
-  home.activation.codexMaterializeConfig = lib.hm.dag.entryAfter ["writeBoundary" "linkGeneration"] ''
-    ${materializeConfig}/bin/codex-materialize-config
-  '';
+  home.activation.codexMaterializeConfig =
+    lib.hm.dag.entryAfter ["writeBoundary"]
+    (materialize.materializeConfig {
+      format = "toml";
+      managedFile = managedSettingsFile;
+      statePath = mutableConfigPath;
+      linkPath = linkPath;
+      authoritativeKeys = [
+        "approval_policy"
+        "default_permissions"
+        "mcp_servers"
+        "permissions"
+        "sandbox_mode"
+        "sandbox_workspace_write"
+      ];
+    });
 
   programs.codex = {
     enable = true;
@@ -180,7 +93,9 @@ in {
     rules = {
       "shared-bash-permissions" = agentPolicy.codex.rules;
     };
-    inherit settings;
+    # NOTE: settings are intentionally NOT passed here — the module would write
+    # config.toml as a Home Manager-managed file, colliding with the mutable
+    # link the activation above owns.
     hooks.PostToolUse = [
       {
         hooks = [

@@ -39,9 +39,11 @@
     };
     codex = rec {
       configRoot = "${homeDirectory}/.codex";
+      mutableConfigPath = "${homeDirectory}/.local/state/codex/config.toml";
       trustedRoots = workspaceRoots ++ [configRoot];
       runtimeRoots = [
         configRoot
+        "${homeDirectory}/.local/state/codex"
         mcpAuthRoot
       ];
       runtimeFiles = [];

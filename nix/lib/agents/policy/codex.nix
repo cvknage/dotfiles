@@ -14,6 +14,7 @@
     lib.filter (token: token != "") (lib.splitString " " prefix);
   toCodexRule = decision: prefix: "prefix_rule(pattern = ${builtins.toJSON (toCommandTokens prefix)}, decision = \"${decision}\")";
 in {
+  mutableConfigPath = paths.agentPaths.codex.mutableConfigPath;
   settings = {
     approval_policy = "on-request";
     sandbox_mode = "danger-full-access";
