@@ -21,7 +21,12 @@ in {
       export const CodeGraphReindex = async ({$}: any) => {
         return {
           "tool.execute.after": async () => {
-            await $`${codeGraphHooks.reindexCommand}`;
+            // Bun's shell can't parse reindexCommand's redirects; sh -c gives it a real shell.
+            try {
+              await $`sh -c ${builtins.toJSON codeGraphHooks.reindexCommand}`;
+            } catch {
+              // reindexing is best-effort; never mask the tool result
+            }
           },
         };
       };
