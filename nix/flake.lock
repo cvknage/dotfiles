@@ -68,6 +68,43 @@
         "type": "github"
       }
     },
+    "code-graph-mcp-linux-x86_64": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-fsCXoc2EaXCf7hZdU1oke6JBvYXADSPg9M3lQyntk4E=",
+        "type": "file",
+        "url": "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-linux-x64"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-linux-x64"
+      }
+    },
+    "code-graph-mcp-macos-arm64": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-om1769eAJoE2FAovewegACHa4rik5Godl6NvK/ofPq8=",
+        "type": "file",
+        "url": "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-darwin-arm64"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-darwin-arm64"
+      }
+    },
+    "code-graph-mcp-models": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1788936878,
+        "narHash": "sha256-dddV4ZBkTBpwChhZ/Q6IZzwYjk0fjscbm93gdlWoXNs=",
+        "type": "tarball",
+        "url": "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/models.tar.gz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/models.tar.gz"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -387,6 +424,9 @@
     "root": {
       "inputs": {
         "claude-pace": "claude-pace",
+        "code-graph-mcp-linux-x86_64": "code-graph-mcp-linux-x86_64",
+        "code-graph-mcp-macos-arm64": "code-graph-mcp-macos-arm64",
+        "code-graph-mcp-models": "code-graph-mcp-models",
         "home-manager": "home-manager",
         "homebrew-bundle": "homebrew-bundle",
         "homebrew-cask": "homebrew-cask",

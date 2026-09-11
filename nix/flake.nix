@@ -58,6 +58,19 @@
       # url = "github:Astro-Han/claude-pace"; # main, untagged
       flake = false;
     };
+    # Bump all three v0.145.0 pins together -- Nix can't share a version string across flake inputs.
+    code-graph-mcp-linux-x86_64 = {
+      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-linux-x64";
+      flake = false;
+    };
+    code-graph-mcp-macos-arm64 = {
+      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-darwin-arm64";
+      flake = false;
+    };
+    code-graph-mcp-models = {
+      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/models.tar.gz";
+      flake = false;
+    };
   };
 
   outputs = inputs @ {

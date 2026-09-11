@@ -71,4 +71,5 @@ Session.vim
 **/.agent-sessions/
 **/.claude/settings.local.json
 **/.claude/.cc-writes/
+**/.code-graph/
 

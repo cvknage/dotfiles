@@ -4,7 +4,7 @@ description: Write or refresh the session plan for multi-step work. Runs automat
 ---
 Compose the session plan for the current task; if the task is unclear, ask for it first.
 
-- Break the task into small, independently verifiable milestones; each ends with a concrete done-check (a command, test, or observable result).
+- Break the task into small milestones that each leave the code in a working, committable state — not just independently verifiable, but buildable/runnable on their own — with a concrete done-check (a command, test, or observable result).
 - Keep the plan under 100 lines.
 - Planning only — do not write code.
 

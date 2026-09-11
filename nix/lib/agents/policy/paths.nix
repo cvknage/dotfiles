@@ -144,6 +144,7 @@
     ++ inHome [
       ".cache/biome"
       ".cache/bun"
+      ".cache/code-graph"
       ".cache/deno"
       ".cache/direnv"
       ".cache/nix"

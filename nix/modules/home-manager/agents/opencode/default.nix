@@ -12,7 +12,21 @@
     package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
     executable = "opencode";
   };
+  codeGraphHooks = import ../hooks;
 in {
+  home.file."${config.xdg.configHome}/opencode/plugins/code-graph-reindex.ts" = {
+    enable = config.programs.opencode.enable;
+    text = ''
+      // Keep in sync with reindexCommand in ../hooks/default.nix.
+      export const CodeGraphReindex = async ({$}: any) => {
+        return {
+          "tool.execute.after": async () => {
+            await $`${codeGraphHooks.reindexCommand}`;
+          },
+        };
+      };
+    '';
+  };
   programs.opencode = {
     enable = !(homeContext.isWork config);
     enableMcpIntegration = true;

@@ -8,6 +8,7 @@
   ...
 }: let
   codexCliPackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+  codeGraphHooks = import ../hooks;
   sandboxedCodexCli = agentSandbox.wrapPackage {
     agent = "codex";
     package = codexCliPackage;
@@ -169,7 +170,7 @@
     '';
   };
 in {
-  home.activation.codexMaterializeConfig = lib.hm.dag.entryAfter ["writeBoundary"] ''
+  home.activation.codexMaterializeConfig = lib.hm.dag.entryAfter ["writeBoundary" "linkGeneration"] ''
     ${materializeConfig}/bin/codex-materialize-config
   '';
 
@@ -180,5 +181,15 @@ in {
       "shared-bash-permissions" = agentPolicy.codex.rules;
     };
     inherit settings;
+    hooks.PostToolUse = [
+      {
+        hooks = [
+          {
+            type = "command";
+            command = codeGraphHooks.reindexCommand;
+          }
+        ];
+      }
+    ];
   };
 }

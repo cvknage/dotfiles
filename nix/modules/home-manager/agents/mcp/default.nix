@@ -1,6 +1,7 @@
 {
   config,
   homeContext,
+  inputs,
   lib,
   pkgs,
   ...
@@ -29,7 +30,23 @@
       libraries = [pkgs.python3Packages.mcp];
     }
     (builtins.readFile ./agent-sessions-server.py);
+
+  codeGraphMcpSrc =
+    {
+      x86_64-linux = inputs.code-graph-mcp-linux-x86_64;
+      aarch64-darwin = inputs.code-graph-mcp-macos-arm64;
+    }
+    .${
+      pkgs.stdenv.hostPlatform.system
+    }
+    or (throw "code-graph-mcp: no release asset pinned for ${pkgs.stdenv.hostPlatform.system}");
+  codeGraphMcp = pkgs.callPackage ../../../../pkgs/code-graph-mcp {
+    src = codeGraphMcpSrc;
+    modelsSrc = inputs.code-graph-mcp-models;
+  };
 in {
+  home.packages = [codeGraphMcp];
+
   programs.mcp = {
     enable = true;
     servers = {
@@ -53,6 +70,10 @@ in {
       context7 = {
         command = lib.getExe (mkMcpCmd "context7" [pkgs.nodejs] {} "npx");
         args = ["-y" "@upstash/context7-mcp"];
+      };
+      code-graph = {
+        command = lib.getExe (mkMcpCmd "code-graph-mcp" [] {} (lib.getExe codeGraphMcp));
+        args = ["serve"];
       };
       atlassian = lib.mkIf (homeContext.isWork config) {
         type = "local";

@@ -8,6 +8,7 @@
   ...
 }: let
   claudeCodePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+  codeGraphHooks = import ../hooks;
 
   claudePaceStatusline = pkgs.runCommand "claude-pace-statusline" {nativeBuildInputs = [pkgs.makeWrapper];} ''
     install -Dm755 ${inputs.claude-pace}/claude-pace.sh $out/bin/claude-pace-statusline
@@ -100,6 +101,17 @@
         type = "command";
         command = "${claudePaceStatusline}/bin/claude-pace-statusline";
       };
+      hooks.PostToolUse = [
+        {
+          matcher = "Edit|Write|NotebookEdit";
+          hooks = [
+            {
+              type = "command";
+              command = codeGraphHooks.reindexCommand;
+            }
+          ];
+        }
+      ];
     };
 in {
   # Merge managed settings into the mutable state file on activation.
