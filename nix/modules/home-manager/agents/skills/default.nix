@@ -5,9 +5,11 @@
   lib,
   ...
 }: let
-  # Session-continuity rituals shared by every agent. The canonical copies live
-  # in the repository, so edits are live without a rebuild.
-  ritualSkills = ["spec" "note" "handoff" "pickup" "harvest" "reset" "orient" "graph-repair"];
+  # Session-continuity rituals shared by every agent (Claude, Codex, OpenCode),
+  # symlinked from the live checkout so edits need no rebuild. The set is read
+  # from the flake source -- the `dotfiles` symlink is out-of-store, unreadable
+  # in pure eval.
+  ritualSkills = builtins.filter (name: !lib.hasPrefix "." name) (builtins.attrNames (builtins.readDir ../../../../../agents/skills));
   skillSource = name: "${dotfiles}/agents/skills/${name}";
 in {
   home.file = lib.mkMerge [
