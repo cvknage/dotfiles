@@ -36,7 +36,9 @@
 - **Standalone agent policy:** after every standalone Home Manager switch, run
   `sudo nix run ./nix#install-agent-policy`. Not needed where a system tier exists, which owns the
   `/etc` policy via its platform agents module (`nix/modules/{nixos,darwin,system-manager}/agents`).
-- **Format Nix:** `nix fmt ./nix` (Alejandra via flake). For single files: `alejandra path/to/file.nix` if available.
+- **Format Nix:** `(cd nix && nix fmt -- .)` — Alejandra via the flake's `formatter` output. `nix fmt` resolves the
+  formatter from the *current* directory's flake, not from its argument, so it must run inside `nix/`; from the repo
+  root it fails with "is not part of a flake". For single files: `alejandra path/to/file.nix` if available.
 - **Lua formatting:** `cd neovim && stylua .` (configs expect 2 spaces / 120 cols; formatting on save is normally enabled).
 - **Shell linting:** use `bash -n script.sh` for syntax checks and `shellcheck script.sh` (install via Nix if missing) before committing substantive shell changes.
 
