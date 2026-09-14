@@ -77,6 +77,7 @@
       (deny default)
       (allow process*)
       (allow signal (target self))
+      (allow signal (target same-sandbox))
       (allow process-info* (target same-sandbox))
       (allow sysctl-read)
       (allow sysctl-write (sysctl-name "kern.grade_cputype"))
