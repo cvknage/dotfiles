@@ -2,6 +2,7 @@
   agentPolicy,
   agentSandbox,
   config,
+  homeContext,
   inputs,
   lib,
   pkgs,
@@ -13,6 +14,109 @@
     agent = "codex";
     package = codexCliPackage;
     executable = "codex";
+  };
+
+  ollamaCodexCli = pkgs.writeShellApplication {
+    name = "codex";
+    text = ''
+      # The daemon attaches the cloud credential upstream, so the agent needs
+      # no key of its own; codex still requires the variable to be set.
+      export OLLAMA_API_KEY="ollama"
+
+      # ollama.com refuses /v1/responses requests carrying the web_search tool
+      # codex sends; the daemon serves those locally instead.
+      daemon_pid=""
+      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
+        ${pkgs.ollama}/bin/ollama serve >/dev/null 2>&1 &
+        daemon_pid=$!
+        tries=0
+        until ${pkgs.curl}/bin/curl -fsS --max-time 1 http://127.0.0.1:11434/api/version >/dev/null 2>&1; do
+          tries=$((tries + 1))
+          if [ "$tries" -ge 25 ]; then
+            echo "codex: ollama daemon did not become ready" >&2
+            break
+          fi
+          sleep 0.2
+        done
+      fi
+      trap 'if [ -n "$daemon_pid" ]; then kill "$daemon_pid" 2>/dev/null || true; fi' EXIT
+
+      ${lib.escapeShellArg "${sandboxedCodexCli}/bin/codex"} "$@"
+      status=$?
+      exit "$status"
+    '';
+  };
+  ollamaModelList = import ../ollama-models.nix;
+  # codex's main model is the tier claude anchors Default to, so both agents
+  # start on the same one.
+  ollamaMainModel =
+    (lib.findFirst (m: m.tier == "opus") (builtins.head ollamaModelList) ollamaModelList).model;
+  # Without a catalog codex falls back to unknown-model metadata, which changes
+  # the request shape it emits. Shape mirrors the file `ollama launch codex`
+  # generates; experimental_supported_tools must stay empty, or codex sends
+  # additional_tools input items that ollama's /v1/responses cannot parse.
+  ollamaModelCatalog = pkgs.writeText "codex-ollama-models.json" (builtins.toJSON {
+    models =
+      map (m: {
+        base_instructions = "";
+        context_window = m.context_window;
+        default_verbosity = "low";
+        display_name = m.model;
+        experimental_supported_tools = [];
+        input_modalities = m.input_modalities;
+        priority = 0;
+        shell_type = "default";
+        slug = m.model;
+        support_verbosity = true;
+        supported_in_api = true;
+        # Each entry is a ReasoningEffortPreset {effort, description}; without
+        # levels codex shows effort "none" and never asks the model to think.
+        # "minimal" is not a level in codex 0.153.4.
+        supported_reasoning_levels = [
+          {
+            effort = "low";
+            description = "Fast responses with lighter reasoning";
+          }
+          {
+            effort = "medium";
+            description = "Balances speed and reasoning depth for everyday tasks";
+          }
+          {
+            effort = "high";
+            description = "Greater reasoning depth for complex problems";
+          }
+          {
+            effort = "xhigh";
+            description = "Extra high reasoning depth for complex problems";
+          }
+        ];
+        default_reasoning_level = "medium";
+        supports_parallel_tool_calls = false;
+        supports_reasoning_summaries = false;
+        truncation_policy = {
+          limit = 10000;
+          mode = "tokens";
+        };
+        visibility = "list";
+      })
+      ollamaModelList;
+  });
+  ollamaProvider = lib.optionalAttrs (homeContext.isPrivate config) {
+    model = ollamaMainModel;
+    # "ollama" is a reserved built-in provider id in codex; a custom one must
+    # not collide with it.
+    model_provider = "ollama-cloud";
+    model_providers = {
+      "ollama-cloud" = {
+        name = "Ollama";
+        base_url = "http://127.0.0.1:11434/v1/";
+        env_key = "OLLAMA_API_KEY";
+        # Codex rejects the "chat" wire API at config load; ollama has served
+        # /v1/responses since v0.13.3.
+        wire_api = "responses";
+      };
+    };
+    model_catalog_json = "${ollamaModelCatalog}";
   };
 
   materialize = import ../materialize-config.nix {inherit lib pkgs;};
@@ -66,7 +170,8 @@
     }
     // lib.optionalAttrs config.programs.mcp.enable {
       mcp_servers = mcpServers;
-    };
+    }
+    // ollamaProvider;
 
   managedSettingsFile = settingsFormat.generate "codex-managed-config" settings;
 in {
@@ -77,10 +182,14 @@ in {
       managedFile = managedSettingsFile;
       statePath = mutableConfigPath;
       linkPath = linkPath;
+      # model is a seed: codex's own /model choice survives activation.
+      defaultKeys = ["model"];
       authoritativeKeys = [
         "approval_policy"
         "default_permissions"
         "mcp_servers"
+        "model_provider"
+        "model_providers"
         "permissions"
         "sandbox_mode"
         "sandbox_workspace_write"
@@ -89,7 +198,10 @@ in {
 
   programs.codex = {
     enable = true;
-    package = sandboxedCodexCli;
+    package =
+      if homeContext.isPrivate config
+      then ollamaCodexCli
+      else sandboxedCodexCli;
     rules = {
       "shared-bash-permissions" = agentPolicy.codex.rules;
     };

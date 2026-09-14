@@ -2,6 +2,7 @@
   agentPolicy,
   agentSandbox,
   config,
+  homeContext,
   inputs,
   lib,
   pkgs,
@@ -19,6 +20,52 @@
     agent = "claude";
     package = claudeCodePackage;
     executable = "claude";
+  };
+
+  # Opus anchors Default, so the opus pin is the main model; the auto-mode
+  # safety classifier rides the sonnet alias, so it wants a fast model.
+  ollamaTierModel = lib.listToAttrs (map (m: {
+      name = m.tier;
+      value = "${m.model}${lib.optionalString (m.context_window >= 1048576) "[1m]"}";
+    })
+    (import ../ollama-models.nix));
+  # Only the secret's *path* reaches the wrapper; a value interpolated here
+  # would land world-readable in /nix/store.
+  ollamaApiKeyPath =
+    if (config.sops.secrets or {}) ? ollama_api_key
+    then config.sops.secrets.ollama_api_key.path
+    else "";
+  ollamaDirectClaudeCode = pkgs.writeShellApplication {
+    name = "claude";
+    text = ''
+      # Direct to ollama.com. ANTHROPIC_AUTH_TOKEN, not ANTHROPIC_API_KEY:
+      # claude sends the former as `Authorization: Bearer` (accepted) and the
+      # latter as `x-api-key` (rejected).
+      token_path=${lib.escapeShellArg ollamaApiKeyPath}
+      if [ -n "$token_path" ]; then
+        if [ -r "$token_path" ]; then
+          ANTHROPIC_AUTH_TOKEN="$(cat "$token_path")"
+          export ANTHROPIC_AUTH_TOKEN
+        else
+          echo "claude: ollama API key unreadable at $token_path" >&2
+        fi
+      fi
+
+      export ANTHROPIC_BASE_URL="https://ollama.com"
+      export ANTHROPIC_API_KEY=""
+
+      # [1m] is claude's own context-window label, stripped before the request,
+      # and correct only for the models verified at 1048576 tokens.
+      export ANTHROPIC_DEFAULT_OPUS_MODEL="${ollamaTierModel.opus}"
+      export ANTHROPIC_DEFAULT_SONNET_MODEL="${ollamaTierModel.sonnet}"
+      export ANTHROPIC_DEFAULT_FABLE_MODEL="${ollamaTierModel.fable}"
+      export ANTHROPIC_DEFAULT_HAIKU_MODEL="${ollamaTierModel.haiku}"
+
+      export CLAUDE_CODE_ATTRIBUTION_HEADER=0
+      export CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1
+
+      exec ${lib.escapeShellArg "${sandboxedClaudeCode}/bin/claude"} "$@"
+    '';
   };
 
   # Persist Claude settings in a writable location so Claude Code can mutate
@@ -139,6 +186,9 @@ in {
     enable = true;
     # MCP integration is materialized above in Claude's supported user scope.
     enableMcpIntegration = false;
-    package = sandboxedClaudeCode;
+    package =
+      if homeContext.isPrivate config
+      then ollamaDirectClaudeCode
+      else sandboxedClaudeCode;
   };
 }

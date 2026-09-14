@@ -1,14 +1,5 @@
 # Private-role system bits for macOS hosts.
 {pkgs, ...}: {
-  # Start ollama serve on login so the CLI works out of the box.
-  launchd.user.agents.ollama = {
-    serviceConfig = {
-      ProgramArguments = ["${pkgs.ollama}/bin/ollama" "serve"];
-      RunAtLoad = true;
-      KeepAlive = true;
-    };
-  };
-
   # System identity: the state schema of the machine's first install.
   system.stateVersion = 5;
 

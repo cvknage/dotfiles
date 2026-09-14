@@ -1,12 +1,17 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
 }: {
-  sops.secrets = {
-    mutation_strings = {};
-  };
+  sops.secrets =
+    {
+      mutation_strings = {};
+    }
+    // inputs.nixpkgs.lib.genAttrs [
+      "ollama_api_key"
+    ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/private/secrets.yaml";});
 
   home.packages = [
     # pkgs.hugo
@@ -32,17 +37,6 @@
           ${builtins.readFile ../../../../shell/zsh/PS1}
         fi
 
-        ollama_launch_agent() {
-          local agent="$1"
-          shift
-          if [ "$#" -gt 0 ]; then
-            ollama launch "$agent" -- "$@"
-          else
-            ollama launch "$agent"
-          fi
-        }
-        claude() { ollama_launch_agent claude "$@"; }
-        codex() { ollama_launch_agent codex "$@"; }
       ''
     ];
     profileExtra = ''

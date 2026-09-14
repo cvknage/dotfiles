@@ -3,20 +3,25 @@
   pkgs,
 }: {
   # Merges nix-managed settings into a writable state file the agent can still
-  # mutate (model choice, trust); Home Manager never owns the link. Keys in
-  # `authoritativeKeys` are dropped from the state first — the merge only adds
-  # and overwrites, so settings removed from the flake would survive forever.
+  # mutate (model choice, trust); Home Manager never owns the link.
+  #
+  # Two key lists shape the merge: `authoritativeKeys` are deleted before
+  # merging, so nix always wins and removed settings cannot linger (the merge
+  # only adds and overwrites); `defaultKeys` are seeds the state file
+  # overrides, so an agent's own pick survives activation.
   materializeConfig = {
     format, # "json" or "toml"
     statePath,
     linkPath,
     managedFile,
     authoritativeKeys ? [],
+    defaultKeys ? [],
   }: let
+    defaultKeysJson = builtins.toJSON defaultKeys;
     delExpr =
       if authoritativeKeys == []
-      then ""
-      else "del(${lib.concatStringsSep ", " (map (key: ''.[0]."${key}"'') authoritativeKeys)}) | ";
+      then "."
+      else "del(${lib.concatStringsSep ", " (map (key: ''."${key}"'') authoritativeKeys)})";
     # jq speaks JSON only; remarshal bridges TOML configs. A missing or corrupt
     # state file falls back to an empty object rather than failing the switch.
     readStateFile =
@@ -46,6 +51,8 @@
 
     user_file="$tmp_dir/user.json"
     managed_file="$tmp_dir/managed.json"
+    strict_file="$tmp_dir/strict.json"
+    defaults_file="$tmp_dir/defaults.json"
     out_file="$tmp_dir/out.json"
     final_file="$tmp_dir/out.final"
 
@@ -56,7 +63,18 @@
     ${pkgs.jq}/bin/jq -e . "$user_file" >/dev/null 2>&1 || ${pkgs.coreutils}/bin/printf '{}\n' > "$user_file"
     ${readManagedFile}
 
-    ${pkgs.jq}/bin/jq -s '${delExpr}.[0] * .[1]' "$user_file" "$managed_file" > "$out_file"
+    ${pkgs.jq}/bin/jq --argjson dk '${defaultKeysJson}' \
+      'with_entries(select(.key as $k | $dk | index($k) | not))' \
+      "$managed_file" > "$strict_file"
+    ${pkgs.jq}/bin/jq --argjson dk '${defaultKeysJson}' \
+      'with_entries(select(.key as $k | $dk | index($k)))' \
+      "$managed_file" > "$defaults_file"
+
+    ${pkgs.jq}/bin/jq -s '
+      .[0] as $user
+      | ($user | ${delExpr}) as $clean
+      | (.[2] * $clean) * .[1]
+    ' "$user_file" "$strict_file" "$defaults_file" > "$out_file"
 
     ${writeStateFile}
     ${pkgs.coreutils}/bin/install -m 0644 "$final_file" "$state_file"
