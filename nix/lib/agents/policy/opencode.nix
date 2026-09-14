@@ -36,8 +36,11 @@ in {
   settings = {
     "$schema" = "https://opencode.ai/config.json";
     permission = withDefaultRuleFirst "ask" {
+      "code-graph_*" = "allow";
       "context7_*" = "allow";
+      "memory_*" = "allow";
       "nixos_*" = "allow";
+      "sessions_*" = "allow";
       bash = withDefaultRuleFirst "allow" bashRules;
       doom_loop = "ask";
       edit = withDefaultRuleFirst "allow" editRules;

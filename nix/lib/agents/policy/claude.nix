@@ -15,8 +15,11 @@ in {
       allow =
         [
           "Bash(*)"
+          "mcp__code-graph__*"
           "mcp__context7__*"
+          "mcp__memory__*"
           "mcp__nixos__*"
+          "mcp__sessions__*"
         ]
         ++ lib.concatMap (path: [
           "Read(${toClaudePath path})"
