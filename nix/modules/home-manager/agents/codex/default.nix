@@ -23,6 +23,12 @@
       # no key of its own; codex still requires the variable to be set.
       export OLLAMA_API_KEY="ollama"
 
+      # Check only; starting or killing the daemon here reintroduces the race
+      # launchd exists to remove.
+      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
+        echo "codex: nothing listening on 127.0.0.1:11434; is the services.ollama agent running?" >&2
+      fi
+
       exec ${lib.escapeShellArg "${sandboxedCodexCli}/bin/codex"} "$@"
     '';
   };
