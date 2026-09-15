@@ -42,15 +42,15 @@ nix run nix-darwin -- switch --flake .
 **Fedora:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
 
 ```bash
-bash nix/contexts/shared/system/fedora-bootstrap.sh
+bash nix/contexts/shared/system/fedora/bootstrap.sh
 nix run ./nix#linux-rebuild -- switch --flake ./nix
 ```
 
-Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `fedora-bootstrap.sh` prints the
+Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `bootstrap.sh` prints the
 endpoint-security, SELinux, firewall, and IdM enrollment steps it leaves to Fedora.
 
 > Experimental: System Manager only asserts support for `ubuntu`, and `debian`, so this host sets
-> `system-manager.allowAnyDistro`. `fedora-bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
+> `system-manager.allowAnyDistro`. `bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
 > installer, but that alone doesn't stop systemd (`init_t`) from being denied
 > access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `linux-rebuild` relabels each
 > new generation's closure before System Manager activates it.

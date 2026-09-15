@@ -29,10 +29,10 @@
   applies the Home Manager tier, which installs `fedora-rebuild` as a package (`nix/lib/mk-generic-linux-system.nix`)
   for later runs; always against `~/.dotfiles/nix`; comes from `nix/apps/rebuild.nix`.
   Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#ckn-laptop --sudo`.
-- **Distro prerequisites:** `bash nix/contexts/shared/system/fedora-bootstrap.sh` installs the distro-owned packages the Nix tiers
+- **Distro prerequisites:** `bash nix/contexts/shared/system/fedora/bootstrap.sh` installs the distro-owned packages the Nix tiers
   depend on. Idempotent, and elevates only when something is missing.
 - **Fedora is experimental:** System Manager only asserts support for nixos, ubuntu and debian, so
-  `nix/contexts/shared/system/fedora.nix` sets `system-manager.allowAnyDistro`.
+  `nix/contexts/shared/system/fedora/default.nix` sets `system-manager.allowAnyDistro`.
 - **Standalone agent policy:** after every standalone Home Manager switch, run
   `sudo nix run ./nix#install-agent-policy`. Not needed where a system tier exists, which owns the
   `/etc` policy via its platform agents module (`nix/modules/{nixos,darwin,system-manager}/agents`).
