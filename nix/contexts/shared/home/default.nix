@@ -93,7 +93,6 @@ in {
   home.packages = [
     pkgs.tmux
     pkgs.git
-    pkgs.gitui
     pkgs.jq
     pkgs.gnused
     # pkgs.posting

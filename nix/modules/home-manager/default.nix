@@ -7,6 +7,7 @@
     ./agents
     ./dotfiles-path
     ./git-identity
+    ./gitui
     ./secrets
   ];
 
