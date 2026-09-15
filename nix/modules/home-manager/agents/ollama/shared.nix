@@ -4,8 +4,6 @@
   homeContext,
   ...
 }: {
-  # isPrivate, never !isWork: home-context.nix compares against a literal, so a
-  # negative gate fails open for shared, unset, and future contexts.
   enabled = homeContext.isPrivate config;
 
   # First entry is codex's default model; keep the opus tier there.
