@@ -22,13 +22,7 @@
     executable = "claude";
   };
 
-  # Opus anchors Default, so the opus pin is the main model; the auto-mode
-  # safety classifier rides the sonnet alias, so it wants a fast model.
-  ollamaTierModel = lib.listToAttrs (map (m: {
-      name = m.tier;
-      value = "${m.model}${lib.optionalString (m.context_window >= 1048576) "[1m]"}";
-    })
-    (import ../ollama-models.nix));
+  ollama = import ../ollama.nix {inherit config homeContext lib;};
   # Only the secret's *path* reaches the wrapper; a value interpolated here
   # would land world-readable in /nix/store.
   ollamaApiKeyPath =
@@ -54,12 +48,10 @@
       export ANTHROPIC_BASE_URL="https://ollama.com"
       export ANTHROPIC_API_KEY=""
 
-      # [1m] is claude's own context-window label, stripped before the request,
-      # and correct only for the models verified at 1048576 tokens.
-      export ANTHROPIC_DEFAULT_OPUS_MODEL="${ollamaTierModel.opus}"
-      export ANTHROPIC_DEFAULT_SONNET_MODEL="${ollamaTierModel.sonnet}"
-      export ANTHROPIC_DEFAULT_FABLE_MODEL="${ollamaTierModel.fable}"
-      export ANTHROPIC_DEFAULT_HAIKU_MODEL="${ollamaTierModel.haiku}"
+      export ANTHROPIC_DEFAULT_OPUS_MODEL="${ollama.tierModels.opus}"
+      export ANTHROPIC_DEFAULT_SONNET_MODEL="${ollama.tierModels.sonnet}"
+      export ANTHROPIC_DEFAULT_FABLE_MODEL="${ollama.tierModels.fable}"
+      export ANTHROPIC_DEFAULT_HAIKU_MODEL="${ollama.tierModels.haiku}"
 
       export CLAUDE_CODE_ATTRIBUTION_HEADER=0
       export CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1
@@ -187,7 +179,7 @@ in {
     # MCP integration is materialized above in Claude's supported user scope.
     enableMcpIntegration = false;
     package =
-      if homeContext.isPrivate config
+      if ollama.enabled
       then ollamaDirectClaudeCode
       else sandboxedClaudeCode;
   };

@@ -26,11 +26,7 @@
       exec ${lib.escapeShellArg "${sandboxedCodexCli}/bin/codex"} "$@"
     '';
   };
-  ollamaModelList = import ../ollama-models.nix;
-  # codex's main model is the tier claude anchors Default to, so both agents
-  # start on the same one.
-  ollamaMainModel =
-    (lib.findFirst (m: m.tier == "opus") (builtins.head ollamaModelList) ollamaModelList).model;
+  ollama = import ../ollama.nix {inherit config homeContext lib;};
   # Without a catalog codex falls back to unknown-model metadata, which changes
   # the request shape it emits. Shape mirrors the file `ollama launch codex`
   # generates; experimental_supported_tools must stay empty, or codex sends
@@ -79,10 +75,10 @@
         };
         visibility = "list";
       })
-      ollamaModelList;
+      ollama.models;
   });
-  ollamaProvider = lib.optionalAttrs (homeContext.isPrivate config) {
-    model = ollamaMainModel;
+  ollamaProvider = lib.optionalAttrs ollama.enabled {
+    model = ollama.mainModel;
     # "ollama" is a reserved built-in provider id in codex; a custom one must
     # not collide with it.
     model_provider = "ollama-cloud";
@@ -179,7 +175,7 @@ in {
   programs.codex = {
     enable = true;
     package =
-      if homeContext.isPrivate config
+      if ollama.enabled
       then ollamaCodexCli
       else sandboxedCodexCli;
     rules = {
