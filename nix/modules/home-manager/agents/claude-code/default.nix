@@ -107,8 +107,6 @@
     };
   managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
 
-  # Persist Claude settings in a writable location so Claude Code can mutate
-  # settings.json for plugin install/management.
   mutableStatePath = agentPolicy.claude.mutableSettingsPath;
   linkPath = "${config.home.homeDirectory}/.claude/settings.json";
 in {

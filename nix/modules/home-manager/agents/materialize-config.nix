@@ -82,7 +82,6 @@
 in {
   inherit materializeConfig;
 
-  # The activation form: ordered after writeBoundary so the state file and its
-  # symlink exist before the merge reads them.
+  # Ordered after writeBoundary, which creates the state file and its symlink.
   mkActivation = args: lib.hm.dag.entryAfter ["writeBoundary"] (materializeConfig args);
 }

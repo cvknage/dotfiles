@@ -9,14 +9,14 @@
   ollama = import ./shared.nix {inherit config homeContext;};
   # [1m] is claude's own context-window label, stripped before the request, and
   # valid only at 1048576 tokens: it suppresses compaction, so a smaller model
-  # would fail at the API instead.
+  # would fail at the API.
   tierModels = lib.listToAttrs (map (m: {
       name = m.tier;
       value = "${m.model}${lib.optionalString (m.context_window >= 1048576) "[1m]"}";
     })
     ollama.models);
-  # Only the secret's *path* reaches the wrapper; a value interpolated here
-  # would land world-readable in /nix/store.
+  # Only the secret's *path* reaches the wrapper; an interpolated value would land
+  # world-readable in /nix/store.
   apiKeyPath =
     if (config.sops.secrets or {}) ? ollama_api_key
     then config.sops.secrets.ollama_api_key.path
@@ -27,9 +27,8 @@ in {
   package = pkgs.writeShellApplication {
     name = "claude";
     text = ''
-      # Direct to ollama.com. ANTHROPIC_AUTH_TOKEN, not ANTHROPIC_API_KEY:
-      # claude sends the former as `Authorization: Bearer` (accepted) and the
-      # latter as `x-api-key` (rejected).
+      # ANTHROPIC_AUTH_TOKEN, not ANTHROPIC_API_KEY: claude sends the former as
+      # `Authorization: Bearer` (accepted), the latter as `x-api-key` (rejected).
       token_path=${lib.escapeShellArg apiKeyPath}
       if [ -n "$token_path" ]; then
         if [ -r "$token_path" ]; then

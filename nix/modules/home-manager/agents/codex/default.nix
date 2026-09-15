@@ -58,9 +58,7 @@
     // {
       features.child_agents_md = true;
       suppress_unstable_features_warning = true;
-      # Baking the content-hash keeps the reindex hook trusted without a
-      # re-approval prompt; recapture it from a trusted session when the hook
-      # definition changes.
+      # Recapture from a trusted session whenever the hook definition changes.
       hooks.state."${config.home.homeDirectory}/${configDir}/hooks.json:post_tool_use:0:0".trusted_hash = "sha256:655cfe92116fd6fb09b6f8dec597169d9100c8d80f5b9fa07473830674ca491b";
     }
     // lib.optionalAttrs config.programs.mcp.enable {
@@ -77,7 +75,6 @@ in {
     managedFile = managedSettingsFile;
     statePath = mutableStatePath;
     linkPath = linkPath;
-    # model is a seed: codex's own /model choice survives activation.
     defaultKeys = ["model"];
     authoritativeKeys = [
       "approval_policy"

@@ -1,14 +1,11 @@
-# Shared ollama model ladder and the private-context gate. claude derives its tier
-# aliases from `models` and codex its model catalog; values verified per model
-# against `ollama show`.
+# Model ladder; values verified per model against `ollama show`.
 {
   config,
   homeContext,
   ...
 }: {
-  # isPrivate, never !isWork: home-context.nix matches the context variable against
-  # a literal, so a negative gate fails open and enables ollama for every context
-  # that is not literally "work" - shared, unset, or any future role.
+  # isPrivate, never !isWork: home-context.nix compares against a literal, so a
+  # negative gate fails open for shared, unset, and future contexts.
   enabled = homeContext.isPrivate config;
 
   # First entry is codex's default model; keep the opus tier there.
@@ -20,8 +17,7 @@
       input_modalities = ["text" "image"];
     }
     {
-      # The auto-mode safety classifier rides claude's sonnet alias, so this tier
-      # wants a fast model.
+      # The auto-mode safety classifier rides claude's sonnet alias: keep this tier fast.
       tier = "sonnet";
       model = "deepseek-v4.1-flash:cloud";
       context_window = 1048576;

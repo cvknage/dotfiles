@@ -8,14 +8,11 @@
 }: let
   ollama = import ./shared.nix {inherit config homeContext;};
 
-  # The model both agents start on: claude's /model Default resolves through the
-  # opus alias, and codex marks the first catalog entry as its default.
+  # Opus, because claude's /model Default resolves through the opus alias.
   mainModel = (lib.findFirst (m: m.tier == "opus") (builtins.head ollama.models) ollama.models).model;
 
-  # Without a catalog codex falls back to unknown-model metadata, which changes
-  # the request shape it emits. Shape mirrors the file `ollama launch codex`
-  # generates; experimental_supported_tools must stay empty, or codex sends
-  # additional_tools input items that ollama's /v1/responses cannot parse.
+  # Without a catalog codex emits a different request shape. experimental_supported_tools
+  # must stay empty, or codex sends additional_tools items /v1/responses cannot parse.
   catalog = pkgs.writeText "codex-ollama-models.json" (builtins.toJSON {
     models =
       map (m: {
@@ -30,9 +27,8 @@
         slug = m.model;
         support_verbosity = true;
         supported_in_api = true;
-        # Each entry is a ReasoningEffortPreset {effort, description}; without
-        # levels codex shows effort "none" and never asks the model to think.
-        # "minimal" is not a level in codex 0.153.4.
+        # ReasoningEffortPreset {effort, description}; without levels codex shows
+        # effort "none" and never thinks. "minimal" is not a level in codex 0.153.4.
         supported_reasoning_levels = [
           {
             effort = "low";
@@ -65,8 +61,7 @@
 in {
   inherit (ollama) enabled;
 
-  # "ollama" is a reserved built-in provider id in codex; a custom one must not
-  # collide with it.
+  # "ollama" is a reserved built-in provider id in codex; hence the -cloud suffix.
   provider = lib.optionalAttrs ollama.enabled {
     model = mainModel;
     model_provider = "ollama-cloud";
@@ -76,8 +71,7 @@ in {
         # ollama.com refuses /v1/responses requests carrying codex's web_search tool.
         base_url = "http://127.0.0.1:11434/v1/";
         env_key = "OLLAMA_API_KEY";
-        # Codex rejects the "chat" wire API at config load; ollama has served
-        # /v1/responses since v0.13.3.
+        # "chat" is a hard config-load error in codex; ollama has served /v1/responses since v0.13.3.
         wire_api = "responses";
       };
     };
@@ -87,12 +81,10 @@ in {
   package = pkgs.writeShellApplication {
     name = "codex";
     text = ''
-      # The daemon attaches the cloud credential upstream, so the agent needs
-      # no key of its own; codex still requires the variable to be set.
+      # The daemon brokers the credential upstream; codex still requires the variable.
       export OLLAMA_API_KEY="ollama"
 
-      # Check only; starting or killing the daemon here reintroduces the race
-      # launchd exists to remove.
+      # Check only - starting or killing the daemon here reintroduces the ownership race.
       if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
         echo "codex: nothing listening on 127.0.0.1:11434; is the services.ollama agent running?" >&2
       fi
