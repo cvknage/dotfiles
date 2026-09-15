@@ -23,27 +23,7 @@
       # no key of its own; codex still requires the variable to be set.
       export OLLAMA_API_KEY="ollama"
 
-      # ollama.com refuses /v1/responses requests carrying the web_search tool
-      # codex sends; the daemon serves those locally instead.
-      daemon_pid=""
-      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
-        ${pkgs.ollama}/bin/ollama serve >/dev/null 2>&1 &
-        daemon_pid=$!
-        tries=0
-        until ${pkgs.curl}/bin/curl -fsS --max-time 1 http://127.0.0.1:11434/api/version >/dev/null 2>&1; do
-          tries=$((tries + 1))
-          if [ "$tries" -ge 25 ]; then
-            echo "codex: ollama daemon did not become ready" >&2
-            break
-          fi
-          sleep 0.2
-        done
-      fi
-      trap 'if [ -n "$daemon_pid" ]; then kill "$daemon_pid" 2>/dev/null || true; fi' EXIT
-
-      ${lib.escapeShellArg "${sandboxedCodexCli}/bin/codex"} "$@"
-      status=$?
-      exit "$status"
+      exec ${lib.escapeShellArg "${sandboxedCodexCli}/bin/codex"} "$@"
     '';
   };
   ollamaModelList = import ../ollama-models.nix;
@@ -109,6 +89,7 @@
     model_providers = {
       "ollama-cloud" = {
         name = "Ollama";
+        # ollama.com refuses /v1/responses requests carrying codex's web_search tool.
         base_url = "http://127.0.0.1:11434/v1/";
         env_key = "OLLAMA_API_KEY";
         # Codex rejects the "chat" wire API at config load; ollama has served
@@ -162,9 +143,8 @@
     // {
       features.child_agents_md = true;
       suppress_unstable_features_warning = true;
-      # ollama's per-launch config layer wipes codex's hooks.state trust on
-      # every launch; baking the content-hash here keeps the reindex hook
-      # trusted. Recapture the hash from a trusted session when the hook
+      # Baking the content-hash keeps the reindex hook trusted without a
+      # re-approval prompt; recapture it from a trusted session when the hook
       # definition changes.
       hooks.state."${config.home.homeDirectory}/${configDir}/hooks.json:post_tool_use:0:0".trusted_hash = "sha256:655cfe92116fd6fb09b6f8dec597169d9100c8d80f5b9fa07473830674ca491b";
     }

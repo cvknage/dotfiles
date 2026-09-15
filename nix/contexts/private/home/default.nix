@@ -2,7 +2,6 @@
   config,
   inputs,
   lib,
-  pkgs,
   ...
 }: {
   sops.secrets =
@@ -13,9 +12,11 @@
       "ollama_api_key"
     ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/private/secrets.yaml";});
 
+  # Provides the ollama package too, so it is not listed in home.packages below.
+  services.ollama.enable = true;
+
   home.packages = [
     # pkgs.hugo
-    pkgs.ollama
   ];
 
   programs.zsh = {
