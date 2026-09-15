@@ -80,8 +80,6 @@
     ${pkgs.coreutils}/bin/install -m 0644 "$final_file" "$state_file"
   '';
 in {
-  inherit materializeConfig;
-
   # Ordered after writeBoundary, which creates the state file and its symlink.
   mkActivation = args: lib.hm.dag.entryAfter ["writeBoundary"] (materializeConfig args);
 }
