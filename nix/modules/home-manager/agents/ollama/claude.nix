@@ -6,7 +6,15 @@
   sandboxedPackage,
   ...
 }: let
-  ollama = import ./shared.nix {inherit config homeContext lib;};
+  ollama = import ./shared.nix {inherit config homeContext;};
+  # [1m] is claude's own context-window label, stripped before the request, and
+  # valid only at 1048576 tokens: it suppresses compaction, so a smaller model
+  # would fail at the API instead.
+  tierModels = lib.listToAttrs (map (m: {
+      name = m.tier;
+      value = "${m.model}${lib.optionalString (m.context_window >= 1048576) "[1m]"}";
+    })
+    ollama.models);
   # Only the secret's *path* reaches the wrapper; a value interpolated here
   # would land world-readable in /nix/store.
   apiKeyPath =
@@ -35,10 +43,10 @@ in {
       export ANTHROPIC_BASE_URL="https://ollama.com"
       export ANTHROPIC_API_KEY=""
 
-      export ANTHROPIC_DEFAULT_OPUS_MODEL="${ollama.tierModels.opus}"
-      export ANTHROPIC_DEFAULT_SONNET_MODEL="${ollama.tierModels.sonnet}"
-      export ANTHROPIC_DEFAULT_FABLE_MODEL="${ollama.tierModels.fable}"
-      export ANTHROPIC_DEFAULT_HAIKU_MODEL="${ollama.tierModels.haiku}"
+      export ANTHROPIC_DEFAULT_OPUS_MODEL="${tierModels.opus}"
+      export ANTHROPIC_DEFAULT_SONNET_MODEL="${tierModels.sonnet}"
+      export ANTHROPIC_DEFAULT_FABLE_MODEL="${tierModels.fable}"
+      export ANTHROPIC_DEFAULT_HAIKU_MODEL="${tierModels.haiku}"
 
       export CLAUDE_CODE_ATTRIBUTION_HEADER=0
       export CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1

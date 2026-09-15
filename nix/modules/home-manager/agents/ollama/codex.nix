@@ -6,7 +6,11 @@
   sandboxedPackage,
   ...
 }: let
-  ollama = import ./shared.nix {inherit config homeContext lib;};
+  ollama = import ./shared.nix {inherit config homeContext;};
+
+  # The model both agents start on: claude's /model Default resolves through the
+  # opus alias, and codex marks the first catalog entry as its default.
+  mainModel = (lib.findFirst (m: m.tier == "opus") (builtins.head ollama.models) ollama.models).model;
 
   # Without a catalog codex falls back to unknown-model metadata, which changes
   # the request shape it emits. Shape mirrors the file `ollama launch codex`
@@ -64,7 +68,7 @@ in {
   # "ollama" is a reserved built-in provider id in codex; a custom one must not
   # collide with it.
   provider = lib.optionalAttrs ollama.enabled {
-    model = ollama.mainModel;
+    model = mainModel;
     model_provider = "ollama-cloud";
     model_providers = {
       "ollama-cloud" = {
