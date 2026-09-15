@@ -3,17 +3,17 @@
   homeDirectory,
   xdgConfigHome,
   isDarwin,
-  isWork ? false,
   orderBefore ? (_: value: value),
   uid ? 1000,
   gitIdentityPublicKeyPath ? null,
+  gitIdentityDirectory ? null,
 }: let
   paths = import ./paths.nix {
     inherit
+      gitIdentityDirectory
       gitIdentityPublicKeyPath
       homeDirectory
       isDarwin
-      isWork
       lib
       uid
       xdgConfigHome

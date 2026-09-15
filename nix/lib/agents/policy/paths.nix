@@ -4,10 +4,11 @@
   homeDirectory,
   xdgConfigHome,
   isDarwin,
-  isWork ? false,
   uid ? 1000,
   # Public half of a preferences.gitIdentity key, or null if none enabled -- same narrow exposure as .ssh/known_hosts below.
   gitIdentityPublicKeyPath ? null,
+  # Directory the git identity publishes its files to, or null if none enabled.
+  gitIdentityDirectory ? null,
 }: let
   inHome = paths: map (path: "${homeDirectory}/${path}") paths;
 
@@ -74,11 +75,10 @@
     ".minikube"
   ];
 
-  gitIdentityDirectory = "${xdgConfigHome}/git-identity";
-  # Only the work profile runs the signing relay; elsewhere the socket does
-  # not exist, so agents get no agent at all.
+  # Only exposed when the identity is enabled; elsewhere the socket does not
+  # exist, so agents get no agent at all.
   sshAgentSocket =
-    if isWork
+    if gitIdentityDirectory != null
     then "${gitIdentityDirectory}/ssh-agent.sock"
     else "";
   # The sandbox never talks to the real docker.sock; docker-agent-proxy enforces deniedPaths instead.
@@ -208,7 +208,7 @@
     readOnlyPaths =
       sharedReadOnlyPaths
       ++ systemReadOnlyPaths
-      ++ lib.optionals isWork [gitIdentityDirectory];
+      ++ lib.optionals (gitIdentityDirectory != null) [gitIdentityDirectory];
     socketPaths = map (m: "${m.host}:${m.sandbox}") serviceSocketMappings;
     writePaths = workspaceRoots ++ sharedWritablePaths ++ runtimeRoots ++ runtimeFiles ++ kubernetesStateRoots;
     ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot];

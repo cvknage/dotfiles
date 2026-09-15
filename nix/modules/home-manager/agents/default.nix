@@ -1,6 +1,5 @@
 {
   config,
-  homeContext,
   lib,
   pkgs,
   ...
@@ -10,11 +9,14 @@
     homeDirectory = config.home.homeDirectory;
     xdgConfigHome = config.xdg.configHome;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
-    isWork = homeContext.isWork config;
     orderBefore = lib.hm.dag.entryBefore;
     gitIdentityPublicKeyPath =
       if config.preferences.gitIdentity.enable
       then "${config.preferences.gitIdentity.keyPath}.pub"
+      else null;
+    gitIdentityDirectory =
+      if config.preferences.gitIdentity.enable
+      then config.preferences.gitIdentity.directory
       else null;
   };
   sandbox = import ./sandbox/default.nix {
