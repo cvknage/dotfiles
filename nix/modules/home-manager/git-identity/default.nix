@@ -32,7 +32,8 @@
     '';
   };
 
-  # Dedicated agent, not a relay into the interactive one -- gcr auto-loads any ~/.ssh/*.pub key, so a relay would leak whatever else it later holds.
+  # Dedicated, holding only this identity's key: reusing the session's agent, or relaying
+  # into it, would expose every unrelated key it holds to anything using this socket.
   identityAgent = pkgs.writeShellApplication {
     name = "git-identity-agent";
     runtimeInputs = [pkgs.coreutils pkgs.openssh];
@@ -56,7 +57,8 @@
     '';
   };
 
-  # Pins signing to the identity agent regardless of the caller's SSH_AUTH_SOCK -- ssh-keygen needs an agent to sign from a plain public key file.
+  # user.signingkey is a public key file, and ssh-keygen can only reach the private half
+  # through an agent -- so point it at the identity's, whatever SSH_AUTH_SOCK the caller has.
   identitySigningProgram = pkgs.writeShellApplication {
     name = "git-identity-ssh-keygen";
     runtimeInputs = [pkgs.openssh];
@@ -83,7 +85,7 @@ in {
 
     publicKey = lib.mkOption {
       type = lib.types.str;
-      description = "The identity key's public key, in authorized_keys format.";
+      description = "The identity key's public key for allowed-signers. Only meaningful inside a sops.templates block: the value is a placeholder token, not the key text.";
     };
 
     keyPath = lib.mkOption {
@@ -113,22 +115,31 @@ in {
       readOnly = true;
       description = "Path to the identity's dedicated ssh-agent socket.";
     };
+
+    publicKeyPath = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      description = "Path to the identity's public key, which git reads as user.signingkey.";
+    };
   };
 
   config = lib.mkMerge [
     {
-      # Derived, not configuration -- exposed so consumers do not re-derive where the
-      # identity lives. `readOnly` only enforces a single definition: keep this the sole
-      # unconditional one, and never give either a `default` (it would count as a second).
+      # Read-only derived values, so consumers need not re-derive the identity's layout.
+      # `readOnly` means at most one definition -- never give these a `default`, which counts
+      # as a second.
       preferences.gitIdentity = {
         directory = identityDirectory;
+        publicKeyPath = "${cfg.keyPath}.pub";
         socket = identitySocket;
       };
     }
 
     (lib.mkIf cfg.enable (lib.mkMerge [
       {
-        # Every sshHost connection uses this identity, not gcr's default -- unlike github-secrets, no alias needed since it should apply everywhere.
+        # Applies to every sshHost connection, unlike the github-secrets identity, so it needs
+        # no Host alias. IdentityFile plus IdentitiesOnly pins the key instead of leaving the
+        # choice to the session's agent.
         programs.ssh.settings.${cfg.sshHost} = {
           HostName = cfg.sshHost;
           User = "git";
@@ -152,7 +163,7 @@ in {
           "git-identity.inc".content = ''
             [user]
               email = ${cfg.email}
-              signingkey = ${cfg.keyPath}.pub
+              signingkey = ${cfg.publicKeyPath}
             [gpg]
               format = ssh
             [gpg "ssh"]
