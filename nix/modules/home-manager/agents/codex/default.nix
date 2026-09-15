@@ -80,6 +80,7 @@ in {
       "approval_policy"
       "default_permissions"
       "mcp_servers"
+      "model_catalog_json"
       "model_provider"
       "model_providers"
       "permissions"
