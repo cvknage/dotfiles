@@ -6,12 +6,12 @@
   ...
 }: let
   homeDirectory = "/home/${user}";
-  policy = import ../../lib/agents/policy/paths.nix {
+  policy = import ../../../lib/agents/policy/paths.nix {
     inherit lib homeDirectory;
     isDarwin = false;
     xdgConfigHome = "${homeDirectory}/.config";
   };
-  dockerAgentProxy = pkgs.callPackage ../../pkgs/docker-agent-proxy {};
+  dockerAgentProxy = pkgs.callPackage ../../../pkgs/docker-agent-proxy {};
 in {
   environment.etc = {
     # Force overlay2: Fedora's moby-engine default containerd snapshotter extracts kind's node images incorrectly.

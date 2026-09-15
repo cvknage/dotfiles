@@ -2,8 +2,8 @@
   imports = [
     ./nix.nix
     ./agents
-    ./dotfiles-path.nix
-    ./git-identity.nix
+    ./dotfiles-path
+    ./git-identity
     ./secrets
   ];
 }
