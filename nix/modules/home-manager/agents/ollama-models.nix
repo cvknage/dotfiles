@@ -12,6 +12,8 @@
     input_modalities = ["text" "image"];
   }
   {
+    # The auto-mode safety classifier rides claude's sonnet alias, so this tier
+    # wants a fast model.
     tier = "sonnet";
     model = "deepseek-v4.1-flash:cloud";
     context_window = 1048576;
