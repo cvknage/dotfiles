@@ -28,7 +28,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     secrets = {
-      # Private repo, fetched with a deploy key via ./scripts/secrets-bootstrap.sh
       url = "git+ssh://github-secrets/cvknage/dotfiles-secrets";
       inputs.nixpkgs.follows = "nixpkgs";
     };
@@ -49,21 +48,16 @@
       url = "github:sund3RRR/tuxedo-nixos";
     };
     llm-agents = {
-      # Not following: numtide's cache is only built against its own nixpkgs pin.
       url = "github:numtide/llm-agents.nix";
     };
     ollama = {
-      # A second nixpkgs pin, used only for the ollama package, so
-      # `nix flake update ollama` moves it without moving the whole system.
       url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     };
     claude-pace = {
-      # Claude Code statusline: https://github.com/Astro-Han/claude-pace
       url = "github:Astro-Han/claude-pace/v0.9.4";
       # url = "github:Astro-Han/claude-pace"; # main, untagged
       flake = false;
     };
-    # Bump all three v0.145.0 pins together -- Nix can't share a version string across flake inputs.
     code-graph-mcp-linux-x86_64 = {
       url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-linux-x64";
       flake = false;
