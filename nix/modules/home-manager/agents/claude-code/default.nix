@@ -150,19 +150,17 @@
 in {
   # Merge managed settings into the mutable state file on activation.
   # Nix-controlled hooks, permissions, and sandbox keys always win; other user/plugin keys are preserved.
-  home.activation.claudeCodeMaterializeSettings =
-    lib.hm.dag.entryAfter ["writeBoundary"]
-    (materialize.materializeConfig {
-      format = "json";
-      statePath = mutableSettingsPath;
-      linkPath = "${config.home.homeDirectory}/.claude/settings.json";
-      managedFile = managedSettingsFile;
-      authoritativeKeys = [
-        "hooks"
-        "permissions"
-        "sandbox"
-      ];
-    });
+  home.activation.claudeCodeMaterializeSettings = materialize.mkActivation {
+    format = "json";
+    statePath = mutableSettingsPath;
+    linkPath = "${config.home.homeDirectory}/.claude/settings.json";
+    managedFile = managedSettingsFile;
+    authoritativeKeys = [
+      "hooks"
+      "permissions"
+      "sandbox"
+    ];
+  };
 
   # Nix owns the user-scoped MCP server set. Claude's plugin configuration is
   # stored separately, so runtime plugin installation remains unaffected.

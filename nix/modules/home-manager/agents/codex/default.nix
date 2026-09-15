@@ -157,26 +157,24 @@
 
   managedSettingsFile = settingsFormat.generate "codex-managed-config" settings;
 in {
-  home.activation.codexMaterializeConfig =
-    lib.hm.dag.entryAfter ["writeBoundary"]
-    (materialize.materializeConfig {
-      format = "toml";
-      managedFile = managedSettingsFile;
-      statePath = mutableConfigPath;
-      linkPath = linkPath;
-      # model is a seed: codex's own /model choice survives activation.
-      defaultKeys = ["model"];
-      authoritativeKeys = [
-        "approval_policy"
-        "default_permissions"
-        "mcp_servers"
-        "model_provider"
-        "model_providers"
-        "permissions"
-        "sandbox_mode"
-        "sandbox_workspace_write"
-      ];
-    });
+  home.activation.codexMaterializeConfig = materialize.mkActivation {
+    format = "toml";
+    managedFile = managedSettingsFile;
+    statePath = mutableConfigPath;
+    linkPath = linkPath;
+    # model is a seed: codex's own /model choice survives activation.
+    defaultKeys = ["model"];
+    authoritativeKeys = [
+      "approval_policy"
+      "default_permissions"
+      "mcp_servers"
+      "model_provider"
+      "model_providers"
+      "permissions"
+      "sandbox_mode"
+      "sandbox_workspace_write"
+    ];
+  };
 
   programs.codex = {
     enable = true;

@@ -1,7 +1,7 @@
 {
   lib,
   pkgs,
-}: {
+}: let
   # Merges nix-managed settings into a writable state file the agent can still
   # mutate (model choice, trust); Home Manager never owns the link.
   #
@@ -79,4 +79,10 @@
     ${writeStateFile}
     ${pkgs.coreutils}/bin/install -m 0644 "$final_file" "$state_file"
   '';
+in {
+  inherit materializeConfig;
+
+  # The activation form: ordered after writeBoundary so the state file and its
+  # symlink exist before the merge reads them.
+  mkActivation = args: lib.hm.dag.entryAfter ["writeBoundary"] (materializeConfig args);
 }
