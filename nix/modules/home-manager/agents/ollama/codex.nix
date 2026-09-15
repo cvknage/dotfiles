@@ -6,7 +6,7 @@
   sandboxedPackage,
   ...
 }: let
-  ollama = import ./default.nix {inherit config homeContext lib;};
+  ollama = import ./shared.nix {inherit config homeContext lib;};
 
   # Without a catalog codex falls back to unknown-model metadata, which changes
   # the request shape it emits. Shape mirrors the file `ollama launch codex`

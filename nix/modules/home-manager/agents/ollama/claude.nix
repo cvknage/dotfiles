@@ -6,7 +6,7 @@
   sandboxedPackage,
   ...
 }: let
-  ollama = import ./default.nix {inherit config homeContext lib;};
+  ollama = import ./shared.nix {inherit config homeContext lib;};
   # Only the secret's *path* reaches the wrapper; a value interpolated here
   # would land world-readable in /nix/store.
   apiKeyPath =
