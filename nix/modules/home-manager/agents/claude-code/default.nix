@@ -8,19 +8,19 @@
   pkgs,
   ...
 }: let
-  claudeCodePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+  basePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code;
+  sandboxedPackage = agentSandbox.wrapPackage {
+    agent = "claude";
+    package = basePackage;
+    executable = "claude";
+  };
   codeGraphHooks = import ../hooks;
-
-  claudePaceStatusline = pkgs.runCommand "claude-pace-statusline" {nativeBuildInputs = [pkgs.makeWrapper];} ''
+  materialize = import ../materialize-config.nix {inherit lib pkgs;};
+  statuslinePackage = pkgs.runCommand "claude-pace-statusline" {nativeBuildInputs = [pkgs.makeWrapper];} ''
     install -Dm755 ${inputs.claude-pace}/claude-pace.sh $out/bin/claude-pace-statusline
     wrapProgram $out/bin/claude-pace-statusline \
       --prefix PATH : ${lib.makeBinPath [pkgs.jq pkgs.git pkgs.coreutils]}
   '';
-  sandboxedClaudeCode = agentSandbox.wrapPackage {
-    agent = "claude";
-    package = claudeCodePackage;
-    executable = "claude";
-  };
 
   ollama = import ../ollama.nix {inherit config homeContext lib;};
   # Only the secret's *path* reaches the wrapper; a value interpolated here
@@ -29,7 +29,7 @@
     if (config.sops.secrets or {}) ? ollama_api_key
     then config.sops.secrets.ollama_api_key.path
     else "";
-  ollamaDirectClaudeCode = pkgs.writeShellApplication {
+  ollamaPackage = pkgs.writeShellApplication {
     name = "claude";
     text = ''
       # Direct to ollama.com. ANTHROPIC_AUTH_TOKEN, not ANTHROPIC_API_KEY:
@@ -56,15 +56,9 @@
       export CLAUDE_CODE_ATTRIBUTION_HEADER=0
       export CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1
 
-      exec ${lib.escapeShellArg "${sandboxedClaudeCode}/bin/claude"} "$@"
+      exec ${lib.escapeShellArg "${sandboxedPackage}/bin/claude"} "$@"
     '';
   };
-
-  # Persist Claude settings in a writable location so Claude Code can mutate
-  # settings.json for plugin install/management.
-  mutableSettingsPath = agentPolicy.claude.mutableSettingsPath;
-  managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
-  materialize = import ../materialize-config.nix {inherit lib pkgs;};
 
   # Claude stores user-scoped MCP servers in ~/.claude/.config.json. Home Manager's
   # generic Claude integration currently materializes them as a plugin below
@@ -72,8 +66,8 @@
   # plugin. Merge the shared servers into Claude's actual user registry instead.
   # Claude already supplies its own hosted Context7 integration, so omit the
   # duplicate local server here while keeping it available to other agents.
-  claudeSharedMcpServers = builtins.removeAttrs config.programs.mcp.servers ["context7"];
-  claudeMcpServers = lib.mapAttrs (
+  sharedMcpServers = builtins.removeAttrs config.programs.mcp.servers ["context7"];
+  mcpServers = lib.mapAttrs (
     name: server:
       lib.hm.mcp.transformMcpServer {
         inherit server;
@@ -90,9 +84,9 @@
           (lib.hm.mcp.wrapEnvFilesCommand {inherit pkgs name;})
         ];
       }
-  ) (lib.filterAttrs (_: server: (server.enabled or null) != false && (server.disabled or false) != true) claudeSharedMcpServers);
+  ) (lib.filterAttrs (_: server: (server.enabled or null) != false && (server.disabled or false) != true) sharedMcpServers);
   managedMcpFile = pkgs.writeText "claude-code-managed-mcp.json" (builtins.toJSON {
-    mcpServers = claudeMcpServers;
+    mcpServers = mcpServers;
   });
 
   mcpActivationScript = ''
@@ -133,7 +127,7 @@
     // {
       statusLine = {
         type = "command";
-        command = "${claudePaceStatusline}/bin/claude-pace-statusline";
+        command = "${statuslinePackage}/bin/claude-pace-statusline";
       };
       hooks.PostToolUse = [
         {
@@ -147,13 +141,19 @@
         }
       ];
     };
+  managedSettingsFile = pkgs.writeText "claude-code-settings.json" (builtins.toJSON settings);
+
+  # Persist Claude settings in a writable location so Claude Code can mutate
+  # settings.json for plugin install/management.
+  mutableStatePath = agentPolicy.claude.mutableSettingsPath;
+  linkPath = "${config.home.homeDirectory}/.claude/settings.json";
 in {
   # Merge managed settings into the mutable state file on activation.
   # Nix-controlled hooks, permissions, and sandbox keys always win; other user/plugin keys are preserved.
   home.activation.claudeCodeMaterializeSettings = materialize.mkActivation {
     format = "json";
-    statePath = mutableSettingsPath;
-    linkPath = "${config.home.homeDirectory}/.claude/settings.json";
+    statePath = mutableStatePath;
+    linkPath = linkPath;
     managedFile = managedSettingsFile;
     authoritativeKeys = [
       "hooks"
@@ -178,7 +178,7 @@ in {
     enableMcpIntegration = false;
     package =
       if ollama.enabled
-      then ollamaDirectClaudeCode
-      else sandboxedClaudeCode;
+      then ollamaPackage
+      else sandboxedPackage;
   };
 }

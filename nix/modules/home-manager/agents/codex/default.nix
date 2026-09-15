@@ -8,30 +8,22 @@
   pkgs,
   ...
 }: let
-  codexCliPackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
-  codeGraphHooks = import ../hooks;
-  sandboxedCodexCli = agentSandbox.wrapPackage {
+  basePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.codex;
+  sandboxedPackage = agentSandbox.wrapPackage {
     agent = "codex";
-    package = codexCliPackage;
+    package = basePackage;
     executable = "codex";
   };
+  codeGraphHooks = import ../hooks;
+  materialize = import ../materialize-config.nix {inherit lib pkgs;};
 
-  ollamaCodexCli = pkgs.writeShellApplication {
-    name = "codex";
-    text = ''
-      # The daemon attaches the cloud credential upstream, so the agent needs
-      # no key of its own; codex still requires the variable to be set.
-      export OLLAMA_API_KEY="ollama"
+  settingsFormat = pkgs.formats.toml {};
+  xdgConfigHome = lib.removePrefix config.home.homeDirectory config.xdg.configHome;
+  configDir =
+    if config.home.preferXdgDirectories
+    then "${xdgConfigHome}/codex"
+    else ".codex";
 
-      # Check only; starting or killing the daemon here reintroduces the race
-      # launchd exists to remove.
-      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
-        echo "codex: nothing listening on 127.0.0.1:11434; is the services.ollama agent running?" >&2
-      fi
-
-      exec ${lib.escapeShellArg "${sandboxedCodexCli}/bin/codex"} "$@"
-    '';
-  };
   ollama = import ../ollama.nix {inherit config homeContext lib;};
   # Without a catalog codex falls back to unknown-model metadata, which changes
   # the request shape it emits. Shape mirrors the file `ollama launch codex`
@@ -101,17 +93,22 @@
     };
     model_catalog_json = "${ollamaModelCatalog}";
   };
+  ollamaPackage = pkgs.writeShellApplication {
+    name = "codex";
+    text = ''
+      # The daemon attaches the cloud credential upstream, so the agent needs
+      # no key of its own; codex still requires the variable to be set.
+      export OLLAMA_API_KEY="ollama"
 
-  materialize = import ../materialize-config.nix {inherit lib pkgs;};
+      # Check only; starting or killing the daemon here reintroduces the race
+      # launchd exists to remove.
+      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
+        echo "codex: nothing listening on 127.0.0.1:11434; is the services.ollama agent running?" >&2
+      fi
 
-  settingsFormat = pkgs.formats.toml {};
-  xdgConfigHome = lib.removePrefix config.home.homeDirectory config.xdg.configHome;
-  configDir =
-    if config.home.preferXdgDirectories
-    then "${xdgConfigHome}/codex"
-    else ".codex";
-  mutableConfigPath = agentPolicy.codex.mutableConfigPath;
-  linkPath = "${config.home.homeDirectory}/${configDir}/config.toml";
+      exec ${lib.escapeShellArg "${sandboxedPackage}/bin/codex"} "$@"
+    '';
+  };
 
   mcpServers =
     lib.mapAttrs (
@@ -154,13 +151,15 @@
       mcp_servers = mcpServers;
     }
     // ollamaProvider;
-
   managedSettingsFile = settingsFormat.generate "codex-managed-config" settings;
+
+  mutableStatePath = agentPolicy.codex.mutableConfigPath;
+  linkPath = "${config.home.homeDirectory}/${configDir}/config.toml";
 in {
   home.activation.codexMaterializeConfig = materialize.mkActivation {
     format = "toml";
     managedFile = managedSettingsFile;
-    statePath = mutableConfigPath;
+    statePath = mutableStatePath;
     linkPath = linkPath;
     # model is a seed: codex's own /model choice survives activation.
     defaultKeys = ["model"];
@@ -180,8 +179,8 @@ in {
     enable = true;
     package =
       if ollama.enabled
-      then ollamaCodexCli
-      else sandboxedCodexCli;
+      then ollamaPackage
+      else sandboxedPackage;
     rules = {
       "shared-bash-permissions" = agentPolicy.codex.rules;
     };

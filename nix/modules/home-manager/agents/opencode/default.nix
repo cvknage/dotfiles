@@ -7,7 +7,7 @@
   pkgs,
   ...
 }: let
-  sandboxedOpenCode = agentSandbox.wrapPackage {
+  sandboxedPackage = agentSandbox.wrapPackage {
     agent = "opencode";
     package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
     executable = "opencode";
@@ -35,7 +35,7 @@ in {
   programs.opencode = {
     enable = !(homeContext.isWork config);
     enableMcpIntegration = true;
-    package = sandboxedOpenCode;
+    package = sandboxedPackage;
     themes = {
       catppuccin-macchiato-transparent = {
         defs = {
