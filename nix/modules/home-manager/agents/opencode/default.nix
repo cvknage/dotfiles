@@ -7,9 +7,10 @@
   pkgs,
   ...
 }: let
+  basePackage = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
   sandboxedPackage = agentSandbox.wrapPackage {
     agent = "opencode";
-    package = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode;
+    package = basePackage;
     executable = "opencode";
   };
   codeGraphHooks = import ../hooks;
