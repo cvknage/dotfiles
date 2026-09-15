@@ -14,7 +14,10 @@
     ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/private/secrets.yaml";});
 
   # Provides the ollama package too, so it is not listed in home.packages below.
-  services.ollama.enable = true;
+  services.ollama = {
+    enable = true;
+    package = inputs.ollama.legacyPackages.${pkgs.stdenv.hostPlatform.system}.ollama;
+  };
 
   home.packages = [
     # pkgs.hugo

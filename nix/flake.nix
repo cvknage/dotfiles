@@ -52,6 +52,11 @@
       # Not following: numtide's cache is only built against its own nixpkgs pin.
       url = "github:numtide/llm-agents.nix";
     };
+    ollama = {
+      # A second nixpkgs pin, used only for the ollama package, so
+      # `nix flake update ollama` moves it without moving the whole system.
+      url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    };
     claude-pace = {
       # Claude Code statusline: https://github.com/Astro-Han/claude-pace
       url = "github:Astro-Han/claude-pace/v0.9.4";
