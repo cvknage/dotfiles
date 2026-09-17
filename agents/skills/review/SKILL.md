@@ -1,17 +1,17 @@
 ---
 name: review
-description: Second-opinion review of a completed code change by a fresh-context subagent at the standard tier. Request one review per completed change, before reporting done or proposing a commit — not between edits.
+description: Second-opinion review of a completed code change by a fresh-context subagent on the default model. Request one review per completed change, before reporting done or proposing a commit — not between edits.
 ---
 - **When**: after completing a code change — once per change, before reporting
   done or proposing a commit. Not between edits, and not a gate to re-run on
   every iteration.
-- **Tier**: the standard one. The premium tier (fable/kimi) costs an order of
-  magnitude more and exists for deliberate escalation on a genuinely high-risk
-  change, not for routine review; the cheapest tier is wrong too, since a
-  review needs real reasoning.
+- **Tier**: the default model — the opus tier in Claude Code and Codex. Leave
+  the cheapest tier alone, since a review needs real reasoning, and leave the
+  premium tier for deliberate escalation on a genuinely high-risk change, where
+  its order-of-magnitude cost is earned.
 - **Fresh context**: the reviewer must not be you re-reading your own work, so
-  spawn a subagent — Claude Code: the Agent tool with `model: sonnet`; Codex:
-  its subagent/task tool; OpenCode: its subagent mechanism. With no subagent
+  spawn a subagent — Claude Code: the Agent tool with `model: opus`; Codex: its
+  subagent/task tool; OpenCode: its subagent mechanism. With no subagent
   facility available, run the review as a fresh one-shot against the diff
   rather than reviewing inline.
 - **Task spec**: the reviewer sees nothing of this conversation, so it must be
