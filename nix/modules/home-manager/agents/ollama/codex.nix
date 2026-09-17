@@ -7,6 +7,9 @@
   ...
 }: let
   ollama = import ./shared.nix {inherit config homeContext;};
+  # The daemon brokers the credential upstream and runs the web_search loop that
+  # ollama.com's hosted endpoint does not, so codex talks to the daemon.
+  ollamaUrl = "http://${config.services.ollama.host}:${toString config.services.ollama.port}";
 
   # Opus, because claude's /model Default resolves through the opus alias.
   mainModel = (lib.findFirst (m: m.tier == "opus") (builtins.head ollama.models) ollama.models).model;
@@ -69,7 +72,7 @@ in {
       "ollama-cloud" = {
         name = "Ollama";
         # ollama.com refuses /v1/responses requests carrying codex's web_search tool.
-        base_url = "http://127.0.0.1:11434/v1/";
+        base_url = "${ollamaUrl}/v1/";
         env_key = "OLLAMA_API_KEY";
         # "chat" is a hard config-load error in codex; ollama has served /v1/responses since v0.13.3.
         wire_api = "responses";
@@ -85,8 +88,8 @@ in {
       export OLLAMA_API_KEY="ollama"
 
       # Check only - starting or killing the daemon here reintroduces the ownership race.
-      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
-        echo "codex: nothing listening on 127.0.0.1:11434; is the services.ollama agent running?" >&2
+      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 ${lib.escapeShellArg "${ollamaUrl}/api/version"} >/dev/null 2>&1; then
+        echo "codex: nothing listening on ${ollamaUrl}; is the services.ollama agent running?" >&2
       fi
 
       exec ${lib.escapeShellArg "${sandboxedPackage}/bin/codex"} "$@"

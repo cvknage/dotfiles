@@ -15,32 +15,25 @@
       value = "${m.model}${lib.optionalString (m.context_window >= 1048576) "[1m]"}";
     })
     ollama.models);
-  # Only the secret's *path* reaches the wrapper; an interpolated value would land
-  # world-readable in /nix/store.
-  apiKeyPath =
-    if (config.sops.secrets or {}) ? ollama_api_key
-    then config.sops.secrets.ollama_api_key.path
-    else "";
+  # The daemon runs the web_search loop that ollama.com's hosted endpoint does not,
+  # so claude talks to the daemon rather than the cloud.
+  ollamaUrl = "http://${config.services.ollama.host}:${toString config.services.ollama.port}";
 in {
   inherit (ollama) enabled;
 
   package = pkgs.writeShellApplication {
     name = "claude";
     text = ''
-      # ANTHROPIC_AUTH_TOKEN, not ANTHROPIC_API_KEY: claude sends the former as
-      # `Authorization: Bearer` (accepted), the latter as `x-api-key` (rejected).
-      token_path=${lib.escapeShellArg apiKeyPath}
-      if [ -n "$token_path" ]; then
-        if [ -r "$token_path" ]; then
-          ANTHROPIC_AUTH_TOKEN="$(cat "$token_path")"
-          export ANTHROPIC_AUTH_TOKEN
-        else
-          echo "claude: ollama API key unreadable at $token_path" >&2
-        fi
+      # Check only - starting or killing the daemon here reintroduces the ownership race.
+      if ! ${pkgs.curl}/bin/curl -fsS --max-time 2 ${lib.escapeShellArg "${ollamaUrl}/api/version"} >/dev/null 2>&1; then
+        echo "claude: nothing listening on ${ollamaUrl}; is the services.ollama agent running?" >&2
       fi
 
-      export ANTHROPIC_BASE_URL="https://ollama.com"
+      # The daemon brokers the credential upstream; claude still requires the variable.
+      export ANTHROPIC_AUTH_TOKEN="ollama"
       export ANTHROPIC_API_KEY=""
+
+      export ANTHROPIC_BASE_URL=${lib.escapeShellArg ollamaUrl}
 
       export ANTHROPIC_DEFAULT_OPUS_MODEL="${tierModels.opus}"
       export ANTHROPIC_DEFAULT_SONNET_MODEL="${tierModels.sonnet}"
