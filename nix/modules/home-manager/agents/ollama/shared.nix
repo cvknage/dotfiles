@@ -23,7 +23,7 @@
     }
     {
       tier = "fable";
-      model = "kimi-k3:cloud";
+      model = "glm-5.3:cloud";
       context_window = 1048576;
       input_modalities = ["text"];
     }
