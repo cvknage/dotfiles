@@ -38,6 +38,12 @@ function gitui_themed() {
 }
 alias gitui="gitui_themed"
 
+# export a sops secret when readable
+function export_sops_secret() {
+  [ -r "$2" ] || return 0
+  export "$1=$(cat "$2")"
+}
+
 # shortcut for cloning in to a bare repo
 function git-worktree-clone() {
   for arg; do

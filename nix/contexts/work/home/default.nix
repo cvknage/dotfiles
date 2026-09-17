@@ -43,12 +43,14 @@
         ${builtins.readFile ../../../../shell/bash/PS1}
       fi
 
-      export DOCKER_REGISTRY_HOSTNAME="$(cat ${config.sops.secrets.docker_registry_hostname.path})"
-      export GITHUB_USER="$(cat ${config.sops.secrets.github_user.path})"
-      export GITHUB_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
-      export GH_TOKEN="$(cat ${config.sops.secrets.github_token.path})"
-      export GITHUB_REPO_PAT="$(cat ${config.sops.secrets.github_token.path})"
-      export NIX_CONFIG="access-tokens = github.com/secomea-dev=$GITHUB_TOKEN"
+      export_sops_secret DOCKER_REGISTRY_HOSTNAME "${config.sops.secrets.docker_registry_hostname.path}"
+      export_sops_secret GITHUB_USER "${config.sops.secrets.github_user.path}"
+      export_sops_secret GITHUB_TOKEN "${config.sops.secrets.github_token.path}"
+      export_sops_secret GH_TOKEN "${config.sops.secrets.github_token.path}"
+      export_sops_secret GITHUB_REPO_PAT "${config.sops.secrets.github_token.path}"
+      if [ -n "''${GITHUB_TOKEN-}" ]; then
+        export NIX_CONFIG="access-tokens = github.com/secomea-dev=$GITHUB_TOKEN"
+      fi
 
       alias mnotes='gocryptfs ~/Notes.encrypted ~/Notes'
       alias unotes='fusermount -u ~/Notes'

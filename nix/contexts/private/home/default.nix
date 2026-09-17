@@ -46,9 +46,7 @@
     ];
     profileExtra = ''
       ${builtins.readFile ../../../../shell/common}
-      if [ -f "${config.sops.secrets.mutation_strings.path}" ]; then
-        export MUTATION_STRINGS="$(cat ${config.sops.secrets.mutation_strings.path})"
-      fi
+      export_sops_secret MUTATION_STRINGS "${config.sops.secrets.mutation_strings.path}"
     '';
   };
 
