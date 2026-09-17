@@ -5,8 +5,6 @@
   xdgConfigHome,
   isDarwin,
   uid ? 1000,
-  # Public half of a preferences.gitIdentity key, or null if none enabled -- same narrow exposure as .ssh/known_hosts below.
-  gitIdentityPublicKeyPath ? null,
   # Directory the git identity publishes its files to, or null if none enabled.
   gitIdentityDirectory ? null,
 }: let
@@ -106,38 +104,36 @@
 
   # Immutable runtimes and user-level tool configuration. The rest of the home
   # directory is absent from the OS sandbox.
-  sharedReadOnlyPaths =
-    inHome [
-      ".agents/skills"
-      ".bashrc"
-      ".cargo"
-      ".config/direnv"
-      ".config/git"
-      ".config/nix"
-      ".config/nvim"
-      ".gitconfig"
-      ".local/share/CSharpier"
-      ".local/share/EasyDotnet"
-      ".local/share/NuGet"
-      ".local/share/Nuget"
-      ".local/share/dotnet"
-      ".local/share/nix"
-      ".local/share/pnpm"
-      ".local/share/uv"
-      ".local/state/nix"
-      ".nix-defexpr"
-      ".nix-profile"
-      ".nuget"
-      ".profile"
-      ".rustup"
-      ".ssh/known_hosts" # public keys only, fixes sandboxed git-over-ssh having no known_hosts
-      ".terminfo"
-      ".zprofile"
-      ".zshenv"
-      ".zshrc"
-      "go"
-    ]
-    ++ lib.optional (gitIdentityPublicKeyPath != null) gitIdentityPublicKeyPath;
+  sharedReadOnlyPaths = inHome [
+    ".agents/skills"
+    ".bashrc"
+    ".cargo"
+    ".config/direnv"
+    ".config/git"
+    ".config/nix"
+    ".config/nvim"
+    ".gitconfig"
+    ".local/share/CSharpier"
+    ".local/share/EasyDotnet"
+    ".local/share/NuGet"
+    ".local/share/Nuget"
+    ".local/share/dotnet"
+    ".local/share/nix"
+    ".local/share/pnpm"
+    ".local/share/uv"
+    ".local/state/nix"
+    ".nix-defexpr"
+    ".nix-profile"
+    ".nuget"
+    ".profile"
+    ".rustup"
+    ".ssh/known_hosts" # public keys only, fixes sandboxed git-over-ssh having no known_hosts
+    ".terminfo"
+    ".zprofile"
+    ".zshenv"
+    ".zshrc"
+    "go"
+  ];
 
   # Development caches are intentionally writable. Keeping the list explicit
   # avoids exposing unrelated browser and desktop application state.

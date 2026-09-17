@@ -9,17 +9,44 @@
   isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
   identityDirectory = "${config.xdg.configHome}/git-identity";
   identitySocket = "${identityDirectory}/ssh-agent.sock";
+  # The published copy, not the sops path: git reads it as user.signingkey, including from
+  # inside the sandbox, and the sops render location is deliberately denied there.
+  publicKeyPath = "${identityDirectory}/identity.pub";
+
+  # Every input publishIdentity needs rendered before it can do anything. The private key
+  # belongs here with the templates -- publishing a symlink to a key that never rendered is
+  # exactly the silent failure this service exists to prevent.
+  publishInputs = [
+    config.sops.templates."git-identity.inc".path
+    config.sops.templates."git-allowed-signers".path
+    config.sops.templates."git-public-key".path
+    cfg.keyPath
+  ];
 
   publishIdentity = pkgs.writeShellApplication {
     name = "publish-git-identity";
     runtimeInputs = [pkgs.coreutils];
     text = ''
+      required=(${lib.escapeShellArgs publishInputs})
+
       for _attempt in $(seq 1 30); do
-        if [ -r ${config.sops.templates."git-identity.inc".path} ] \
-          && [ -r ${config.sops.templates."git-allowed-signers".path} ]; then
+        ready=1
+        for input in "''${required[@]}"; do
+          [ -r "$input" ] || ready=0
+        done
+        if [ "$ready" = 1 ]; then
           break
         fi
         sleep 1
+      done
+
+      # Fail loudly rather than publishing a half-built identity that only breaks later, at
+      # signing time, with nothing pointing back here.
+      for input in "''${required[@]}"; do
+        if [ ! -r "$input" ]; then
+          echo "publish-git-identity: $input is still unreadable after 30s" >&2
+          exit 1
+        fi
       done
 
       publish() {
@@ -29,6 +56,15 @@
 
       publish ${config.sops.templates."git-identity.inc".path} ${identityDirectory}/git-identity.inc
       publish ${config.sops.templates."git-allowed-signers".path} ${identityDirectory}/allowed-signers
+      publish ${config.sops.templates."git-public-key".path} ${identityDirectory}/identity.pub
+
+      # gitui signs via libgit2, which wants the private key next to user.signingkey
+      # (gitui-org/gitui#2184). A symlink keeps the sops-rendered key out of the published
+      # copies; on Linux the target is not mounted into the sandbox at all, so the link simply
+      # dangles there. Do NOT read that as a sandbox guarantee: it holds only on Linux, because
+      # sops-nix mounts darwin secret generations under $TMPDIR, which the Seatbelt profile
+      # allows. See the agent-sandbox notes before enabling this identity on macOS.
+      ln -sfn ${lib.escapeShellArg cfg.keyPath} ${identityDirectory}/identity
     '';
   };
 
@@ -48,8 +84,10 @@
     name = "add-git-identity-key";
     runtimeInputs = [pkgs.coreutils pkgs.openssh];
     text = ''
+      # The private key is sops-rendered outside the sandbox's reach, so wait for it too --
+      # the agent starting first is not enough for ssh-add to succeed.
       for _attempt in $(seq 1 30); do
-        [ -S ${identitySocket} ] && break
+        [ -S ${identitySocket} ] && [ -r ${lib.escapeShellArg cfg.keyPath} ] && break
         sleep 1
       done
 
@@ -115,12 +153,6 @@ in {
       readOnly = true;
       description = "Path to the identity's dedicated ssh-agent socket.";
     };
-
-    publicKeyPath = lib.mkOption {
-      type = lib.types.str;
-      readOnly = true;
-      description = "Path to the identity's public key, which git reads as user.signingkey.";
-    };
   };
 
   config = lib.mkMerge [
@@ -130,7 +162,6 @@ in {
       # as a second.
       preferences.gitIdentity = {
         directory = identityDirectory;
-        publicKeyPath = "${cfg.keyPath}.pub";
         socket = identitySocket;
       };
     }
@@ -156,6 +187,10 @@ in {
           hasconfigUrls;
 
         sops.templates = {
+          "git-public-key".content = ''
+            ${cfg.publicKey}
+          '';
+
           "git-allowed-signers".content = ''
             ${cfg.email} namespaces="git" ${cfg.publicKey}
           '';
@@ -163,7 +198,7 @@ in {
           "git-identity.inc".content = ''
             [user]
               email = ${cfg.email}
-              signingkey = ${cfg.publicKeyPath}
+              signingkey = ${publicKeyPath}
             [gpg]
               format = ssh
             [gpg "ssh"]
@@ -184,6 +219,10 @@ in {
 
           git-identity-agent = {
             Unit.Description = "Dedicated single-key SSH agent for Git auth and signing";
+            # Order the agent after secrets render so ssh-add is not racing sops; the retry
+            # in addIdentityKey stays as the backstop for a slow render.
+            Unit.After = ["sops-nix.service"];
+            Unit.Wants = ["sops-nix.service"];
             Service = {
               ExecStart = "${identityAgent}/bin/git-identity-agent";
               ExecStartPost = "${addIdentityKey}/bin/add-git-identity-key";

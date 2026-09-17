@@ -19,6 +19,7 @@
       "docker_registry_hostname"
       "github_user"
       "github_token"
+      "github_private_key"
       "email"
       "github_public_key"
     ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});

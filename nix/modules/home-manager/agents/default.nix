@@ -10,10 +10,6 @@
     xdgConfigHome = config.xdg.configHome;
     isDarwin = pkgs.stdenv.hostPlatform.isDarwin;
     orderBefore = lib.hm.dag.entryBefore;
-    gitIdentityPublicKeyPath =
-      if config.preferences.gitIdentity.enable
-      then config.preferences.gitIdentity.publicKeyPath
-      else null;
     gitIdentityDirectory =
       if config.preferences.gitIdentity.enable
       then config.preferences.gitIdentity.directory

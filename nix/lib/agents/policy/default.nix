@@ -5,13 +5,11 @@
   isDarwin,
   orderBefore ? (_: value: value),
   uid ? 1000,
-  gitIdentityPublicKeyPath ? null,
   gitIdentityDirectory ? null,
 }: let
   paths = import ./paths.nix {
     inherit
       gitIdentityDirectory
-      gitIdentityPublicKeyPath
       homeDirectory
       isDarwin
       lib

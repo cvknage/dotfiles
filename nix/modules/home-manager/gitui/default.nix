@@ -3,8 +3,8 @@
 # gitui (libgit2) can't evaluate includeIf hasconfig (libgit2/libgit2#6641), so the wrapper
 # greps the remote with real `git` and writes a plain include into the repo's local config
 # instead. gitui's own SSH signing also needs a real private key next to user.signingkey
-# (gitui-org/gitui#2184) -- that key points at ~/.ssh/keys/<key>.pub, so the real private key
-# is already right there.
+# (gitui-org/gitui#2184) -- the identity publishes a private-key symlink next to
+# <identityDirectory>/identity.pub for exactly that (see the git-identity module).
 {
   config,
   lib,

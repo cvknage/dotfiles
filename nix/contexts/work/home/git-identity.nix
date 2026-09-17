@@ -3,7 +3,7 @@
     enable = true;
     email = config.sops.placeholder.email;
     publicKey = config.sops.placeholder.github_public_key;
-    keyPath = "${config.home.homeDirectory}/.ssh/keys/github";
+    keyPath = config.sops.secrets.github_private_key.path;
     remoteMatch = "secomea-dev";
   };
 }
