@@ -180,22 +180,60 @@ func checkVolumeCreate(body []byte, denied []string) string {
 	return checkSource(device, denied)
 }
 
-// checkSource also checks the symlink-resolved form, since the bind source may not exist yet.
-func checkSource(source string, denied []string) string {
-	clean := filepath.Clean(source)
-	resolved := clean
-	if real, err := filepath.EvalSymlinks(source); err == nil {
-		resolved = real
+// spellings returns a path in both its literal and its resolved form. The denylist and the bind
+// source can name the same directory two different ways -- macOS firmlinks turn /var into
+// /private/var, and the denylist's spelling is whatever the configuration evaluated to -- so a
+// comparison that considers only one spelling silently misses.
+func spellings(path string) []string {
+	clean := filepath.Clean(path)
+	resolved, ok := resolveDeepest(clean)
+	if !ok || resolved == clean {
+		return []string{clean}
 	}
+	return []string{clean, resolved}
+}
+
+// resolveDeepest resolves the longest existing prefix of path and re-appends the remainder, so a
+// bind source that does not exist yet still compares against the denylist's real spelling.
+func resolveDeepest(path string) (string, bool) {
+	rest := ""
+	for current := path; ; {
+		if real, err := filepath.EvalSymlinks(current); err == nil {
+			return filepath.Join(real, rest), true
+		}
+		parent := filepath.Dir(current)
+		if parent == current {
+			return "", false
+		}
+		rest = filepath.Join(filepath.Base(current), rest)
+		current = parent
+	}
+}
+
+// checkSource rejects a bind source that would expose a denied path, testing containment in
+// BOTH directions and in both spellings. The direction matters: a source under a denied path
+// is the obvious case, but a source that is an ANCESTOR of one (-v /home/u:/host, or
+// -v /:/host) exposes it just as completely, and a one-way prefix test waves it through.
+func checkSource(source string, denied []string) string {
+	src := spellings(source)
 	for _, d := range denied {
-		dClean := filepath.Clean(d)
-		if underPath(clean, dClean) || underPath(resolved, dClean) {
-			return fmt.Sprintf("bind source %q is under denied path %q", source, d)
+		for _, s := range src {
+			for _, ds := range spellings(d) {
+				if underPath(s, ds) {
+					return fmt.Sprintf("bind source %q is under denied path %q", source, d)
+				}
+				if underPath(ds, s) {
+					return fmt.Sprintf("bind source %q contains denied path %q", source, d)
+				}
+			}
 		}
 	}
 	return ""
 }
 
 func underPath(path, prefix string) bool {
+	// Clean only leaves a trailing separator on "/", which would make prefix+sep "//" and
+	// match nothing -- trim it so every absolute path counts as being under the root.
+	prefix = strings.TrimSuffix(prefix, string(filepath.Separator))
 	return path == prefix || strings.HasPrefix(path, prefix+string(filepath.Separator))
 }
