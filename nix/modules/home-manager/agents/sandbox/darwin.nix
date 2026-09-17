@@ -67,6 +67,19 @@
     # Writable roots need read too: O_RDWR opens and readdir are reads.
     # Matches bwrap --bind, which grants both.
     writeAllows = lib.concatMapStrings (mkSeatbeltAllowRule "file-read* file-write*") profile.writePaths;
+    # sops-nix mounts the decrypted generations AND the age identity (age-keys.txt, which
+    # decrypts the whole secrets repo) on a RAM disk under the user's runtime dir. The
+    # scratch-space allows above cover that tree wholesale, so without these the sandbox could
+    # read and rewrite every secret. Last match wins, so the denies come after every allow, and
+    # each firmlink spelling is denied to match the /var/folders allows they override.
+    # file-read-metadata and file-test-existence are named separately because `file-read*` does
+    # NOT cover them: without them the global metadata allow still lets an agent confirm which
+    # secrets exist, by guessing names under this tree.
+    sopsSecretsDenies = lib.concatMapStrings (
+      param: ''
+        (deny file-read* file-read-metadata file-test-existence file-write* (subpath (param "${param}")))
+      ''
+    ) ["SOPS_SECRETS" "SOPS_SECRETS_PRIVATE" "SOPS_SECRETS_DATA"];
     seatbeltProfile = pkgs.writeText "${agent}-outer-sandbox.sb" ''
       (version 1)
       ; System runtime baseline every process needs.
@@ -158,6 +171,7 @@
       ${socketReadAllows}
       ${socketNetworkAllows}
       ${writeAllows}
+      ${sopsSecretsDenies}
     '';
   in
     pkgs.writeShellApplication {
@@ -190,9 +204,24 @@
         # the target never needs it.
         ulimit -n 2147483646 2>/dev/null || true
 
+        # sops-nix resolves its secrets mount point as "<runtime dir>/secrets.d", where the
+        # runtime dir is `getconf DARWIN_USER_TEMP_DIR` on darwin. Resolve it the same way so
+        # the denylist tracks sops instead of guessing from $TMPDIR, which may be unset; the
+        # `|| true` keeps the guard below reachable under errexit.
+        sops_runtime_dir="$(getconf DARWIN_USER_TEMP_DIR || true)"
+        sops_runtime_dir="''${sops_runtime_dir%/}"
+        sops_secrets="$sops_runtime_dir/secrets.d"
+        if [ "$sops_secrets" = "/secrets.d" ]; then
+          echo "${agent} sandbox: cannot resolve DARWIN_USER_TEMP_DIR for the sops denylist" >&2
+          exit 1
+        fi
+
         sandbox_command=(
           /usr/bin/sandbox-exec
           -D "TMPDIR=''${TMPDIR:-/tmp}"
+          -D "SOPS_SECRETS=$sops_secrets"
+          -D "SOPS_SECRETS_PRIVATE=/private$sops_secrets"
+          -D "SOPS_SECRETS_DATA=/System/Volumes/Data/private$sops_secrets"
           -f ${seatbeltProfile}
         )
 

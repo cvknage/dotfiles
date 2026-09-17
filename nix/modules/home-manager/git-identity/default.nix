@@ -60,10 +60,8 @@
 
       # gitui signs via libgit2, which wants the private key next to user.signingkey
       # (gitui-org/gitui#2184). A symlink keeps the sops-rendered key out of the published
-      # copies; on Linux the target is not mounted into the sandbox at all, so the link simply
-      # dangles there. Do NOT read that as a sandbox guarantee: it holds only on Linux, because
-      # sops-nix mounts darwin secret generations under $TMPDIR, which the Seatbelt profile
-      # allows. See the agent-sandbox notes before enabling this identity on macOS.
+      # copies; its target resolves into the sops secret store, which both sandboxes deny --
+      # linux by never mounting it, darwin by the explicit deny in the Seatbelt profile.
       ln -sfn ${lib.escapeShellArg cfg.keyPath} ${identityDirectory}/identity
     '';
   };
