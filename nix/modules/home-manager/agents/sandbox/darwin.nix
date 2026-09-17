@@ -7,37 +7,35 @@
 }: let
   inherit (common) agentTools direnvRunner mkLaunchSetup;
 
-  escapeSeatbeltPath = path:
-    builtins.replaceStrings ["\\" "\""] ["\\\\" "\\\""] path;
-
-  # Both on-disk spellings of a home path: the sandbox resolves the
-  # /System/Volumes/Data firmlink before matching, so each rule needs both.
-  homeSpellings = path:
-    if lib.hasPrefix policy.homeDirectory path
-    then [
-      path
-      (builtins.replaceStrings ["/Users/"] ["/System/Volumes/Data/Users/"] path)
-    ]
-    else [path];
-
-  # Deny-by-default Seatbelt profile. macOS pitfalls: an undefined `(param ...)`
-  # breaks compilation, and denied IPC/tty/file-map-executable ops abort the
-  # process silently (SIGABRT), so the system baseline must stay complete.
-  # Last-match-wins: the broad home deny followed by narrower allows yields
-  # allowlist semantics for $HOME.
-  mkSeatbeltAllowRule = operation: path:
-    lib.concatMapStrings (spelling: ''
-      (allow ${operation} (subpath "${escapeSeatbeltPath spelling}"))
-    '')
-    (homeSpellings path);
-
-  mkSeatbeltLiteralAllowRule = operation: path:
-    lib.concatMapStrings (spelling: ''
-      (allow ${operation} (literal "${escapeSeatbeltPath spelling}"))
-    '')
-    (homeSpellings path);
-
   mkMacRunner = agent: profile: let
+    # Filters quote their paths, so escape whatever would end the string early.
+    escapeSeatbeltPath = path:
+      builtins.replaceStrings ["\\" "\""] ["\\\\" "\\\""] path;
+
+    # Both on-disk spellings of a home path: the sandbox resolves the
+    # /System/Volumes/Data firmlink before matching, so each rule needs both.
+    homeSpellings = path:
+      if lib.hasPrefix policy.homeDirectory path
+      then [
+        path
+        (builtins.replaceStrings ["/Users/"] ["/System/Volumes/Data/Users/"] path)
+      ]
+      else [path];
+
+    # A rule per spelling of the path, in the profile's two filter shapes: subpath for a tree,
+    # literal for a single file.
+    subpathAllow = operation: path:
+      lib.concatMapStrings (spelling: ''
+        (allow ${operation} (subpath "${escapeSeatbeltPath spelling}"))
+      '')
+      (homeSpellings path);
+
+    literalAllow = operation: path:
+      lib.concatMapStrings (spelling: ''
+        (allow ${operation} (literal "${escapeSeatbeltPath spelling}"))
+      '')
+      (homeSpellings path);
+
     # Each agent may read only its own credentials; others stay denied.
     ownCredentialSuffix = builtins.getAttr agent {
       claude = "/.claude/.credentials.json";
@@ -49,40 +47,48 @@
       null
       policy.deniedPaths;
 
+    # $HOME, denied outright and then re-opened by the two allows below.
     homeDenyRules =
       lib.concatMapStrings (spelling: ''
         (deny file-read* file-write* (subpath "${escapeSeatbeltPath spelling}"))
       '')
       (homeSpellings policy.homeDirectory);
 
-    readAllows = lib.concatMapStrings (mkSeatbeltAllowRule "file-read*") (
+    homeReadAllows = lib.concatMapStrings (subpathAllow "file-read*") (
       profile.readOnlyPaths
       ++ lib.optional (ownCredentialPath != null) ownCredentialPath
     );
 
-    # socketPaths entries are "host:sandbox" pairs; Seatbelt has no mount namespace, so only the host path matters.
-    socketHostPaths = map (entry: lib.head (lib.splitString ":" entry)) profile.socketPaths;
-    socketReadAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "file-read*") socketHostPaths;
-    socketNetworkAllows = lib.concatMapStrings (mkSeatbeltLiteralAllowRule "network-outbound") socketHostPaths;
     # Writable roots need read too: O_RDWR opens and readdir are reads.
     # Matches bwrap --bind, which grants both.
-    writeAllows = lib.concatMapStrings (mkSeatbeltAllowRule "file-read* file-write*") profile.writePaths;
-    # sops-nix mounts the decrypted generations AND the age identity (age-keys.txt, which
-    # decrypts the whole secrets repo) on a RAM disk under the user's runtime dir. The
-    # scratch-space allows above cover that tree wholesale, so without these the sandbox could
-    # read and rewrite every secret. Last match wins, so the denies come after every allow, and
-    # each firmlink spelling is denied to match the /var/folders allows they override.
-    # file-read-metadata and file-test-existence are named separately because `file-read*` does
-    # NOT cover them: without them the global metadata allow still lets an agent confirm which
-    # secrets exist, by guessing names under this tree.
+    homeWriteAllows = lib.concatMapStrings (subpathAllow "file-read* file-write*") profile.writePaths;
+
+    # socketPaths entries are "host:sandbox" pairs; Seatbelt has no mount namespace, so only the host path matters.
+    socketHostPaths = map (entry: lib.head (lib.splitString ":" entry)) profile.socketPaths;
+    # Reaching a unix socket takes both: read to resolve the node, network-outbound to connect.
+    socketReadAllows = lib.concatMapStrings (literalAllow "file-read*") socketHostPaths;
+    socketNetworkAllows = lib.concatMapStrings (literalAllow "network-outbound") socketHostPaths;
+
+    # The sops-nix runtime store lives under the scratch-space allows above, so it is denied
+    # here and last: last match wins, and each firmlink spelling is denied to override the
+    # /var/folders allow carrying it. file-read-metadata and file-test-existence are named
+    # separately because `file-read*` does NOT cover them, and the global metadata allow
+    # above still reaches this tree without them.
     sopsSecretsDenies = lib.concatMapStrings (
       param: ''
         (deny file-read* file-read-metadata file-test-existence file-write* (subpath (param "${param}")))
       ''
     ) ["SOPS_SECRETS" "SOPS_SECRETS_PRIVATE" "SOPS_SECRETS_DATA"];
+
+    # Deny-by-default Seatbelt profile. macOS pitfalls: an undefined `(param ...)`
+    # breaks compilation, and denied IPC/tty/file-map-executable ops abort the
+    # process silently (SIGABRT), so the system baseline must stay complete.
+    # Last-match-wins: the broad home deny followed by narrower allows yields
+    # allowlist semantics for $HOME.
     seatbeltProfile = pkgs.writeText "${agent}-outer-sandbox.sb" ''
       (version 1)
-      ; System runtime baseline every process needs.
+
+      ; Foundation: deny everything, then re-open what any process needs to run.
       (deny default)
       (allow process*)
       (allow signal (target self))
@@ -91,9 +97,12 @@
       (allow sysctl-read)
       (allow sysctl-write (sysctl-name "kern.grade_cputype"))
       (allow mach-lookup)
+
+      ; Network is open; AppleEvents are not, and the Keychain stays reachable for HTTPS auth.
       (allow network*)
-      ; Keychain stays reachable (HTTPS-based auth); AppleEvents do not.
       (deny appleevent-send)
+
+      ; IPC and system services.
       (allow system-socket (socket-domain AF_UNIX))
       (allow ipc-posix-sem)
       (allow ipc-posix-shm*
@@ -105,6 +114,9 @@
       (allow system-mac-syscall
         (require-all (mac-policy-name "Sandbox") (mac-syscall-number 67)))
       (allow system-fsctl (fsctl-command FSIOC_CAS_BSDFLAGS))
+
+      ; Filesystem: metadata everywhere (traversal needs it), then system files and
+      ; executables the runtime needs.
       (allow file-read-metadata)
       (allow file-map-executable
         (subpath "/Library/Apple")
@@ -134,6 +146,8 @@
         (subpath "/private/var/db"))
       (allow file-read-metadata (subpath "/System/Volumes/Data/private/var"))
       (allow file-read-metadata (subpath "/private/var"))
+
+      ; Devices, ttys and the syslog socket.
       (allow file-read* file-write*
         (literal "/dev/null")
         (literal "/dev/random")
@@ -152,6 +166,7 @@
       (allow file-ioctl (regex "^/dev/ttys[0-9]+$"))
       (allow file-read* file-write* file-ioctl (literal "/dev/dtracehelper"))
       (allow network-outbound (literal "/private/var/run/syslog"))
+
       ; Scratch space. TMPDIR resolves into /var/folders and needs its -D
       ; definition, otherwise the (param ...) breaks compilation.
       (allow file-read* file-test-existence file-write* (subpath "/tmp"))
@@ -165,12 +180,13 @@
       (allow file-read* file-test-existence file-write* (subpath "/var/folders"))
       (allow file-read* file-test-existence file-write* (subpath "/private/var/folders"))
       (allow file-read* file-test-existence file-write* (subpath "/System/Volumes/Data/private/var/folders"))
+
       ; Deny all of $HOME, then re-open the managed roots.
       ${homeDenyRules}
-      ${readAllows}
+      ${homeReadAllows}
+      ${homeWriteAllows}
       ${socketReadAllows}
       ${socketNetworkAllows}
-      ${writeAllows}
       ${sopsSecretsDenies}
     '';
   in
