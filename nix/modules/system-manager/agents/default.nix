@@ -10,6 +10,10 @@
     inherit homeDirectory inputs lib pkgs;
   };
 in {
+  imports = [
+    ./docker.nix
+  ];
+
   environment.etc = {
     "claude-code/managed-settings.json".source = files.claude;
     "opencode/opencode.json".source = files.opencode;

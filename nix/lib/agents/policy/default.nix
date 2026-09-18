@@ -4,7 +4,6 @@
   xdgConfigHome,
   isDarwin,
   orderBefore ? (_: value: value),
-  uid ? 1000,
   gitIdentityDirectory ? null,
 }: let
   paths = import ./paths.nix {
@@ -13,7 +12,6 @@
       homeDirectory
       isDarwin
       lib
-      uid
       xdgConfigHome
       ;
   };
@@ -24,9 +22,11 @@ in {
   inherit
     (paths)
     deniedPaths
+    dockerDeniedPaths
     dockerProxySocketPath
     homeDirectory
     outerSandboxProfiles
+    runtimeCredentialDirs
     sshAgentSocket
     toolCachePaths
     workspaceRoots

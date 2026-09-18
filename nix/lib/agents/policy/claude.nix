@@ -3,7 +3,7 @@
   lib,
 }: let
   commands = import ./commands.nix;
-  inherit (paths) agentPaths claudeGlobalSettingsPaths claudeProjectSettingsPaths deniedPaths;
+  inherit (paths) agentPaths claudeGlobalSettingsPaths claudeProjectSettingsPaths deniedPathPatterns;
   expandCommandPrefixes = lib.concatMap (prefix: [prefix "${prefix} *"]);
   toClaudePath = path: "//${lib.removePrefix "/" path}";
   toClaudeBashRules = prefixes: map (pattern: "Bash(${pattern})") (expandCommandPrefixes prefixes);
@@ -36,7 +36,7 @@ in {
           "Read(${toClaudePath path})"
           "Read(${toClaudePath path}/**)"
         ])
-        deniedPaths;
+        deniedPathPatterns;
       additionalDirectories = agentPaths.claude.trustedRoots;
       disableBypassPermissionsMode = "disable";
     };

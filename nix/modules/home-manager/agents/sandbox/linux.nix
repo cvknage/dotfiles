@@ -126,6 +126,7 @@
           --setenv XDG_RUNTIME_DIR /tmp/agent-runtime \
           --setenv DOCKER_CONFIG ${lib.escapeShellArg profile.dockerConfigRoot} \
           --setenv NIX_REMOTE daemon \
+          --setenv TESTCONTAINERS_RYUK_DISABLED true \
           --setenv npm_config_cache ${lib.escapeShellArg policy.toolCachePaths.npm} \
           --setenv NUGET_PACKAGES ${lib.escapeShellArg policy.toolCachePaths.nugetPackages} \
           --setenv NUGET_HTTP_CACHE_PATH ${lib.escapeShellArg policy.toolCachePaths.nugetHttp} \

@@ -58,6 +58,11 @@ in {
     fs.inotify.max_user_watches = 524288
   '';
 
+  # Force overlay2: Fedora's moby-engine default containerd snapshotter extracts kind's node images incorrectly.
+  environment.etc."docker/daemon.json".text = builtins.toJSON {
+    features.containerd-snapshotter = false;
+  };
+
   environment.systemPackages = with pkgs; [
     bubblewrap
     git

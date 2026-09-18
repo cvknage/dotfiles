@@ -4,7 +4,6 @@
   homeDirectory,
   xdgConfigHome,
   isDarwin,
-  uid ? 1000,
   # Directory the git identity publishes its files to, or null if none enabled.
   gitIdentityDirectory ? null,
 }: let
@@ -26,7 +25,9 @@
     claude = rec {
       configRoot = "${homeDirectory}/.claude";
       mutableSettingsPath = "${homeDirectory}/.local/state/claude/settings.json";
-      scratchRoots = lib.optionals (!isDarwin) ["/tmp/claude-${toString uid}"];
+      # Claude names its scratch root after the running uid, which no tier resolves at eval
+      # time (see runtimeCredentialDirs), so this is a rule pattern, not a bindable path.
+      scratchRoots = lib.optionals (!isDarwin) ["/tmp/claude-*"];
       trustedRoots = workspaceRoots ++ [configRoot];
       runtimeRoots = [
         configRoot
@@ -239,9 +240,15 @@
     ++ lib.optionals (!isDarwin) [
       "/run/keys"
       "/run/secrets"
-      "/run/user/${toString uid}/gnupg"
-      "/run/user/${toString uid}/secrets.d"
     ];
+
+  # Private subtrees of the user's XDG_RUNTIME_DIR, /run/user/<uid>. The uid is deliberately
+  # absent: NixOS leaves users.users.<user>.uid null (activation allocates it), which makes
+  # home.uid null there too, and the System Manager and standalone Home Manager hosts declare no
+  # user at all -- so no tier can resolve it while the policy evaluates. Each consumer spells it
+  # the way it can: the docker-agent-proxy units resolve `id -u` when the unit starts, and the
+  # agent rule files below glob it. Never deny /run/user itself; the session's sockets live there.
+  runtimeCredentialDirs = ["gnupg" "secrets.d"];
 
   personalPaths = inHome (
     [
@@ -268,6 +275,29 @@
     )
   );
   deniedPaths = credentialPaths ++ personalPaths;
+
+  # deniedPaths for consumers that match by glob rather than by literal prefix, so they can
+  # cover every /run/user/<uid> without knowing which one is live.
+  deniedPathPatterns =
+    deniedPaths
+    ++ lib.optionals (!isDarwin) (map (dir: "/run/user/*/${dir}") runtimeCredentialDirs);
+
+  # Paths denied to CONTAINERS only, via docker-agent-proxy -- deliberately NOT in deniedPaths,
+  # which doubles as the in-sandbox agent denylist: the agents themselves reach gh's token, the
+  # MCP OAuth store, and ollama, so those denies must not apply to the agent, only to containers.
+  # The two docker sockets are denied so no container can bind-mount them; only the proxy reads
+  # this list, so the socket entries are inert in the OS sandbox.
+  dockerDeniedPaths =
+    deniedPaths
+    ++ inHome [
+      ".config/gh"
+      ".ollama"
+    ]
+    ++ [mcpAuthRoot]
+    ++ lib.optionals (!isDarwin) [
+      "/run/docker.sock"
+      dockerProxySocketPath
+    ];
 
   # Nix-owned global settings cannot be edited by the agents. Project settings
   # require approval so intentional team configuration remains possible.
@@ -301,12 +331,15 @@ in {
     agentPaths
     claudeGlobalSettingsPaths
     claudeProjectSettingsPaths
+    deniedPathPatterns
     deniedPaths
+    dockerDeniedPaths
     dockerProxySocketPath
     homeDirectory
     opencodeGlobalSettingsPaths
     opencodeProjectSettingsPaths
     outerSandboxProfiles
+    runtimeCredentialDirs
     sshAgentSocket
     toolCachePaths
     workspaceRoots
