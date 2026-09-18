@@ -17,6 +17,9 @@
   # Home-Manager needs this value to work with nix-darwin.
   users.users.${user}.home = "/Users/${user}";
 
+  # If set, Nix will perform builds in a sandboxed environment that it will set up automatically for each build. This prevents impurities in builds by disallowing access to dependencies outside of the Nix store by using network and mount namespaces in a chroot environment.
+  nix.settings.sandbox = true;
+
   # Enable nix-darwin to manage Homebrew, Mac App Store apps and Docker containers.
   homebrew = {
     enable = true;
