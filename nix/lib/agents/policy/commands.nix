@@ -32,6 +32,8 @@
   ];
 
   deny = [
+    "sudo"
+
     "git push"
 
     "gh release delete"
@@ -42,6 +44,16 @@
     "nix profile"
     "nix-env"
     "nix channel"
+    "nix-shell -p"
+    "nix-shell --packages"
+    "nix run"
+    "nix shell"
+
+    "darwin-rebuild"
+    "nixos-rebuild"
+    "fedora-rebuild"
+    "home-manager"
+    "system-manager"
 
     "dotnet store"
     "dotnet workload update"
