@@ -2,6 +2,7 @@
   config,
   dotfiles,
   homeContext,
+  inputs,
   lib,
   pkgs,
   user,
@@ -67,7 +68,7 @@
     ]
     ++ lib.optionals (homeContext.isPrivate config) [
       # ACP adapter for Claude Code, used by codecompanion.nvim
-      pkgs.claude-agent-acp
+      inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-agent-acp
     ]
     ++ lib.optionals (homeContext.isWork config) [
       # Needed by easy-dotnet.nvim
