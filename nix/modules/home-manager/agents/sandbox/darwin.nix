@@ -36,7 +36,9 @@
       '')
       (homeSpellings path);
 
-    # Each agent may read only its own credentials; others stay denied.
+    # findFirst marks the agent's own credential file so homeReadAllows re-opens it; the other
+    # agents' credential files stay denied, metadata included. It is read-write by design anyway,
+    # since it sits inside the runtime write root and token refresh rewrites it.
     ownCredentialSuffix = builtins.getAttr agent {
       claude = "/.claude/.credentials.json";
       codex = "/.codex/auth.json";
@@ -47,27 +49,51 @@
       null
       policy.deniedPaths;
 
-    # $HOME, denied outright and then re-opened by the two allows below.
+    # $HOME, denied outright and then re-opened by the two allows below. The metadata ops make
+    # unlisted home paths unstatable, not just unreadable -- no file-existence oracle at all.
     homeDenyRules =
       lib.concatMapStrings (spelling: ''
-        (deny file-read* file-write* (subpath "${escapeSeatbeltPath spelling}"))
+        (deny file-read* file-write* file-read-metadata file-test-existence (subpath "${escapeSeatbeltPath spelling}"))
       '')
       (homeSpellings policy.homeDirectory);
 
-    homeReadAllows = lib.concatMapStrings (subpathAllow "file-read*") (
+    homeReadAllows = lib.concatMapStrings (subpathAllow "file-read* file-read-metadata file-test-existence") (
       profile.readOnlyPaths
       ++ lib.optional (ownCredentialPath != null) ownCredentialPath
     );
 
     # Writable roots need read too: O_RDWR opens and readdir are reads.
     # Matches bwrap --bind, which grants both.
-    homeWriteAllows = lib.concatMapStrings (subpathAllow "file-read* file-write*") profile.writePaths;
+    homeWriteAllows = lib.concatMapStrings (subpathAllow "file-read* file-write* file-read-metadata file-test-existence") profile.writePaths;
 
     # socketPaths entries are "host:sandbox" pairs; Seatbelt has no mount namespace, so only the host path matters.
     socketHostPaths = map (entry: lib.head (lib.splitString ":" entry)) profile.socketPaths;
     # Reaching a unix socket takes both: read to resolve the node, network-outbound to connect.
     socketReadAllows = lib.concatMapStrings (literalAllow "file-read*") socketHostPaths;
     socketNetworkAllows = lib.concatMapStrings (literalAllow "network-outbound") socketHostPaths;
+
+    # Path lookup checks metadata on every directory component, which the home deny above took
+    # away: re-grant it for $HOME itself and the ancestors of every re-opened path. Computed so
+    # a deeper re-opened root tomorrow cannot silently break lookup here.
+    lookupDirs = let
+      walk = path: let
+        parent = dirOf path;
+      in
+        if parent == policy.homeDirectory
+        then [parent]
+        else if lib.hasPrefix "${policy.homeDirectory}/" parent
+        then [parent] ++ walk parent
+        else [];
+    in
+      lib.unique (
+        lib.concatMap walk (
+          profile.readOnlyPaths
+          ++ profile.writePaths
+          ++ lib.optional (ownCredentialPath != null) ownCredentialPath
+          ++ socketHostPaths
+        )
+      );
+    lookupAllows = lib.concatMapStrings (literalAllow "file-read-metadata file-test-existence") lookupDirs;
 
     # The sops-nix runtime store lives under the scratch-space allows above, so it is denied
     # here and last: last match wins, and each firmlink spelling is denied to override the
@@ -187,6 +213,7 @@
       ${homeWriteAllows}
       ${socketReadAllows}
       ${socketNetworkAllows}
+      ${lookupAllows}
       ${sopsSecretsDenies}
     '';
   in

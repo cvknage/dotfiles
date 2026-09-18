@@ -110,6 +110,10 @@
     ".cargo"
     ".config/direnv"
     ".config/git"
+    # Always exposed, even where the identity is disabled: git includes includes.inc
+    # unconditionally, and concealment turns the missing file into EPERM, which libgit2
+    # treats as a fatal error instead of skipping the include.
+    ".config/git-identity"
     ".config/nix"
     ".config/nvim"
     ".gitconfig"
@@ -203,8 +207,7 @@
     launchRoots = trustedRoots;
     readOnlyPaths =
       sharedReadOnlyPaths
-      ++ systemReadOnlyPaths
-      ++ lib.optionals (gitIdentityDirectory != null) [gitIdentityDirectory];
+      ++ systemReadOnlyPaths;
     socketPaths = map (m: "${m.host}:${m.sandbox}") serviceSocketMappings;
     writePaths = workspaceRoots ++ sharedWritablePaths ++ runtimeRoots ++ runtimeFiles ++ kubernetesStateRoots;
     ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot];
@@ -220,6 +223,7 @@
       ".bash_history"
       ".claude/.credentials.json"
       ".codex/auth.json"
+      ".config/git/credentials"
       ".config/sops"
       ".config/sops-nix"
       ".docker/config.json"
