@@ -25,10 +25,6 @@
     "gh auth setup-git"
     "gh auth switch"
     "gh auth token"
-
-    "curl"
-    "rm"
-    "rmdir"
   ];
 
   deny = [
