@@ -15,6 +15,7 @@ in {
       allow =
         [
           "Bash(*)"
+          "WebFetch"
           "mcp__code-graph__*"
           "mcp__context7__*"
           "mcp__memory__*"
