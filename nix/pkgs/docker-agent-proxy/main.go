@@ -15,23 +15,52 @@ import (
 	"net/url"
 	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // maxCreateBody caps the create/volume request bodies the guard buffers to inspect. A body over
 // this is refused (413) rather than truncated and forwarded: a truncated body would fail the
-// denylist parse and sail through unchecked.
+// denylist parse and sail through unchecked. Inspect responses (container/volume/exec) share the
+// same cap: they're read from a daemon this proxy trusts, but an unbounded read still isn't safe.
 const maxCreateBody = 10 << 20
 
-// createRe matches the two body-checked creation endpoints; actionRe matches the endpoints that
-// operate on an already-created container, whose stored bind mounts the guard re-checks by
-// inspecting it (group 1 is the container id, group 2 the action).
+// versionPrefixRe strips a leading API version component before route matching. Confirmed live
+// against the real daemon: its router matches the route pattern "/v{version:[0-9.]+}" -- any
+// nonempty run of digits and dots, not just a well-formed MAJOR.MINOR pair -- and routes even a
+// malformed version like "/v1", "/v.44", or "/v1..44" through to its own version-range check
+// (rejected there with the daemon's own "too old"/"too new" error, not ours). A regex requiring at
+// least one dot missed every one of those, forwarding the request unchecked; it only did no harm
+// because this daemon's configured version window happens to exclude every dot-less value, which
+// is the daemon's business, not a guarantee this proxy controls. Matching the daemon's true accepted
+// charset removes that dependency. Stripping first and erring permissive means a version the daemon
+// goes on to reject for its own reasons still gets checked by this guard first.
+var versionPrefixRe = regexp.MustCompile(`^/v[0-9.]+`)
+
+func stripVersion(p string) string {
+	return versionPrefixRe.ReplaceAllString(p, "")
+}
+
+// createRe matches the two body-checked creation endpoints. actionRe and attachWSRe match the
+// endpoints that operate on an already-created container, whose stored bind mounts the guard
+// re-checks by inspecting it (group 1 is the container id, group 2 of actionRe the action).
+// execStartRe matches the endpoint that actually runs an already-registered exec instance --
+// distinct from POST /containers/{id}/exec, which only registers one. swarmRe and pluginRe match
+// endpoints rejected outright in ServeHTTP: swarm/service specs and plugin installs can declare
+// host mounts, devices, and capabilities of their own, entirely outside this guard's per-container
+// checks, and this sandbox has no legitimate use for either. All match the version-stripped,
+// cleaned path, never the raw request path.
 var (
-	createRe = regexp.MustCompile(`^(?:/v[0-9]+\.[0-9]+)?/(containers|volumes)/create$`)
-	actionRe = regexp.MustCompile(`^(?:/v[0-9]+\.[0-9]+)?/containers/([^/]+)/(start|attach|exec|archive)$`)
+	createRe    = regexp.MustCompile(`^/(containers|volumes)/create$`)
+	actionRe    = regexp.MustCompile(`^/containers/([^/]+)/(start|restart|attach|exec|archive)$`)
+	attachWSRe  = regexp.MustCompile(`^/containers/([^/]+)/attach/ws$`)
+	execStartRe = regexp.MustCompile(`^/exec/([^/]+)/start$`)
+	swarmRe     = regexp.MustCompile(`^/(?:swarm/(?:init|join)|services/create|services/[^/]+/update)$`)
+	pluginRe    = regexp.MustCompile(`^/plugins/(?:pull|[^/]+/enable)$`)
 )
 
 func main() {
@@ -82,9 +111,12 @@ func main() {
 	proxy.FlushInterval = -1
 
 	g := &guard{
-		denied:      denied,
-		proxy:       proxy,
-		inspect:     &http.Client{Transport: transport},
+		denied: denied,
+		proxy:  proxy,
+		// A hung daemon must not hang the proxy indefinitely. This is a per-request timeout, not
+		// a budget for the whole guard decision -- a create referencing several named volumes
+		// issues one inspect round trip per name, each carrying its own deadline.
+		inspect:     &http.Client{Transport: transport, Timeout: 10 * time.Second},
 		upstreamURL: "http://docker-agent-proxy",
 	}
 	log.Printf("docker-agent-proxy: %s -> %s (%d denied paths)", listenPath, upstreamPath, len(denied))
@@ -109,25 +141,52 @@ type guard struct {
 }
 
 func (g *guard) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// path.Clean, not filepath.Clean: this is a URL path (always "/"-separated), and cleaning
+	// before matching means a redundant-slash or dot-segment spelling can't dodge a route this
+	// guard would otherwise catch, independent of whatever the daemon's own router tolerates.
+	cleaned := path.Clean(r.URL.Path)
+	stripped := stripVersion(cleaned)
+	versionPrefix := cleaned[:len(cleaned)-len(stripped)]
+
+	if r.Method == http.MethodPost && swarmRe.MatchString(stripped) {
+		g.rejected(w, r, "swarm mode is not permitted in the agent sandbox")
+		return
+	}
+	if r.Method == http.MethodPost && pluginRe.MatchString(stripped) {
+		g.rejected(w, r, "plugin installation is not permitted in the agent sandbox")
+		return
+	}
 	if r.Method == http.MethodPost {
-		if m := createRe.FindStringSubmatch(r.URL.Path); m != nil {
+		if m := createRe.FindStringSubmatch(stripped); m != nil {
 			g.serveCreate(w, r, m[1])
 			return
 		}
+		if m := execStartRe.FindStringSubmatch(stripped); m != nil {
+			g.serveExecStart(w, r, m[1])
+			return
+		}
 	}
-	if m := actionRe.FindStringSubmatch(r.URL.Path); m != nil && g.guardsAction(r.Method, m[2]) {
-		g.serveAction(w, r, m[1])
+	if m := actionRe.FindStringSubmatch(stripped); m != nil && g.guardsAction(r.Method, m[2]) {
+		g.serveAction(w, r, m[1], stripped, versionPrefix)
 		return
+	}
+	if r.Method == http.MethodGet {
+		if m := attachWSRe.FindStringSubmatch(stripped); m != nil {
+			g.serveAction(w, r, m[1], stripped, versionPrefix)
+			return
+		}
 	}
 	g.proxy.ServeHTTP(w, r)
 }
 
 // guardsAction reports whether an already-created-container endpoint exposes its mounts and so
-// needs a re-inspection: start/attach/exec run code against them, and archive reads (GET), writes
-// (PUT), or stats (HEAD) files through a bind's host source.
+// needs a re-inspection: start/restart/attach/exec run code against them, and archive reads (GET),
+// writes (PUT), or stats (HEAD) files through a bind's host source. restart matters as much as
+// start: it reactivates a stopped container's mounts the same way, and the daemon re-resolves bind
+// sources at that point exactly as it does at start.
 func (g *guard) guardsAction(method, action string) bool {
 	switch action {
-	case "start", "attach", "exec":
+	case "start", "restart", "attach", "exec":
 		return method == http.MethodPost
 	case "archive":
 		return method == http.MethodGet || method == http.MethodPut || method == http.MethodHead
@@ -151,24 +210,83 @@ func (g *guard) serveCreate(w http.ResponseWriter, r *http.Request, kind string)
 	}
 
 	var reason string
+	forward := body
+	var err2 error
 	if kind == "containers" {
-		reason = g.checkContainerCreate(body)
+		reason, forward, err2 = g.checkContainerCreate(body)
 	} else {
 		reason = checkVolumeCreate(body, g.denied)
+	}
+	if err2 != nil {
+		log.Printf("blocked %s %s: %v", r.Method, r.URL.Path, err2)
+		http.Error(w, "docker-agent-proxy: cannot verify referenced resource", http.StatusBadGateway)
+		return
 	}
 	if g.rejected(w, r, reason) {
 		return
 	}
 
-	r.Body = io.NopCloser(bytes.NewReader(body))
-	r.ContentLength = int64(len(body))
+	r.Body = io.NopCloser(bytes.NewReader(forward))
+	r.ContentLength = int64(len(forward))
+	// The body was read to completion and ContentLength set explicitly above; a stale inherited
+	// chunked Transfer-Encoding would now conflict with it.
+	r.TransferEncoding = nil
 	g.proxy.ServeHTTP(w, r)
 }
 
-func (g *guard) serveAction(w http.ResponseWriter, r *http.Request, id string) {
-	reason, err := g.checkContainerRef(id)
+// serveAction re-checks an existing container's mounts and forwards against its resolved Id, not
+// the id/name the client sent. Forwarding by id closes a second gap beyond the mount re-check
+// itself: a rename onto the checked name, in the moment between this check and the daemon
+// receiving the forwarded request, could otherwise substitute a different container.
+func (g *guard) serveAction(w http.ResponseWriter, r *http.Request, id, strippedPath, versionPrefix string) {
+	resolvedID, reason, err := g.checkContainerRef(id)
 	if err != nil {
 		// A security check that cannot verify the target must not forward it.
+		log.Printf("blocked %s %s: %v", r.Method, r.URL.Path, err)
+		http.Error(w, "docker-agent-proxy: cannot verify container mounts", http.StatusBadGateway)
+		return
+	}
+	if g.rejected(w, r, reason) {
+		return
+	}
+	if resolvedID != "" {
+		r.URL.Path = versionPrefix + rewriteContainerID(strippedPath, id, resolvedID)
+		r.URL.RawPath = ""
+	}
+	g.proxy.ServeHTTP(w, r)
+}
+
+// rewriteContainerID replaces the id/name segment of an already-matched "/containers/<id>/..."
+// path with the container's resolved Id.
+func rewriteContainerID(strippedPath, oldID, resolvedID string) string {
+	return "/containers/" + resolvedID + strings.TrimPrefix(strippedPath, "/containers/"+oldID)
+}
+
+// serveExecStart re-checks the mounts of the container an exec instance belongs to before letting
+// the exec actually run. POST /containers/{id}/exec (guarded via actionRe) only registers the
+// exec and is not itself where code runs; POST /exec/{execId}/start is.
+func (g *guard) serveExecStart(w http.ResponseWriter, r *http.Request, execID string) {
+	var ex execInspectBody
+	ok, err := g.inspectUpstream("/exec/"+url.PathEscape(execID)+"/json", &ex)
+	if err != nil {
+		log.Printf("blocked %s %s: %v", r.Method, r.URL.Path, err)
+		http.Error(w, "docker-agent-proxy: cannot verify exec target", http.StatusBadGateway)
+		return
+	}
+	if !ok {
+		// No such exec: let the daemon produce its own 404.
+		g.proxy.ServeHTTP(w, r)
+		return
+	}
+	if ex.ContainerID == "" {
+		// A 200 response naming no owning container is anomalous, not a legitimate pass-through
+		// case -- fail closed the same as any other unverifiable target.
+		log.Printf("blocked %s %s: exec inspect returned no ContainerID", r.Method, r.URL.Path)
+		http.Error(w, "docker-agent-proxy: cannot verify exec target", http.StatusBadGateway)
+		return
+	}
+	_, reason, err := g.checkContainerRef(ex.ContainerID)
+	if err != nil {
 		log.Printf("blocked %s %s: %v", r.Method, r.URL.Path, err)
 		http.Error(w, "docker-agent-proxy: cannot verify container mounts", http.StatusBadGateway)
 		return
@@ -241,8 +359,9 @@ type hostConfig struct {
 // denylisted bind source. Two families: direct exposure (privileged, host PID/IPC namespace, a
 // raw host device) and container escape (host userns, SYS_ADMIN/ALL, a disabled confinement
 // layer), which on this rootful daemon is equivalent to reading any denied path. Ordinary
-// capabilities (SYS_PTRACE, NET_ADMIN, ...) are left alone. VolumesFrom is not resolved here
-// (the caller inspects it); bind/mount sources go through checkSource.
+// capabilities (SYS_PTRACE, NET_ADMIN, ...) are left alone. VolumesFrom and named-volume
+// references are not resolved here (the caller inspects them); bind/mount sources go through
+// checkSource.
 func checkHostConfig(hc hostConfig, denied []string) string {
 	if hc.Privileged {
 		return "privileged containers can read every denied path"
@@ -295,74 +414,179 @@ func checkHostConfig(hc hostConfig, denied []string) string {
 	return ""
 }
 
+// namedVolumeRefs extracts the volume names hc's Binds and Mounts reference by name, deduplicated
+// so a name repeated across entries is resolved once. A Binds entry whose source isn't an absolute
+// path is, by Docker's own convention, a named volume; a Mounts entry of Type "volume" names one
+// directly. A name is resolved even when its Mounts entry also carries an inline VolumeOptions
+// device: for a volume that already exists, Docker's volume store returns the existing volume and
+// silently ignores the client-supplied driver opts, so a harmless-looking inline device is no
+// guarantee the daemon actually uses it -- only checking the existing volume's own recorded device
+// (via checkVolumeRef) does.
+func namedVolumeRefs(hc hostConfig) []string {
+	seen := map[string]bool{}
+	var names []string
+	add := func(name string) {
+		if name == "" || seen[name] {
+			return
+		}
+		seen[name] = true
+		names = append(names, name)
+	}
+	for _, b := range hc.Binds {
+		parts := strings.SplitN(b, ":", 3)
+		if len(parts) < 2 || filepath.IsAbs(parts[0]) {
+			continue
+		}
+		add(parts[0])
+	}
+	for _, mnt := range hc.Mounts {
+		if mnt.Type == "volume" {
+			add(mnt.Source)
+		}
+	}
+	return names
+}
+
+// checkHostConfigAndVolumes runs checkHostConfig and additionally resolves any Binds/Mounts entry
+// that names an existing volume rather than a host path. A named volume created with
+// driver_opts.device=<host-path> -- for instance before this proxy existed, or by root outside the
+// sandbox -- is a bind mount in disguise, the same way an inline VolumeOptions.device is; a bare
+// reference to it by name skips checkHostConfig's source checks entirely without this.
+func (g *guard) checkHostConfigAndVolumes(hc hostConfig) (string, error) {
+	if reason := checkHostConfig(hc, g.denied); reason != "" {
+		return reason, nil
+	}
+	for _, name := range namedVolumeRefs(hc) {
+		reason, err := g.checkVolumeRef(name)
+		if err != nil {
+			return "", fmt.Errorf("cannot verify volume %q: %w", name, err)
+		}
+		if reason != "" {
+			return fmt.Sprintf("volume %q: %s", name, reason), nil
+		}
+	}
+	return "", nil
+}
+
 type createBody struct {
 	HostConfig hostConfig `json:"HostConfig"`
 }
 
-func (g *guard) checkContainerCreate(body []byte) string {
+// checkContainerCreate checks a /containers/create body and returns the body to forward, which is
+// the original body unless VolumesFrom needed rewriting (see below). A malformed or reason-free
+// result always forwards something: the caller relies on a non-nil forward body whenever reason
+// == "" && err == nil.
+func (g *guard) checkContainerCreate(body []byte) (reason string, forward []byte, err error) {
 	var c createBody
 	if err := json.Unmarshal(body, &c); err != nil {
-		return "" // malformed body: let the daemon produce its own error
+		return "", body, nil // malformed body: let the daemon produce its own error
 	}
-	if reason := checkHostConfig(c.HostConfig, g.denied); reason != "" {
-		return reason
+	reason, err = g.checkHostConfigAndVolumes(c.HostConfig)
+	if err != nil {
+		return "", nil, err
 	}
+	if reason != "" {
+		return reason, nil, nil
+	}
+
 	// VolumesFrom inherits another container's mounts, so a denied bind reaches this one by
-	// reference. Each entry is "name-or-id[:ro|rw]"; verify the referenced container.
-	for _, ref := range c.HostConfig.VolumesFrom {
-		name := strings.SplitN(ref, ":", 2)[0]
+	// reference. Each entry is "name-or-id[:ro|rw]"; verify the referenced container and rewrite
+	// the reference to its resolved Id before forwarding -- otherwise a rename onto the checked
+	// name, in the gap between this check and the daemon processing the create, could substitute a
+	// different, dirty container the same way an unpinned action endpoint could (see serveAction).
+	resolved := append([]string(nil), c.HostConfig.VolumesFrom...)
+	changed := false
+	for i, ref := range c.HostConfig.VolumesFrom {
+		name, rest, hasMode := strings.Cut(ref, ":")
 		if name == "" {
 			continue
 		}
-		reason, err := g.checkContainerRef(name)
+		resolvedID, reason, err := g.checkContainerRef(name)
 		if err != nil {
-			return fmt.Sprintf("cannot verify volumes-from container %q", name)
+			return fmt.Sprintf("cannot verify volumes-from container %q", name), nil, nil
 		}
 		if reason != "" {
-			return fmt.Sprintf("volumes-from %q: %s", name, reason)
+			return fmt.Sprintf("volumes-from %q: %s", name, reason), nil, nil
+		}
+		if resolvedID != "" && resolvedID != name {
+			if hasMode {
+				resolved[i] = resolvedID + ":" + rest
+			} else {
+				resolved[i] = resolvedID
+			}
+			changed = true
 		}
 	}
-	return ""
+	if !changed {
+		return "", body, nil
+	}
+	rewritten, err := rewriteVolumesFrom(body, resolved)
+	if err != nil {
+		return fmt.Sprintf("cannot rewrite volumes-from references: %v", err), nil, nil
+	}
+	return "", rewritten, nil
+}
+
+// rewriteVolumesFrom replaces HostConfig.VolumesFrom in a create body with resolved values,
+// leaving every other field's original bytes untouched -- a typed round trip through createBody
+// would silently drop every field this guard doesn't model (Image, Cmd, Env, ...).
+func rewriteVolumesFrom(body []byte, resolved []string) ([]byte, error) {
+	var top map[string]json.RawMessage
+	if err := json.Unmarshal(body, &top); err != nil {
+		return nil, err
+	}
+	hcRaw, ok := top["HostConfig"]
+	if !ok {
+		return body, nil
+	}
+	var hc map[string]json.RawMessage
+	if err := json.Unmarshal(hcRaw, &hc); err != nil {
+		return nil, err
+	}
+	encoded, err := json.Marshal(resolved)
+	if err != nil {
+		return nil, err
+	}
+	hc["VolumesFrom"] = encoded
+	hcEncoded, err := json.Marshal(hc)
+	if err != nil {
+		return nil, err
+	}
+	top["HostConfig"] = hcEncoded
+	return json.Marshal(top)
 }
 
 // inspectBody is the subset of GET /containers/{id}/json the guard re-checks. The top-level
 // Mounts is the daemon's resolved mount list (bind sources already canonicalized), checked
-// alongside the stored HostConfig so a config the daemon rewrote is still covered.
+// alongside the stored HostConfig so a config the daemon rewrote is still covered. Id is the
+// container's canonical id, used to pin the forwarded request once the check passes.
 type inspectBody struct {
+	ID         string     `json:"Id"`
 	HostConfig hostConfig `json:"HostConfig"`
 	Mounts     []mount    `json:"Mounts"`
 }
 
-// checkContainerRef inspects an existing container and re-checks its mounts. This guards the
-// start/attach/exec/archive endpoints and closes the create-time TOCTOU: the daemon resolves a
-// bind source's symlinks at start, and checkSource resolves them again here, right before it.
-func (g *guard) checkContainerRef(id string) (string, error) {
-	req, err := http.NewRequest(http.MethodGet, g.upstreamURL+"/containers/"+url.PathEscape(id)+"/json", nil)
-	if err != nil {
-		return "", err
-	}
-	resp, err := g.inspect.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	// No such container: let the daemon return its own 404 to the client.
-	if resp.StatusCode == http.StatusNotFound {
-		return "", nil
-	}
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("inspect %s returned status %d", id, resp.StatusCode)
-	}
-	data, err := io.ReadAll(io.LimitReader(resp.Body, maxCreateBody+1))
-	if err != nil {
-		return "", err
-	}
+// checkContainerRef inspects an existing container and re-checks its mounts, returning its
+// canonical Id alongside the verdict. This guards the start/restart/attach/exec/archive endpoints
+// (and, indirectly, exec-start and volumes-from) and closes the create-time TOCTOU: the daemon
+// resolves a bind source's symlinks at start, and checkSource resolves them again here, right
+// before it. An empty id with no error and no rejection means no such container -- the daemon
+// returns its own 404.
+func (g *guard) checkContainerRef(id string) (resolvedID, reason string, err error) {
 	var in inspectBody
-	if err := json.Unmarshal(data, &in); err != nil {
-		return "", err
+	ok, err := g.inspectUpstream("/containers/"+url.PathEscape(id)+"/json", &in)
+	if err != nil {
+		return "", "", err
 	}
-	if reason := checkHostConfig(in.HostConfig, g.denied); reason != "" {
-		return reason, nil
+	if !ok {
+		return "", "", nil
+	}
+	reason, err = g.checkHostConfigAndVolumes(in.HostConfig)
+	if err != nil {
+		return "", "", err
+	}
+	if reason != "" {
+		return in.ID, reason, nil
 	}
 	for _, mnt := range in.Mounts {
 		src := mnt.hostSource()
@@ -370,10 +594,77 @@ func (g *guard) checkContainerRef(id string) (string, error) {
 			continue
 		}
 		if reason := checkSource(src, g.denied); reason != "" {
-			return reason, nil
+			return in.ID, reason, nil
 		}
 	}
-	return "", nil
+	return in.ID, "", nil
+}
+
+// volumeInspectBody is the subset of GET /volumes/{name} the guard checks when a container
+// references an existing named volume rather than creating one inline.
+type volumeInspectBody struct {
+	Driver  string            `json:"Driver"`
+	Options map[string]string `json:"Options"`
+}
+
+// checkVolumeRef inspects an existing named volume and checks its device option the same way
+// checkVolumeCreate checks one being created inline. An empty result with no error means the
+// volume doesn't exist or exposes no host device.
+func (g *guard) checkVolumeRef(name string) (string, error) {
+	var v volumeInspectBody
+	ok, err := g.inspectUpstream("/volumes/"+url.PathEscape(name), &v)
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", nil
+	}
+	if v.Driver != "" && v.Driver != "local" {
+		return "", nil
+	}
+	device := v.Options["device"]
+	if device == "" {
+		return "", nil
+	}
+	return checkSource(device, g.denied), nil
+}
+
+// execInspectBody is the subset of GET /exec/{execId}/json the guard needs: which container an
+// exec instance belongs to.
+type execInspectBody struct {
+	ContainerID string `json:"ContainerID"`
+}
+
+// inspectUpstream GETs an upstream inspect endpoint and decodes its JSON body into out. It
+// reports ok=false, with no error, when the resource doesn't exist, so the caller can let the
+// daemon produce its own 404 rather than rejecting an unverifiable target.
+func (g *guard) inspectUpstream(reqPath string, out any) (ok bool, err error) {
+	req, err := http.NewRequest(http.MethodGet, g.upstreamURL+reqPath, nil)
+	if err != nil {
+		return false, err
+	}
+	resp, err := g.inspect.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return false, nil
+	}
+	if resp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("inspect %s returned status %d", reqPath, resp.StatusCode)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxCreateBody+1))
+	if err != nil {
+		return false, err
+	}
+	if len(data) > maxCreateBody {
+		return false, fmt.Errorf("inspect %s response exceeds %d bytes", reqPath, maxCreateBody)
+	}
+	if err := json.Unmarshal(data, out); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 type volumeBody struct {
@@ -400,8 +691,8 @@ func checkVolumeCreate(body []byte, denied []string) string {
 // source can name the same directory two different ways -- macOS firmlinks turn /var into
 // /private/var, and the denylist's spelling is whatever the configuration evaluated to -- so a
 // comparison that considers only one spelling silently misses.
-func spellings(path string) []string {
-	clean := filepath.Clean(path)
+func spellings(p string) []string {
+	clean := filepath.Clean(p)
 	resolved, ok := resolveDeepest(clean)
 	if !ok || resolved == clean {
 		return []string{clean}
@@ -411,9 +702,9 @@ func spellings(path string) []string {
 
 // resolveDeepest resolves the longest existing prefix of path and re-appends the remainder, so a
 // bind source that does not exist yet still compares against the denylist's real spelling.
-func resolveDeepest(path string) (string, bool) {
+func resolveDeepest(p string) (string, bool) {
 	rest := ""
-	for current := path; ; {
+	for current := p; ; {
 		if real, err := filepath.EvalSymlinks(current); err == nil {
 			return filepath.Join(real, rest), true
 		}
@@ -447,9 +738,9 @@ func checkSource(source string, denied []string) string {
 	return ""
 }
 
-func underPath(path, prefix string) bool {
+func underPath(p, prefix string) bool {
 	// Clean only leaves a trailing separator on "/", which would make prefix+sep "//" and
 	// match nothing -- trim it so every absolute path counts as being under the root.
 	prefix = strings.TrimSuffix(prefix, string(filepath.Separator))
-	return path == prefix || strings.HasPrefix(path, prefix+string(filepath.Separator))
+	return p == prefix || strings.HasPrefix(p, prefix+string(filepath.Separator))
 }
