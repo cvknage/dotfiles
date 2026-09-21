@@ -87,8 +87,10 @@
   rejecting container/volume creation requests whose bind-mount source is under a denied path (`~/.ssh`, SOPS secrets,
   etc.). The agent sandbox talks only to the proxy's socket, bind-mounted onto the conventional `/run/docker.sock` path
   inside the sandbox; the real socket stays root/docker-group only.
-- The launcher activates an allowed project direnv environment before starting the agent so flake-provided compilers and
-  tools are available without granting broad access to the host filesystem.
+- The launcher hands the agent the environment it inherits from the developer's shell, so a project's flake-provided
+  compilers and tools are available when that shell was already inside the project. The launcher no longer activates
+  direnv, and the policy conceals direnv's state dirs, so the `direnv` still reachable on the inherited PATH can
+  neither approve an `.envrc` nor read the layout cache the developer's shell sources.
 - Security behavior is defined in `nix/lib/agents/` and `nix/modules/home-manager/agents/`, with platform
   installation under `nix/modules/nixos/agents/` and `nix/modules/darwin/agents/`. Configuration changes become effective
   only after activation and an agent restart.

@@ -5,7 +5,7 @@
   policy,
   common,
 }: let
-  inherit (common) agentTools direnvRunner mkLaunchSetup;
+  inherit (common) agentTools mkLaunchSetup;
 
   mkMacRunner = agent: profile: let
     # Filters quote their paths, so escape whatever would end the string early.
@@ -280,8 +280,7 @@
           exit "$preflight_status"
         fi
 
-        exec "''${sandbox_command[@]}" \
-          ${direnvRunner}/bin/agent-direnv-runner "$cwd_real" "$target" "$@"
+        exec "''${sandbox_command[@]}" "$target" "$@"
       '';
     };
 in {

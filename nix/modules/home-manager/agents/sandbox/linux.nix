@@ -5,7 +5,7 @@
   policy,
   common,
 }: let
-  inherit (common) agentTools direnvRunner mkLaunchSetup;
+  inherit (common) agentTools mkLaunchSetup;
 
   tiocstiSeccompFilter = import ./tiocsti-seccomp.nix {inherit pkgs;};
 
@@ -137,7 +137,7 @@
           then "--setenv SSH_AUTH_SOCK ${lib.escapeShellArg policy.sshAgentSocket} \\"
           else "--unsetenv SSH_AUTH_SOCK \\"
         }
-          -- ${direnvRunner}/bin/agent-direnv-runner "$cwd_real" "$target" "$@"
+          -- "$target" "$@"
       '';
     };
 in {

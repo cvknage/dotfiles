@@ -109,7 +109,6 @@
     ".agents/skills"
     ".bashrc"
     ".cargo"
-    ".config/direnv"
     ".config/git"
     # Always exposed, even where the identity is disabled: git includes includes.inc
     # unconditionally, and concealment turns the missing file into EPERM, which libgit2
@@ -149,7 +148,6 @@
       ".cache/bun"
       ".cache/code-graph"
       ".cache/deno"
-      ".cache/direnv"
       ".cache/nix"
       ".cache/node"
       ".cache/node-gyp"
@@ -160,7 +158,6 @@
       ".cache/uv"
       ".cache/yarn"
       ".dotnet"
-      ".local/share/direnv/allow"
       ".local/share/nvim"
       ".local/share/pnpm/store"
       ".local/state/agent-memory"
