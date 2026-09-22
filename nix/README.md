@@ -36,20 +36,20 @@ sudo nixos-rebuild switch --flake . --option extra-experimental-features "nix-co
 **macOS:** bootstrap [`nix-darwin`](https://github.com/LnL7/nix-darwin) with:
 
 ```bash
-nix run nix-darwin -- switch --flake .
+sudo nix run nix-darwin -- switch --flake .
 ```
 
 **Fedora:** bootstrap [`system-manager`](https://github.com/numtide/system-manager) with:
 
 ```bash
-bash nix/contexts/shared/system/fedora/bootstrap.sh
-nix run ./nix#linux-rebuild -- switch --flake ./nix
+bash contexts/shared/system/fedora/bootstrap.sh
+nix run .#linux-rebuild -- switch --flake .
 ```
 
 Fedora stays authoritative for the kernel, drivers, desktop, identity, and Docker. `bootstrap.sh` prints the
 endpoint-security, SELinux, firewall, and IdM enrollment steps it leaves to Fedora.
 
-> Experimental: System Manager only asserts support for `ubuntu`, and `debian`, so this host sets
+> Experimental: System Manager only asserts support for `nixos`, `ubuntu`, and `debian`, so this host sets
 > `system-manager.allowAnyDistro`. `bootstrap.sh` installs Fedora's own `nix` package rather than the Determinate
 > installer, but that alone doesn't stop systemd (`init_t`) from being denied
 > access to `/nix/store` binaries — so it also labels the whole store `bin_t`, and `linux-rebuild` relabels each
@@ -65,7 +65,7 @@ On first apply:
 
 ```bash
 nix run home-manager/master -- switch --flake '.#ckn@work'
-sudo nix run ./nix#install-agent-policy
+sudo nix run .#install-agent-policy
 ```
 
 > Standalone Home Manager has no system tier, so re-run `install-agent-policy` after every switch, and run the
@@ -134,7 +134,7 @@ sudo darwin-rebuild switch --flake .
 **Fedora:**
 
 ```bash
-fedora-rebuild switch --flake ./nix
+fedora-rebuild switch --flake .
 ```
 
 **Home Manager:**
@@ -196,14 +196,14 @@ home.packages = [
 ];
 ```
 
-Find the git commit hash for a specific `nixpkgs`, by searching for the desired package on one of there sites:
+Find the git commit hash for a specific `nixpkgs`, by searching for the desired package on one of these sites:
 - [Nixhub](https://www.nixhub.io/)  
 - [Nix package versions](https://lazamar.co.uk/nix-versions/)  
 
-### Generations and garbage collection
+### Generations
 
-Each rebuild keeps the previous generation as a GC root, so old store paths stick around until it's deleted. Delete
-generations first, then collect.
+Each rebuild adds a generation to a profile, and the old ones stay on disk so you can go back to them. Which
+profile depends on the target:
 
 - **NixOS / macOS:** one system profile, `/nix/var/nix/profiles/system`. Home Manager as a module rides along in it.
 - **System Manager hosts (e.g. Fedora):** two independent profiles — System Manager's,
@@ -211,38 +211,62 @@ generations first, then collect.
   `~/.local/state/nix/profiles/home-manager`.
 - **Standalone Home Manager** (no system tier): just the Home Manager profile above.
 
-**NixOS**
+**NixOS:**
 
 ```bash
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system
 sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system +3
-sudo nix-collect-garbage
-sudo nixos-rebuild switch --flake .   # rebuild the boot menu
+sudo nixos-rebuild switch --flake .
 ```
 
-> The last command isn't optional: the boot menu still lists deleted generations until it runs, and selecting one
-> of those entries fails to boot since their store paths are gone.
->
-> `nix-collect-garbage -d` deletes *all* old generations, not just the unreferenced store paths.
+> The rebuild isn't optional: the boot menu still lists deleted generations until it runs, and selecting one of
+> those entries fails to boot since their store paths are gone.
 
-**macOS (nix-darwin)**
+`--rollback` goes back one generation; to pick a specific one, switch the profile and run its activation script:
+
+```bash
+sudo nixos-rebuild switch --rollback
+sudo nix-env --switch-generation <N> --profile /nix/var/nix/profiles/system
+sudo /nix/var/nix/profiles/system/bin/switch-to-configuration switch
+```
+
+**macOS (nix-darwin):**
 
 ```bash
 sudo darwin-rebuild --list-generations
-sudo darwin-rebuild switch --delete-generations +3
-sudo nix-collect-garbage
+sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system +3
 ```
 
-**System Manager**
+`darwin-rebuild` has the rollback flags itself, and both activate what they switch to: `--rollback` for the previous
+generation, `--switch-generation <N>` for a specific one.
 
-`system-manager` has no `--list-generations` of its own; manage its profile directly:
+```bash
+sudo darwin-rebuild --rollback
+sudo darwin-rebuild --switch-generation <N>
+```
+
+**System Manager:**
+
+`system-manager` has no generation flags of its own; drive its profile with `nix-env`:
 
 ```bash
 sudo nix-env --list-generations --profile /nix/var/nix/profiles/system-manager-profiles/system-manager
 sudo nix-env --delete-generations --profile /nix/var/nix/profiles/system-manager-profiles/system-manager +3
 ```
 
-Then clean the standalone Home Manager profile:
+Roll back by picking a generation from that list, switching the profile, and running its `activate` script:
+
+```bash
+sudo nix-env --switch-generation <N> --profile /nix/var/nix/profiles/system-manager-profiles/system-manager
+sudo /nix/var/nix/profiles/system-manager-profiles/system-manager/bin/activate
+```
+
+A System Manager also has a Home Manager profile along side it, so it needs the Home Manager run below too.
+
+**Standalone Home Manager:**
+
+`home-manager` does not allow keeping the last `n` generations, so either remove generations individually or expire  
+generations older than a certain time marker:
 
 ```bash
 home-manager generations
@@ -250,40 +274,39 @@ home-manager remove-generations <id>...
 home-manager expire-generations "-1 seconds"
 ```
 
-Both share the same store, so one collection covers them:
-
-```bash
-sudo nix-collect-garbage
-```
-
-**Standalone Home Manager (no system tier)**
-
-```bash
-home-manager generations
-home-manager remove-generations <id>...
-nix-collect-garbage   # no sudo -- user profile only
-```
-
-### Roll back a generation
-
-**NixOS / macOS** have a dedicated flag:
-
-```bash
-sudo nixos-rebuild switch --rollback   # NixOS
-sudo darwin-rebuild --rollback         # macOS
-```
-
-**System Manager and standalone Home Manager** don't — switch the profile, then run that
-generation's own activation script (each generation carries one):
-
-```bash
-sudo nix-env --switch-generation <N> --profile /nix/var/nix/profiles/system-manager-profiles/system-manager
-sudo /nix/var/nix/profiles/system-manager-profiles/system-manager/bin/activate
-```
+Roll back by picking a generation from `home-manager generations`, switching the profile, and running its `activate`
+script:
 
 ```bash
 nix-env --switch-generation <N> --profile ~/.local/state/nix/profiles/home-manager
 ~/.local/state/nix/profiles/home-manager/activate
+```
+
+### Garbage collection
+
+Store paths stay on disk while a generation still points at them, so delete generations first and collect to reclaim
+the space.
+
+`-d` (`--delete-old`) also deletes all old generations, not just the unreferenced store paths. It only reaches the
+running user's profiles.
+
+**NixOS / macOS / System Manager:**
+
+```bash
+sudo nix-collect-garbage
+# or
+sudo nix-collect-garbage -d
+```
+
+Home Manager rides in the system profile on NixOS and macOS, so one run covers it.  
+On a System Manager host its profile is yours, so its old generations need the Home Manager run below too.
+
+**Standalone Home Manager:**
+
+```bash
+nix-collect-garbage
+# or
+nix-collect-garbage -d
 ```
 
 ## Uninstall
