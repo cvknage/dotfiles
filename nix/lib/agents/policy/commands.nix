@@ -1,22 +1,14 @@
 {
   # Prefixes include both the bare command and invocations with more arguments.
   ask = [
-    "git commit"
     "git branch"
     "git checkout"
     "git clean"
-    "git merge"
-    "git pull"
-    "git rebase"
     "git reset"
     "git restore"
     "git stash clear"
     "git stash drop"
-    "git switch"
-    "git tag"
-    "git clone"
     "git config"
-    "git init"
     "git remote"
     "git worktree"
 
