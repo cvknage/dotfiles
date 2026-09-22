@@ -38,6 +38,9 @@ function M.show()
   local is_new = entry.status == "A" or entry.status == "R" -- R: the new path has no version at the base either
   vim.cmd("silent! only")
   vim.cmd("edit " .. vim.fn.fnameescape(entry.path))
+  if not vim.bo.modified then
+    vim.cmd("edit!")
+  end
   if not is_new then
     vim.cmd("vertical Gdiffsplit " .. M.state.base) -- side by side; the right pane is the real file, not an index blob
   end
