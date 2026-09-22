@@ -10,6 +10,9 @@
   # from the flake source -- the `dotfiles` symlink is out-of-store, unreadable
   # in pure eval.
   ritualSkills = builtins.filter (name: !lib.hasPrefix "." name) (builtins.attrNames (builtins.readDir ../../../../../agents/skills));
+  # Skills only meaningful on work hosts; everyone else gets the common set below.
+  workOnlySkills = ["pr-review"];
+  commonSkills = builtins.filter (name: !builtins.elem name workOnlySkills) ritualSkills;
   skillSource = name: "${dotfiles}/agents/skills/${name}";
 in {
   home.file = lib.mkMerge [
@@ -18,16 +21,16 @@ in {
         name = ".claude/skills/${name}";
         value.source = skillSource name;
       })
-      ritualSkills))
+      (commonSkills ++ lib.optionals (homeContext.isWork config) workOnlySkills)))
 
     # Codex discovers user-level skills from the shared agents directory.
     (lib.listToAttrs (map (name: {
         name = ".agents/skills/${name}";
         value.source = skillSource name;
       })
-      ritualSkills))
+      (commonSkills ++ lib.optionals (homeContext.isWork config) workOnlySkills)))
 
-    # OpenCode follows the agent on work hosts, where it is disabled.
+    # OpenCode is disabled entirely on work hosts, so skip it there.
     (lib.listToAttrs (map (name: {
         name = "${config.xdg.configHome}/opencode/skills/${name}";
         value = {
@@ -35,6 +38,6 @@ in {
           source = skillSource name;
         };
       })
-      ritualSkills))
+      commonSkills))
   ];
 }

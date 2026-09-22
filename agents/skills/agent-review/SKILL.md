@@ -1,5 +1,5 @@
 ---
-name: review
+name: agent-review
 description: Second-opinion review of a completed code change by a fresh-context subagent on the default model. Request one review per completed change, before reporting done or proposing a commit — not between edits.
 ---
 - **When**: after completing a code change — once per change, before reporting
