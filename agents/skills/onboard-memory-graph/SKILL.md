@@ -1,6 +1,6 @@
 ---
-name: harvest
-description: Build or refresh the memory graph for the current project. Invoked by the user as /harvest, or when they ask to index, learn, or onboard a project.
+name: onboard-memory-graph
+description: Build or refresh the memory graph for the current project. Invoked by the user as /onboard-memory-graph, or when they ask to index, learn, or onboard a project.
 ---
 Populate the memory MCP server with durable knowledge about the repository in the current working directory.
 

@@ -29,9 +29,13 @@
   current task's plan and notes only (this task, this session). The `memory` MCP server holds
   durable, cross-session, cross-project knowledge (decisions, gotchas, architecture) that outlives
   the task entirely.
-- Before multi-step work, write the session plan via the `spec` skill: small milestones, each with
-  a concrete done-check. While working, accumulate high-value findings, decisions, and dead ends —
-  not routine observations — and flush them via the `note` skill once per exploration sweep or
+- Before multi-step work, write the session plan by calling the `write_plan` tool
+  (`mcp__sessions__write_plan`) — it replaces any existing plan outright, so don't read the old one
+  first: small milestones that each leave the tree building and committable on their own, not just
+  independently verifiable, with a concrete done-check (a command, test, or observable result), kept
+  under 100 lines — planning only, don't write code yet, and ask first if the task is unclear. While
+  working, accumulate high-value findings, decisions, and dead ends — not routine observations — and
+  flush them via the `append_note` tool (`mcp__sessions__append_note`) once per exploration sweep or
   milestone, batched into a single call, not one call per finding.
 - Write decisions, gotchas, and cross-project learnings that outlive the task to `memory` — dated,
   with reasons and pointers. Skip anything derivable from the code or git history, or already stated
@@ -42,9 +46,9 @@
 - Consult `memory` for the current project when starting unfamiliar work, and before re-exploring
   ground a past session may have covered — favor entities that `belongs_to` the current project
   plus clearly-relevant unscoped ones, not the whole graph. Verify claims against code and correct
-  stale entries instead of working around them. Run the `harvest` skill first when onboarding onto a
-  project `memory` doesn't know yet. For code-level structural discovery once oriented, see Code
-  Navigation.
+  stale entries instead of working around them. Run the `onboard-memory-graph` skill first when
+  onboarding onto a project `memory` doesn't know yet. For code-level structural discovery once
+  oriented, see Code Navigation.
 - Claude Code and Codex each have their own harness-native auto-memory (a self-written `MEMORY.md`)
   for personal/collaboration notes — but the two are separate, incompatible implementations, and
   OpenCode has neither. Only `sessions` and `memory` MCP are shared across all three agents, so

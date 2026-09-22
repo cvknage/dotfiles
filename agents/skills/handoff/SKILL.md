@@ -5,7 +5,7 @@ description: Dump session state to the session log so any agent in a fresh sessi
 Hand off in order:
 
 1. Flush anything learned but not yet recorded — dead ends, decisions, non-obvious map knowledge — by appending it to the session log, so it survives the session.
-2. Append the handoff entry to the session log via the `append_note` tool (mcp__sessions__append_note): pass the repository root and a small batch of terse bullets, one per item:
+2. Append the handoff entry to the session log via the `append_note` tool (`mcp__sessions__append_note`): pass the repository root and a small batch of terse bullets, one per item:
    - The goal and current plan milestone.
    - What was just done.
    - The exact next step.
