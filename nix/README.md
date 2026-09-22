@@ -247,6 +247,7 @@ Then clean the standalone Home Manager profile:
 ```bash
 home-manager generations
 home-manager remove-generations <id>...
+home-manager expire-generations "-1 seconds"
 ```
 
 Both share the same store, so one collection covers them:
