@@ -22,5 +22,8 @@ description: Second-opinion review of a completed code change by a fresh-context
   simplification and efficiency findings. Calibrated output, no style nits.
 - **Triage**: fix or refute every finding before finishing. A finding you
   cannot refute is not resolved by ignoring it.
+- **Handoff to the user**: once findings are triaged and the change is staged,
+  follow the `human-review` skill for the user's own pass in Neovim before
+  proposing a commit.
 - **Escalation**: when the same fix has failed twice, or work is thrashing,
   stop re-reviewing and follow the `handoff` skill instead.
