@@ -20,6 +20,8 @@
     config.sops.templates."git-identity.inc".path
     config.sops.templates."git-allowed-signers".path
     config.sops.templates."git-public-key".path
+    config.sops.templates."git-identity-includes.inc".path
+    config.sops.templates."git-identity-remote-match".path
     cfg.keyPath
   ];
 
@@ -57,6 +59,8 @@
       publish ${config.sops.templates."git-identity.inc".path} ${identityDirectory}/git-identity.inc
       publish ${config.sops.templates."git-allowed-signers".path} ${identityDirectory}/allowed-signers
       publish ${config.sops.templates."git-public-key".path} ${identityDirectory}/identity.pub
+      publish ${config.sops.templates."git-identity-includes.inc".path} ${identityDirectory}/includes.inc
+      publish ${config.sops.templates."git-identity-remote-match".path} ${identityDirectory}/remote-match
 
       # gitui signs via libgit2, which wants the private key next to user.signingkey
       # (gitui-org/gitui#2184). A symlink keeps the sops-rendered key out of the published
@@ -131,7 +135,7 @@ in {
 
     remoteMatch = lib.mkOption {
       type = lib.types.str;
-      description = "Path segment (e.g. a GitHub org) matched against remote URLs on sshHost to decide when this identity applies.";
+      description = "Path segment (e.g. a GitHub org) matched against remote URLs on sshHost to decide when this identity applies. May be a sops placeholder token: the value is only ever interpolated into a sops.templates block, never into a plain xdg.configFile.text.";
     };
 
     sshHost = lib.mkOption {
@@ -151,6 +155,12 @@ in {
       readOnly = true;
       description = "Path to the identity's dedicated ssh-agent socket.";
     };
+
+    remoteMatchPath = lib.mkOption {
+      type = lib.types.str;
+      readOnly = true;
+      description = "Path to the sops-rendered file holding the real remoteMatch value, for consumers outside a sops.templates block (remoteMatch itself may be a placeholder token until rendered).";
+    };
   };
 
   config = lib.mkMerge [
@@ -161,6 +171,7 @@ in {
       preferences.gitIdentity = {
         directory = identityDirectory;
         socket = identitySocket;
+        remoteMatchPath = "${identityDirectory}/remote-match";
       };
     }
 
@@ -176,14 +187,6 @@ in {
           IdentitiesOnly = "yes";
         };
 
-        # Non-secret, so this renders immediately instead of waiting on sops-nix; a missing include is a silent no-op.
-        xdg.configFile."git-identity/includes.inc".text =
-          lib.concatMapStrings (url: ''
-            [includeIf "hasconfig:remote.*.url:${url}"]
-            	path = ${identityDirectory}/git-identity.inc
-          '')
-          hasconfigUrls;
-
         sops.templates = {
           "git-public-key".content = ''
             ${cfg.publicKey}
@@ -192,6 +195,15 @@ in {
           "git-allowed-signers".content = ''
             ${cfg.email} namespaces="git" ${cfg.publicKey}
           '';
+
+          "git-identity-includes.inc".content =
+            lib.concatMapStrings (url: ''
+              [includeIf "hasconfig:remote.*.url:${url}"]
+              	path = ${identityDirectory}/git-identity.inc
+            '')
+            hasconfigUrls;
+
+          "git-identity-remote-match".content = cfg.remoteMatch;
 
           "git-identity.inc".content = ''
             [user]

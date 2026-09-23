@@ -12,7 +12,6 @@
   ...
 }: let
   identity = config.preferences.gitIdentity;
-  remoteMatchRegex = "${lib.escapeRegex identity.sshHost}[:/]${lib.escapeRegex identity.remoteMatch}/";
 
   # Installed as an ordinary package, not through `nixpkgs.overlays`: under
   # home-manager.useGlobalPkgs that option is declared but never read, so an overlay applied
@@ -22,11 +21,13 @@
     runtimeInputs = [pkgs.coreutils pkgs.git pkgs.gnugrep];
     text = ''
       include_path=${lib.escapeShellArg "${identity.directory}/git-identity.inc"}
+      remote_match="$(cat ${lib.escapeShellArg identity.remoteMatchPath})"
 
       repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
       if [ -n "$repo_root" ] \
         && git -C "$repo_root" config --get-regexp '^remote\..*\.url$' 2>/dev/null \
-          | grep -qE ${lib.escapeShellArg remoteMatchRegex}; then
+          | grep -qF -e ${lib.escapeShellArg (identity.sshHost + ":")}"$remote_match/" \
+                     -e ${lib.escapeShellArg (identity.sshHost + "/")}"$remote_match/"; then
         if ! git -C "$repo_root" config --get-all include.path 2>/dev/null \
           | grep -qxF "$include_path"; then
           git -C "$repo_root" config --add include.path "$include_path"
