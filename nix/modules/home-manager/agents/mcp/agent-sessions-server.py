@@ -16,6 +16,12 @@ def _sessions_dir(repo_root: str) -> Path:
     return Path(repo_root) / ".agent-sessions"
 
 
+def _ensure_sessions_dir(repo_root: str) -> Path:
+    sessions_dir = _sessions_dir(repo_root)
+    sessions_dir.mkdir(parents=True, exist_ok=True)
+    return sessions_dir
+
+
 @mcp.tool()
 def read_plan(repo_root: str) -> str:
     """Return the current session plan, or a notice if none exists.
@@ -55,23 +61,35 @@ def append_note(repo_root: str, bullets: list[str]) -> str:
         repo_root: Absolute path to the repository root.
         bullets: Terse findings to append, one per line, ideally with
             file:line references. No prose, no code dumps.
+
+    Raises:
+        ValueError: If bullets is empty.
     """
     if not bullets:
         raise ValueError("bullets must be non-empty")
 
-    sessions_dir = _sessions_dir(repo_root)
-    sessions_dir.mkdir(parents=True, exist_ok=True)
+    sessions_dir = _ensure_sessions_dir(repo_root)
     notes_path = sessions_dir / "notes.md"
 
+    try:
+        existing = notes_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        existing = ""
+
     header = f"## {date.today().isoformat()}"
-    has_header = False
-    if notes_path.exists():
-        with notes_path.open("r", encoding="utf-8") as existing:
-            has_header = any(line.rstrip("\n") == header for line in existing)
+    reversed_lines = reversed(existing.splitlines())
+    last_section = next(
+        (ln for ln in reversed_lines if ln.startswith("## ")), None
+    )
+    has_header = last_section == header
+    has_content = bool(existing.strip())
+    terminator = "" if not existing or existing.endswith("\n") else "\n"
 
     with notes_path.open("a", encoding="utf-8") as notes_file:
+        notes_file.write(terminator)
         if not has_header:
-            notes_file.write(f"\n{header}\n")
+            separator = "\n" if has_content else ""
+            notes_file.write(f"{separator}{header}\n")
         for bullet in bullets:
             notes_file.write(f"- {bullet}\n")
 
@@ -82,8 +100,7 @@ def _write_plan_file(repo_root: str, content: str) -> Path:
     if not content.strip():
         raise ValueError("content must be non-empty")
 
-    sessions_dir = _sessions_dir(repo_root)
-    sessions_dir.mkdir(parents=True, exist_ok=True)
+    sessions_dir = _ensure_sessions_dir(repo_root)
     plan_path = sessions_dir / "plan.md"
     plan_path.write_text(
         content if content.endswith("\n") else content + "\n", encoding="utf-8"
@@ -99,15 +116,19 @@ def write_plan(repo_root: str, content: str) -> str:
     verifiable milestones, each with a concrete done-check. This tool only
     persists it; breaking the task into milestones is the caller's job.
 
-    Use this only when starting genuinely new work. To revise the plan
-    for the task already in progress, use revise_plan instead -- it
-    leaves notes.md untouched. Notes from the finished task are moved to
-    notes.md.bak (overwriting any earlier backup), not deleted outright.
+    Use this only when starting genuinely new work; never call it just to
+    revise the plan for the task already in progress -- use revise_plan
+    for that, since it leaves notes.md untouched. Notes from the finished
+    task are moved to notes.md.bak (overwriting any earlier backup), not
+    deleted outright.
 
     Args:
         repo_root: Absolute path to the repository root.
         content: The full plan.md content to write, replacing any existing
             plan.
+
+    Raises:
+        ValueError: If content is empty or whitespace-only.
     """
     plan_path = _write_plan_file(repo_root, content)
 
@@ -137,6 +158,9 @@ def revise_plan(repo_root: str, content: str) -> str:
         repo_root: Absolute path to the repository root.
         content: The full plan.md content to write, replacing any existing
             plan.
+
+    Raises:
+        ValueError: If content is empty or whitespace-only.
     """
     plan_path = _write_plan_file(repo_root, content)
     return f"Updated {plan_path}"

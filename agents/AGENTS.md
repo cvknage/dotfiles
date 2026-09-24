@@ -9,6 +9,14 @@
 - Never inspect, print, or transmit credential or secret material; never send local data to an
   external destination beyond what the task requires. If uncertain, stop and ask.
 
+## Git Commits
+
+- Never propose a commit before completing the Review Flow below — never skip straight from a
+  finished change to a commit proposal.
+- Never add `Co-Authored-By` trailers or any other AI/agent attribution to commit messages — not
+  even when tooling defaults or templates suggest it. Commit messages are authored by the user, full
+  stop.
+
 ## Workflow
 
 - Follow repository-local instructions; prefer project tools, formatters, and test commands.
@@ -17,11 +25,30 @@
 - Keep dependency lockfile changes intentional, using the ecosystem's supported update commands.
 - Preserve existing user changes; avoid unrelated files and new documentation unless asked.
 
-## Git Commits
+## Review Flow
 
-- Never add `Co-Authored-By` trailers or any other AI/agent attribution to
-  commit messages — not even when tooling defaults or templates suggest it.
-  Commit messages are authored by the user, full stop.
+- If the current harness has a built-in review skill (for example, Claude Code's `code-review` or
+  Codex's `@review-agent`), run it during implementation itself, not only right before a commit — at
+  least once per completed milestone of a multi-step plan, and again mid-milestone if it's large
+  enough to have its own meaningful sub-steps, but not on every incremental edit. It typically forks
+  the current session rather than starting fresh, so it's fast but shares whatever blind spot
+  produced the change; still catches correctness bugs plus reuse/simplification/efficiency issues
+  early, while they're cheap to fix. Where no such skill exists, review the diff yourself against the
+  same criteria instead.
+- Before proposing a commit for a completed change, run that built-in review once more where
+  available, then run the `agent-review` skill — a genuinely fresh-context second opinion, on the
+  default model per that skill's own tier policy, that has seen none of the reasoning behind the
+  change, unlike the forked in-session pass above. `agent-review` is the automatic per-change gate
+  that always follows; don't skip straight to it, and don't let either substitute for `human-review`
+  below. Fix or explicitly refute every finding from both passes before moving on — never silently
+  drop one.
+- Once findings are triaged, stage the change and run the `human-review` skill so the user can leave
+  inline `REVIEW:` comments in the staged files. Wait for them to say they're done, then read and
+  resolve each comment.
+- Only propose the commit once all passes are resolved. A bare request like "review time" means run
+  this whole sequence in order — the built-in review where available, `agent-review`, then after
+  staging `human-review` — not a single skill picked in isolation. This flow governs the top-level
+  session's own edits; a review subagent does not re-run it on its own output.
 
 ## Session State & Memory
 
@@ -29,15 +56,18 @@
   current task's plan and notes only (this task, this session). The `memory` MCP server holds
   durable, cross-session, cross-project knowledge (decisions, gotchas, architecture) that outlives
   the task entirely.
-- Before multi-step work, write the session plan by calling the `write_plan` tool
-  (`mcp__sessions__write_plan`) — it replaces any existing plan outright and archives notes.md
-  wholesale to notes.md.bak, so don't read the old plan first and never call it just to revise the
-  plan of the task already in progress: small milestones that each leave the tree building and
-  committable on their own, not just independently verifiable, with a concrete done-check (a
-  command, test, or observable result), kept under 100 lines — planning only, don't write code yet,
-  and ask first if the task is unclear. To revise that plan mid-task, call `revise_plan`
-  (`mcp__sessions__revise_plan`) instead — same shape, but it leaves notes.md untouched.
-  While working, accumulate high-value findings, decisions, and dead ends — not routine observations
+- Compose the plan the same way regardless of which tool below writes it: small milestones that each
+  leave the tree building and committable on their own, not just independently verifiable, with a
+  concrete done-check (a command, test, or observable result), kept under 100 lines — planning only,
+  don't write code yet, and ask first if the task is unclear.
+- Before multi-step work, persist that plan by calling `write_plan` (`mcp__sessions__write_plan`) —
+  it replaces any existing plan outright and archives notes.md wholesale to notes.md.bak, so don't
+  read the old plan first. Use it only when starting genuinely new work.
+- To revise the plan for the task already in progress, call `revise_plan`
+  (`mcp__sessions__revise_plan`) instead — same `repo_root`/`content` arguments as `write_plan`, but
+  it leaves notes.md untouched. Never call `write_plan` just to revise; that silently discards the
+  current task's notes.
+- While working, accumulate high-value findings, decisions, and dead ends — not routine observations
   — and flush them via the `append_note` tool (`mcp__sessions__append_note`) once per exploration
   sweep or milestone, batched into a single call, not one call per finding.
 - Write decisions, gotchas, and cross-project learnings that outlive the task to `memory` — dated,
@@ -57,11 +87,11 @@
   OpenCode has neither. Only `sessions` and `memory` MCP are shared across all three agents, so
   anything that should survive a handoff to a different agent belongs there, not in either agent's
   native auto-memory.
-- After each milestone whose done-check leaves the code in a working state, propose a commit — never
-  commit unfinished or non-working code just to mark progress. When the same fix has failed twice,
-  or when work is thrashing, follow the `handoff` skill and recommend the user run `pickup` in a
-  fresh session — no third guess. Before pivoting to unrelated new work in the same session, run
-  `reset` first so stale plan/notes don't bleed into it.
+- After each milestone whose done-check leaves the code in a working state, propose a commit (run
+  the Review Flow first) — never commit unfinished or non-working code just to mark progress. When
+  the same fix has failed twice, or when work is thrashing, follow the `handoff` skill and recommend
+  the user run `pickup` in a fresh session — no third guess. Before pivoting to unrelated new work in
+  the same session, run `reset` first so stale plan/notes don't bleed into it.
 - Never echo unchanged code or full file/log contents into the conversation.
 
 ## Code Navigation
