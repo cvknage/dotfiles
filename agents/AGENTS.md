@@ -30,13 +30,16 @@
   durable, cross-session, cross-project knowledge (decisions, gotchas, architecture) that outlives
   the task entirely.
 - Before multi-step work, write the session plan by calling the `write_plan` tool
-  (`mcp__sessions__write_plan`) — it replaces any existing plan outright, so don't read the old one
-  first: small milestones that each leave the tree building and committable on their own, not just
-  independently verifiable, with a concrete done-check (a command, test, or observable result), kept
-  under 100 lines — planning only, don't write code yet, and ask first if the task is unclear. While
-  working, accumulate high-value findings, decisions, and dead ends — not routine observations — and
-  flush them via the `append_note` tool (`mcp__sessions__append_note`) once per exploration sweep or
-  milestone, batched into a single call, not one call per finding.
+  (`mcp__sessions__write_plan`) — it replaces any existing plan outright and archives notes.md
+  wholesale to notes.md.bak, so don't read the old plan first and never call it just to revise the
+  plan of the task already in progress: small milestones that each leave the tree building and
+  committable on their own, not just independently verifiable, with a concrete done-check (a
+  command, test, or observable result), kept under 100 lines — planning only, don't write code yet,
+  and ask first if the task is unclear. To revise that plan mid-task, call `revise_plan`
+  (`mcp__sessions__revise_plan`) instead — same shape, but it leaves notes.md untouched.
+  While working, accumulate high-value findings, decisions, and dead ends — not routine observations
+  — and flush them via the `append_note` tool (`mcp__sessions__append_note`) once per exploration
+  sweep or milestone, batched into a single call, not one call per finding.
 - Write decisions, gotchas, and cross-project learnings that outlive the task to `memory` — dated,
   with reasons and pointers. Skip anything derivable from the code or git history, or already stated
   in a CLAUDE.md/AGENTS.md file; only record what a future session couldn't easily rediscover on its

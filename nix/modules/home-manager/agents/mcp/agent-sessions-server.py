@@ -12,6 +12,10 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("agent-sessions")
 
 
+def _sessions_dir(repo_root: str) -> Path:
+    return Path(repo_root) / ".agent-sessions"
+
+
 @mcp.tool()
 def read_plan(repo_root: str) -> str:
     """Return the current session plan, or a notice if none exists.
@@ -19,7 +23,7 @@ def read_plan(repo_root: str) -> str:
     Args:
         repo_root: Absolute path to the repository root.
     """
-    path = Path(repo_root) / ".agent-sessions" / "plan.md"
+    path = _sessions_dir(repo_root) / "plan.md"
     if not path.exists():
         return "No session plan recorded."
     return path.read_text(encoding="utf-8")
@@ -32,7 +36,7 @@ def read_notes(repo_root: str) -> str:
     Args:
         repo_root: Absolute path to the repository root.
     """
-    path = Path(repo_root) / ".agent-sessions" / "notes.md"
+    path = _sessions_dir(repo_root) / "notes.md"
     if not path.exists():
         return "No session log recorded."
     return path.read_text(encoding="utf-8")
@@ -55,7 +59,7 @@ def append_note(repo_root: str, bullets: list[str]) -> str:
     if not bullets:
         raise ValueError("bullets must be non-empty")
 
-    sessions_dir = Path(repo_root) / ".agent-sessions"
+    sessions_dir = _sessions_dir(repo_root)
     sessions_dir.mkdir(parents=True, exist_ok=True)
     notes_path = sessions_dir / "notes.md"
 
@@ -74,30 +78,68 @@ def append_note(repo_root: str, bullets: list[str]) -> str:
     return f"Appended {len(bullets)} note(s) to {notes_path}"
 
 
+def _write_plan_file(repo_root: str, content: str) -> Path:
+    if not content.strip():
+        raise ValueError("content must be non-empty")
+
+    sessions_dir = _sessions_dir(repo_root)
+    sessions_dir.mkdir(parents=True, exist_ok=True)
+    plan_path = sessions_dir / "plan.md"
+    plan_path.write_text(
+        content if content.endswith("\n") else content + "\n", encoding="utf-8"
+    )
+    return plan_path
+
+
 @mcp.tool()
 def write_plan(repo_root: str, content: str) -> str:
-    """Replace .agent-sessions/plan.md with the given content.
+    """Start a new task: replace plan.md and archive any prior notes.
 
     Call with the finished plan already composed -- small, independently
     verifiable milestones, each with a concrete done-check. This tool only
     persists it; breaking the task into milestones is the caller's job.
+
+    Use this only when starting genuinely new work. To revise the plan
+    for the task already in progress, use revise_plan instead -- it
+    leaves notes.md untouched. Notes from the finished task are moved to
+    notes.md.bak (overwriting any earlier backup), not deleted outright.
 
     Args:
         repo_root: Absolute path to the repository root.
         content: The full plan.md content to write, replacing any existing
             plan.
     """
-    if not content.strip():
-        raise ValueError("content must be non-empty")
+    plan_path = _write_plan_file(repo_root, content)
 
-    sessions_dir = Path(repo_root) / ".agent-sessions"
-    sessions_dir.mkdir(parents=True, exist_ok=True)
-    plan_path = sessions_dir / "plan.md"
-    plan_path.write_text(
-        content if content.endswith("\n") else content + "\n", encoding="utf-8"
-    )
+    notes_path = plan_path.parent / "notes.md"
+    notes_status = "no prior notes"
+    if notes_path.exists():
+        backup_path = plan_path.parent / "notes.md.bak"
+        try:
+            notes_path.replace(backup_path)
+            notes_status = f"archived prior notes to {backup_path.name}"
+        except OSError as exc:
+            notes_status = f"could not archive prior notes: {exc}"
 
-    return f"Wrote {plan_path}"
+    return f"Wrote {plan_path}; {notes_status}"
+
+
+@mcp.tool()
+def revise_plan(repo_root: str, content: str) -> str:
+    """Replace plan.md with a revised plan for the task already in progress.
+
+    Use this to update milestones as the current task's plan evolves.
+    Unlike write_plan, this does not touch notes.md -- notes accumulated
+    so far stay intact. Use write_plan instead when starting new,
+    unrelated work.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+        content: The full plan.md content to write, replacing any existing
+            plan.
+    """
+    plan_path = _write_plan_file(repo_root, content)
+    return f"Updated {plan_path}"
 
 
 @mcp.tool()
@@ -111,7 +153,7 @@ def reset_session(repo_root: str) -> str:
     Args:
         repo_root: Absolute path to the repository root.
     """
-    sessions_dir = Path(repo_root) / ".agent-sessions"
+    sessions_dir = _sessions_dir(repo_root)
     if sessions_dir.exists():
         shutil.rmtree(sessions_dir)
         return f"Removed {sessions_dir}"
