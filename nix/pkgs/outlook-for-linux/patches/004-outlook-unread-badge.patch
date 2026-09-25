@@ -1,0 +1,115 @@
+Outlook for Linux: drive the tray badge from Outlook's own unread count.
+
+teams-for-linux's tray badge only reacts to a leading "(N)" in document.title
+(app/browser/tools/mutationTitle.js), which is how Teams signals unread
+activity. Outlook Web doesn't do that -- its title just reflects the current
+view ("Mail - <name> - Outlook", "Calendar - <name> - Outlook", ...) and never
+carries a count -- so the tray badge never updated, and worse, every view
+switch would make mutationTitle dispatch a spurious 0 that clobbers a real
+count. So this also drops the mutationTitle.init() call from preload.js
+entirely for this build; it has nothing useful to watch here.
+
+Outlook does expose the real count elsewhere: the Inbox row in the folder
+list has it in an element of its own, right next to a screen-reader-only
+"unread" label, inside the `[data-folder-name="inbox"]` tree item. Reading it
+via that a11y-only sibling (rather than parsing the row's title/aria text)
+avoids both Fluent UI's auto-generated, build-specific CSS classes and any
+dependency on the UI's display language.
+
+Polling rather than a MutationObserver: the folder list is a heavily
+virtualised, constantly-remounting tree, so observing it directly would fire
+on unrelated churn; a 5s poll is plenty responsive for a mail unread count and
+trivially survives the Inbox row being unmounted (e.g. while on Calendar) --
+it just skips that tick and keeps the last known badge. The new module is
+listed in preload.js's modules array right after trayIconRenderer, so its
+listener is already attached before this module's own first poll can fire.
+
+--- /dev/null
++++ b/app/browser/tools/outlookUnreadBadge.js
+@@ -0,0 +1,57 @@
++// Reads Outlook Web's own Inbox unread count and feeds it into the same
++// "unread-count" event trayIconRenderer.js already listens for -- see the
++// 004-outlook-unread-badge.patch header for why this exists instead of the
++// title-based mutationTitle.js logic (which preload.js skips for this build).
++//
++// Listed in preload.js's modules array right after trayIconRenderer, so its
++// listener is already attached before this module's first poll can dispatch.
++
++const INBOX_SELECTOR = '[data-folder-name="inbox"]';
++const POLL_INTERVAL_MS = 5000;
++// A parse well past what the tray ever renders as a real number (anything >9
++// becomes "+" -- see trayIconRenderer.js): this bound only exists to reject a
++// garbage parse, not to cap a real inbox, which can plausibly pass 9999.
++const MAX_PLAUSIBLE_COUNT = 999999;
++
++class OutlookUnreadBadge {
++  #lastNumber = -1;
++
++  init() {
++    this.#poll();
++    setInterval(() => this.#poll(), POLL_INTERVAL_MS);
++  }
++
++  #poll() {
++    try {
++      const inbox = document.querySelector(INBOX_SELECTOR);
++      // Not mounted yet, or the user is off the Mail view: keep whatever
++      // badge state we last had rather than guessing zero.
++      if (!inbox) return;
++
++      // The count renders in its own element right before a
++      // screen-reader-only label (e.g. "unread", "ungelesen", "non lus").
++      // Reading it via that a11y class sidesteps both Fluent UI's
++      // auto-generated, build-specific CSS classes and the localized word
++      // itself, so this works regardless of the UI language. No label found
++      // means Outlook rendered no badge at all, i.e. genuinely zero unread.
++      const srLabel = inbox.querySelector('.screenReaderOnly');
++      const badgeText = srLabel?.previousElementSibling?.textContent ?? '';
++      const number = badgeText ? Number.parseInt(badgeText.replace(/\D/g, ''), 10) : 0;
++
++      if (Number.isNaN(number) || number > MAX_PLAUSIBLE_COUNT || number === this.#lastNumber) {
++        return;
++      }
++      this.#lastNumber = number;
++
++      // Fires only on an actual change (dedupe above), so this stays quiet in
++      // steady state; if Outlook's markup ever moves the count or drops the
++      // label, sourceFound:false here is the signal to look for that.
++      console.debug('OutlookUnreadBadge: dispatching unread-count', { number, sourceFound: !!srLabel });
++      globalThis.dispatchEvent(new CustomEvent('unread-count', { detail: { number } }));
++    } catch (error) {
++      console.error('OutlookUnreadBadge: poll failed', error);
++    }
++  }
++}
++
++module.exports = new OutlookUnreadBadge();
+--- a/app/browser/preload.js
++++ b/app/browser/preload.js
+@@ -417,11 +417,13 @@
+       useMutationTitleLogic: config?.useMutationTitleLogic
+     });
+     
+-    if (config.useMutationTitleLogic) {
+-      const mutationTitle = require("./tools/mutationTitle");
+-      mutationTitle.init(config);
+-    }
+-    
++    // mutationTitle.js is skipped here: it only reacts to a leading "(N)" in
++    // document.title, which is how Teams signals unread activity. Outlook
++    // Web's title changes with the current view (Mail/Calendar/...) but never
++    // carries a count, so mutationTitle would fire on every view switch and
++    // dispatch a spurious 0 that clobbers outlookUnreadBadge's real count
++    // (see that module for the actual unread-count source).
++
+     // NOTE: the unread-count event is handled by trayIconRenderer.js; a second
+     // listener here previously caused duplicate IPC traffic and rendering.
+ 
+@@ -434,6 +436,7 @@
+       { name: "webauthnOverride", path: "./tools/webauthnOverride" },
+       { name: "timestampCopyOverride", path: "./tools/timestampCopyOverride" },
+       { name: "trayIconRenderer", path: "./tools/trayIconRenderer" },
++      { name: "outlookUnreadBadge", path: "./tools/outlookUnreadBadge" },
+       { name: "mqttStatusMonitor", path: "./tools/mqttStatusMonitor" },
+       { name: "meetingStartDetector", path: "./tools/meetingStartDetector" },
+       { name: "overrideMicConstraints", path: "./tools/overrideMicConstraints" },

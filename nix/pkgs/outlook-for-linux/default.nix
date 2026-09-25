@@ -24,6 +24,7 @@ in
         ./patches/001-profile-dir.patch
         ./patches/002-drop-msteams-protocol.patch
         ./patches/003-tray-menu.patch
+        ./patches/004-outlook-unread-badge.patch
       ];
 
     # nixpkgs' installPhase names everything "teams-for-linux"; that collides with a
