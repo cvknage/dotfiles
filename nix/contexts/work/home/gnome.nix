@@ -52,7 +52,8 @@
           "firefox.desktop"
           "slack.desktop"
           "teams-for-linux.desktop"
-          "FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
+          "outlook-for-linux.desktop"
+          # "FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
         ];
       };
       # Pin apps to workspaces (auto-move-windows extension)
@@ -63,7 +64,8 @@
           "chromium-browser.desktop:2"
           "slack.desktop:3"
           "teams-for-linux.desktop:3"
-          "FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop:3" # Outlook PWA
+          "outlook-for-linux.desktop:3"
+          # "FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop:3" # Outlook PWA
         ];
       };
     };
@@ -80,7 +82,8 @@
         "${config.programs.firefox.finalPackage}/share/applications/firefox.desktop"
         "${pkgs.slack}/share/applications/slack.desktop"
         "${pkgs.teams-for-linux}/share/applications/teams-for-linux.desktop"
-        "${config.home.homeDirectory}/.nix-profile/share/applications/FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
+        "${config.home.profileDirectory}/share/applications/outlook-for-linux.desktop"
+        # "${config.home.homeDirectory}/.nix-profile/share/applications/FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
       ];
     };
 

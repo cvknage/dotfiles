@@ -26,7 +26,7 @@ in {
     # GUI applications that only make sense on a linux host; they gate their
     # own content on the platform.
     ../../../modules/home-manager/another-redis-desktop-manager
-    ../../../modules/home-manager/outlook
+    # ../../../modules/home-manager/outlook
     # ../../../modules/home-manager/claude-desktop
   ];
 
