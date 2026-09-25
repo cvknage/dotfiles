@@ -19,6 +19,8 @@
         --prefix XDG_DATA_DIRS : "$gtk3Schemas:$gsdSchemas"
     '';
   };
+
+  outlookForLinux = pkgs.callPackage ../../../pkgs/outlook-for-linux {};
 in {
   imports = [
     # GUI applications that only make sense on a linux host; they gate their
@@ -32,7 +34,8 @@ in {
     home.packages = [
       pkgs.ghostty
       pkgs.slack
-      pkgs.stable.teams-for-linux
+      pkgs.teams-for-linux
+      outlookForLinux
       easyeffectsWrapped # pkgs.easyeffects
 
       pkgs.postman

@@ -1,0 +1,19 @@
+Outlook for Linux: do not claim the msteams:// scheme.
+
+app/index.js registers the msteams:// handler unconditionally, so this build
+would take Teams meeting links away from a co-installed Teams for Linux.
+
+--- a/app/index.js
++++ b/app/index.js
+@@ -190,10 +190,7 @@
+   requestMediaAccess();
+ }
+ 
+-const protocolClient = "msteams";
+-if (!app.isDefaultProtocolClient(protocolClient, process.execPath)) {
+-  app.setAsDefaultProtocolClient(protocolClient, process.execPath);
+-}
++// Outlook for Linux leaves the msteams:// scheme to the Teams client.
+ 
+ if (gotTheLock) {
+   app.on("second-instance", mainAppWindow.onAppSecondInstance);

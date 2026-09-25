@@ -1,0 +1,32 @@
+Outlook for Linux: give the app its own profile directory.
+
+Upstream derives the config path from app.getPath("userData") before the config
+file is loaded, so this has to be set here rather than through config.json.
+Keeping it separate stops this app sharing a cache, Local Storage and config.json
+with a co-installed Teams for Linux.
+
+app.setPath throws when the target directory does not exist (per the Electron app
+docs), and while appData exists this child of it does not, so create it first.
+--- a/app/index.js
++++ b/app/index.js
+@@ -8,6 +8,7 @@
+   session,
+ } = require("electron");
+ const path = require("node:path");
++const fs = require("node:fs");
+ const crypto = require("node:crypto");
+ const CustomBackground = require("./customBackground");
+ const CustomStickers = require("./customStickers");
+@@ -74,6 +75,12 @@
+   process.exit(1);
+ });
+ 
++// Outlook for Linux: a profile of its own, kept out of a co-installed Teams for
++// Linux. setPath throws when the directory is missing, so create it first.
++const outlookProfile = path.join(app.getPath("appData"), "outlook-for-linux");
++fs.mkdirSync(outlookProfile, {recursive: true});
++app.setPath("userData", outlookProfile);
++
+ // Support for E2E testing: use temporary userData directory for clean state
+ if (process.env.E2E_USER_DATA_DIR) {
+   app.setPath("userData", process.env.E2E_USER_DATA_DIR);

@@ -79,7 +79,7 @@
         )
         "${config.programs.firefox.finalPackage}/share/applications/firefox.desktop"
         "${pkgs.slack}/share/applications/slack.desktop"
-        "${pkgs.stable.teams-for-linux}/share/applications/teams-for-linux.desktop"
+        "${pkgs.teams-for-linux}/share/applications/teams-for-linux.desktop"
         "${config.home.homeDirectory}/.nix-profile/share/applications/FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
       ];
     };
