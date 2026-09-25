@@ -1,0 +1,26 @@
+Outlook for Linux: drop the Teams-only tray entry, rename the other.
+
+"Join Meeting" opens a Teams meeting-join dialog that has no equivalent in
+Outlook, so drop it. "Return to Teams" already just reloads whatever URL this
+build was pointed at (Outlook, via the url rename in default.nix); only its
+label said otherwise.
+
+--- a/app/menus/appMenu.js
++++ b/app/menus/appMenu.js
+@@ -9,15 +9,10 @@
+       accelerator: "ctrl+O",
+       click: () => Menus.open(),
+     },
+-    {
+-      label: "Join Meeting",
+-      accelerator: "ctrl+J",
+-      click: () => Menus.joinMeeting(),
+-    },
+     {
+-      label: "Return to Teams",
++      label: "Return to Outlook",
+       click: () => Menus.returnToTeams(),
+     },
+     ...(Menus.configGroup.startupConfig.quickChat?.enabled
+       ? [
+           {
