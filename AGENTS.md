@@ -24,14 +24,15 @@
 - **Standalone Home Manager:** `home-manager switch --flake './nix#ckn@work'` — one configuration for every
   standalone Linux work host, regardless of hostname or distro.
 - **Fedora rebuild:** `nix run ./nix#linux-rebuild -- switch --flake ./nix` — the generic System Manager rebuild
-  app takes an action (`switch` or `build`), points at the machine through the flake ref (`--flake ./nix#ckn-laptop`,
-  or bare `./nix` for the box's own hostname; machine keys of `linuxConfigurations` in `nix/flake.nix`), and
-  applies the Home Manager tier, which installs `fedora-rebuild` as a package (`nix/lib/mk-generic-linux-system.nix`)
-  for later runs; always against `~/.dotfiles/nix`; comes from `nix/apps/rebuild.nix`.
-  Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#ckn-laptop --sudo`.
+  app; takes an action (`switch` or `build`) and points at the machine through the flake ref
+  (`--flake ./nix#ckn-laptop`, or bare `./nix` for the box's own hostname; machine keys come from
+  `linuxConfigurations` in `nix/flake.nix`). Always runs against `~/.dotfiles/nix`; implemented in
+  `nix/apps/rebuild.nix`. Individual tier: `nix run github:numtide/system-manager -- switch --flake ./nix#ckn-laptop --sudo`.
+- The rebuild app also applies the Home Manager tier, which installs a `<distro>-rebuild` convenience package
+  (e.g. `fedora-rebuild`, via `nix/lib/mk-generic-linux-system.nix`) for later runs.
 - **Distro prerequisites:** `bash nix/contexts/shared/system/fedora/bootstrap.sh` installs the distro-owned packages the Nix tiers
   depend on. Idempotent, and elevates only when something is missing.
-- **Fedora is experimental:** System Manager only asserts support for nixos, ubuntu and debian, so
+- **Fedora is experimental:** System Manager only asserts support for ubuntu and debian, so
   `nix/contexts/shared/system/fedora/default.nix` sets `system-manager.allowAnyDistro`.
 - **Standalone agent policy:** after every standalone Home Manager switch, run
   `sudo nix run ./nix#install-agent-policy`. Not needed where a system tier exists, which owns the
@@ -68,35 +69,19 @@
   logic.
 
 ## 6. Agent Sandbox and Security Intent
-
-- The goal is a practical privacy boundary, not complete isolation from the development machine. Agents should be able
-  to work autonomously in `~/.dotfiles` and `~/code` (`~/Code` on macOS), use project flakes and direnv environments,
-  write to selected development caches, and interact with approved local services.
-- Claude Code, Codex, and OpenCode are launched through Nix-managed whole-process wrappers. The wrapper is the primary
-  filesystem boundary and applies to the agent, its tools, MCP servers, plugins, and child processes. Personal and
-  credential locations such as Documents, Pictures, `.ssh`, and SOPS-managed secrets remain unavailable.
-- Agent-native permission policies provide additional command and tool controls, but are not the filesystem boundary.
-  Root-owned managed policy is installed by the system configuration. For Claude Code, an organization-provided remote
-  managed policy remains authoritative when present; otherwise the system-managed policy applies. Nix owns the security
-  keys in mutable user settings while preserving unrelated runtime and plugin settings.
-- Docker remains rootful for compatibility with existing Taskfiles, Testcontainers, kind, and other development tools.
-  The docker/containerd daemons themselves keep full host filesystem visibility - systemd mount-namespace hardening on
-  those services breaks all container creation (every container gets an empty rootfs, not just ones touching restricted
-  paths), which is a confirmed upstream incompatibility, not a misconfiguration. Instead, `docker-agent-proxy`
-  (`nix/pkgs/docker-agent-proxy`) sits in front of `docker.sock`, transparently forwarding normal traffic while
-  rejecting container/volume creation requests whose bind-mount source is under a denied path (`~/.ssh`, SOPS secrets,
-  etc.). The agent sandbox talks only to the proxy's socket, bind-mounted onto the conventional `/run/docker.sock` path
-  inside the sandbox; the real socket stays root/docker-group only.
-- The launcher hands the agent the environment it inherits from the developer's shell, so a project's flake-provided
-  compilers and tools are available when that shell was already inside the project. The launcher no longer activates
-  direnv, and the policy conceals direnv's state dirs, so the `direnv` still reachable on the inherited PATH can
-  neither approve an `.envrc` nor read the layout cache the developer's shell sources.
-- Security behavior is defined in `nix/lib/agents/` and `nix/modules/home-manager/agents/`, with platform
-  installation under `nix/modules/nixos/agents/` and `nix/modules/darwin/agents/`. Configuration changes become effective
-  only after activation and an agent restart.
+- Claude Code, Codex, and OpenCode run inside Nix-managed whole-process wrappers — that wrapper, not any agent-native
+  permission policy, is the real filesystem boundary (covers the agent, tools, MCP servers, plugins, child processes).
+  Documents, Pictures, `~/.ssh`, and SOPS-managed secrets are unreachable regardless of what a policy allows.
+- Docker daemon access goes through `docker-agent-proxy` (`nix/pkgs/docker-agent-proxy`) on `/run/docker.sock`: normal
+  traffic passes through, but container/volume creation bind-mounting a denied path (`~/.ssh`, SOPS secrets, etc.) is
+  rejected rather than silently allowed.
+- The launcher inherits the parent shell's environment but does not activate direnv and conceals its state dirs — an
+  `.envrc` won't get auto-approved and cached direnv layouts from the calling shell aren't readable, so don't expect
+  direnv-derived env vars unless they were already in the inherited environment.
+- Sandbox config lives in `nix/lib/agents/` and `nix/modules/home-manager/agents/`, with platform install under
+  `nix/modules/{nixos,darwin}/agents/`; edits need activation + an agent restart to take effect.
 
 ## 7. Code Style & Formatting
-
 **General**
 - 2-space indentation, 120-character soft limit unless a tool mandates otherwise.
 - Favor small, composable modules and overlays; avoid monolithic files.
@@ -145,6 +130,8 @@
 - On new hosts, test via `kanata --cfg kanata/kanata_us.kbd` before enabling the service at boot.
 
 ## 11. Commit & Review Hygiene
+- Commit messages here are ultra-short: one lowercase subject line, a few words, no trailing period, no body, no
+  conventional-commit type prefix — check `git log` for the going style before proposing one.
 - Prepare diffs with `git status` and `git diff` for inspection.
 - Reference changed files by path + line numbers in final summaries so users can jump straight to them.
 - Mention any follow-up work (e.g., “needs `nix flake update`”) instead of silently skipping it.
