@@ -9,6 +9,7 @@
 #              plugins for claude, codex, and opencode
 #   cargo      crates installed with `cargo install`
 #   brew       casks, formulae, and Mac App Store apps (macOS)
+#   fedora     dnf-installed packages (Fedora)
 #   projects   per-project flake devshell packages, from the direnv cache
 #
 #   bash list-installed.sh                          # everything
@@ -26,7 +27,7 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage: list-installed.sh [-p|--plain] [-m|--markdown]
-                        [nix|neovim|browsers|ai|cargo|brew|projects ...]
+                        [nix|neovim|browsers|ai|cargo|brew|fedora|projects ...]
 
   -p, --plain      One entry per line, no headers, deduplicated (for grep/pipe).
   -m, --markdown   A markdown document, for redirecting to a .md file.
@@ -42,11 +43,11 @@ for arg in "$@"; do
     -p|--plain) FORMAT=plain ;;
     -m|--markdown) FORMAT=markdown ;;
     -h|--help) usage && exit 0 ;;
-    nix|neovim|browsers|ai|cargo|brew|projects) SECTIONS+=("$arg") ;;
+    nix|neovim|browsers|ai|cargo|brew|fedora|projects) SECTIONS+=("$arg") ;;
     *) usage >&2 && exit 1 ;;
   esac
 done
-[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai cargo brew projects)
+[ "${#SECTIONS[@]}" -gt 0 ] || SECTIONS=(nix neovim browsers ai cargo brew fedora projects)
 
 # Only a terminal gets escape codes; a redirect or pipe gets clean text.
 if [ -t 1 ]; then
@@ -393,6 +394,18 @@ list_mas() {
     "$(mas list | sed -E 's/^[0-9]+[[:space:]]+//' | sort -f)"
 }
 
+# --- fedora ---------------------------------------------------------------
+
+# `--userinstalled` is dnf's analogue of `brew leaves`: packages explicitly
+# requested rather than pulled in as a dependency of something else. This is
+# the distro-owned layer `bootstrap.sh` provisions (nix itself, docker, the
+# NVIDIA/Tuxedo drivers, ...); everything on top comes from the nix tiers.
+list_fedora() {
+  command -v dnf >/dev/null || return 0
+  emit "fedora · dnf" dnf packages "$(dnf repoquery --userinstalled \
+    --qf '%{name} (%{version}-%{release})\n' 2>/dev/null | sort -f)"
+}
+
 # --- ai agents ----------------------------------------------------------
 
 # Servers from a `{"mcpServers": {...}}` document, one per line.
@@ -496,6 +509,7 @@ if wanted browsers; then list_firefox && list_firefox_pwa && list_chromium; fi
 if wanted ai; then list_nix_mcp && list_claude && list_codex && list_opencode; fi
 if wanted cargo; then list_cargo; fi
 if wanted brew; then list_brew && list_mas; fi
+if wanted fedora; then list_fedora; fi
 if wanted projects; then list_projects; fi
 
 case "$FORMAT" in
