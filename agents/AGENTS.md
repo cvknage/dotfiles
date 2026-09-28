@@ -63,6 +63,13 @@
 - Before multi-step work, persist that plan by calling `write_plan` (`mcp__sessions__write_plan`) —
   it replaces any existing plan outright and archives notes.md wholesale to notes.md.bak, so don't
   read the old plan first. Use it only when starting genuinely new work.
+- When the user asks to plan something, that request is about `sessions` MCP, not a harness's own
+  native planning feature (Claude Code's plan mode, Codex's plan tool, or similar). A harness's
+  native plan output only lives in its own ephemeral state — nothing durable is written yet, and it
+  won't survive `/clear`, compaction, or a handoff. Producing that native plan output, if the harness
+  requires it for the user to approve the approach, doesn't complete the request: treat the approval
+  as the trigger to immediately call `write_plan`/`revise_plan` with the same content, before any
+  other tool call.
 - To revise the plan for the task already in progress, call `revise_plan`
   (`mcp__sessions__revise_plan`) instead — same `repo_root`/`content` arguments as `write_plan`, but
   it leaves notes.md untouched. Never call `write_plan` just to revise; that silently discards the
@@ -84,9 +91,15 @@
   oriented, see Code Navigation.
 - Claude Code and Codex each have their own harness-native auto-memory (a self-written `MEMORY.md`)
   for personal/collaboration notes — but the two are separate, incompatible implementations, and
-  OpenCode has neither. Only `sessions` and `memory` MCP are shared across all three agents, so
-  anything that should survive a handoff to a different agent belongs there, not in either agent's
-  native auto-memory.
+  OpenCode has neither. Default to `memory` MCP, not harness auto-memory, for anything durable: the
+  moment you're about to write a fact worth keeping past this session — a decision, a preference, a
+  gotcha, anything that isn't purely "how this one harness likes to be driven" — that's the trigger
+  to reach for `mcp__memory__create_entities`/`add_observations`/`search_nodes` instead of the
+  harness's own memory tool or its `MEMORY.md`/memory directory. Reserve native auto-memory for the
+  narrow remainder: notes so harness-specific they'd be meaningless to Codex or OpenCode (e.g. "this
+  user prefers terse replies from Claude Code's own summaries"). When in doubt, it goes in `memory`,
+  because only `sessions` and `memory` MCP are shared across all three agents, and only those survive
+  a handoff to a different agent.
 - After each milestone whose done-check leaves the code in a working state, propose a commit (run
   the Review Flow first) — never commit unfinished or non-working code just to mark progress. When
   the same fix has failed twice, or when work is thrashing, follow the `handoff` skill and recommend
