@@ -95,6 +95,8 @@
       inherit inputs nixpkgs;
     };
 
+    systems = [aarch64Darwin x86_64Linux];
+
     owner = "Christophe Knage";
     privateUser = "chris";
     workUser = "ckn";
@@ -125,6 +127,17 @@
   in {
     formatter.${aarch64Darwin} = nixpkgs.legacyPackages.${aarch64Darwin}.alejandra;
     formatter.${x86_64Linux} = nixpkgs.legacyPackages.${x86_64Linux}.alejandra;
+
+    devShells = lib.genAttrs systems (system: let
+      pkgs = import nixpkgs {inherit system;};
+    in {
+      default = pkgs.mkShell {
+        buildInputs = [
+          pkgs.age
+          pkgs.sops
+        ];
+      };
+    });
 
     darwinConfigurations = {
       logic = nix-darwin.lib.darwinSystem {

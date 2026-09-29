@@ -73,11 +73,20 @@ if ! command -v nix >/dev/null; then
   exit 0
 fi
 
-# Access to the private dotfiles-secrets input; must run before the rebuild
-if ! bash "$SCRIPT_DIR/nix/scripts/secrets-bootstrap.sh"; then
+# Access to the private dotfiles-secrets input; must run before the rebuild.
+bootstrap_status=0
+bash "$SCRIPT_DIR/nix/scripts/bootstrap-shell.sh" \
+  -c bash "$SCRIPT_DIR/nix/scripts/secrets-bootstrap.sh" || bootstrap_status=$?
+
+if [ "$bootstrap_status" -ne 0 ]; then
   echo ""
-  echo "Complete the NEXT STEPS above, then re-run \`bash init.sh\`"
-  exit 0
+  if [ "$bootstrap_status" -eq 3 ]; then
+    echo "Complete the NEXT STEPS above, then re-run \`bash init.sh\`"
+    exit 0
+  fi
+  echo "The bootstrap step failed (exit $bootstrap_status); see the error above."
+  echo "Nothing is waiting on a manual step."
+  exit "$bootstrap_status"
 fi
 
 pushd "$DOTFILES_DIR" &>/dev/null

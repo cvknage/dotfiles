@@ -77,19 +77,19 @@ sudo nix run .#install-agent-policy
 Secrets live in the private [cvknage/dotfiles-secrets](https://github.com/cvknage/dotfiles-secrets) repo,
 encrypted with [sops](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age).
 
-Each machine has one keypair, `~/.ssh/keys/dotfiles-secrets`:
+Each machine has two keys, both under `~/.ssh/keys/`:
 
-> The key lives in a subdirectory because GNOME's gcr ssh-agent auto-loads
-> `~/.ssh/*.pub` keys into the agent, where libgit2 clients (gitui) offer the
-> deploy key to GitHub first and get "Repository not found" on other repos.
+- **GitHub deploy key** — `dotfiles-secrets`, an ed25519 keypair giving read-only
+  access to the secrets repo
+- **sops age identity** — `dotfiles-secrets-pq`, a post-quantum (ML-KEM-768 + X25519)
+  age key that decrypts
 
-- **GitHub deploy key** — read-only access to the secrets repo
-- **sops age identity** — converted by sops-nix at activation (`sops.age.sshKeyPaths`)
+sops-nix reads the age identity through `sops.age.keyFile`.
 
 The flake input is fetched via the `github-secrets` ssh alias: github.com,
-offering only this keypair. It is defined once in `lib/secrets-alias.nix`
+offering only the deploy key. It is defined once in `lib/secrets-alias.nix`
 and rendered into `/etc/ssh` (system configs) and `~/.ssh/config` (standalone home-manager).
-`scripts/secrets-bootstrap.sh` creates the keypair and primes the input for the first rebuild.
+`scripts/secrets-bootstrap.sh` creates both keys and primes the input for the first rebuild.
 
 ### New machine
 
@@ -100,8 +100,8 @@ bash init.sh
 Follow the printed instructions:
 
 1. Add the deploy key on GitHub
-2. From an existing machine: add the age recipient to `.sops.yaml` and run
-   `sops updatekeys` on the files the new machine should read
+2. From an existing machine: add the age recipient to `.sops.yaml`, then
+   `sops updatekeys`
 
 ### Retiring a machine
 
