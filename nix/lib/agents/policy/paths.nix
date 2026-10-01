@@ -148,6 +148,7 @@
       ".cache/bun"
       ".cache/code-graph"
       ".cache/deno"
+      ".cache/fastmcp"
       ".cache/nix"
       ".cache/node"
       ".cache/node-gyp"
