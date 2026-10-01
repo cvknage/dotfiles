@@ -37,6 +37,16 @@
         )
         old.buildInputs;
     });
+  claudeAgentAcp = let
+    base = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-agent-acp;
+  in
+    pkgs.writeShellApplication {
+      name = "claude-agent-acp";
+      text = ''
+        export CLAUDE_CODE_EXECUTABLE=${lib.escapeShellArg "${config.programs.claude-code.package}/bin/claude"}
+        exec ${lib.escapeShellArg "${base}/bin/claude-agent-acp"} "$@"
+      '';
+    };
   neovimExtraPackages =
     [
       # Needed by lazy.nvim package manager to support luarocks
@@ -68,7 +78,7 @@
     ]
     ++ lib.optionals (homeContext.isPrivate config) [
       # ACP adapter for Claude Code, used by codecompanion.nvim
-      inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-agent-acp
+      claudeAgentAcp
     ]
     ++ lib.optionals (homeContext.isWork config) [
       # Needed by easy-dotnet.nvim

@@ -32,38 +32,25 @@ return {
       },
       adapters = {
         acp = {
-          -- Spawns the "claude-agent-acp" binary from neovimExtraPackages.
-          -- Auth falls back to CLAUDE_CODE_OAUTH_TOKEN, see "claude setup-token".
+          opts = { show_presets = false },
           claude_code = function()
             return require("codecompanion.adapters").extend("claude_code", {
-              defaults = { timeout = 60000 },
-            })
-          end,
-          -- Spawns "opencode acp".
-          opencode = function()
-            return require("codecompanion.adapters").extend("opencode", {
-              defaults = { timeout = 60000 },
+              defaults = { timeout = 60000, mcpServers = "inherit_from_config" },
+              env = {
+                CLAUDE_CODE_OAUTH_TOKEN = function()
+                  return ""
+                end,
+              },
+              handlers = {
+                auth = function()
+                  return true
+                end,
+              },
             })
           end,
         },
         http = {
-          -- The built in "ollama" adapter is local only, it has no api_key or Authorization
-          -- header, so Ollama Cloud goes through "openai_compatible" instead.
-          -- Requires OLLAMA_API_KEY in the environment. Cloud models need the ":cloud" suffix.
-          ollama_cloud = function()
-            return require("codecompanion.adapters").extend("openai_compatible", {
-              name = "ollama_cloud",
-              env = {
-                url = "https://ollama.com",
-                api_key = "OLLAMA_API_KEY",
-                chat_url = "/v1/chat/completions",
-                models_endpoint = "/v1/models",
-              },
-              schema = {
-                model = { default = "glm-5.2:cloud" },
-              },
-            })
-          end,
+          opts = { show_presets = false },
         },
       },
     },
