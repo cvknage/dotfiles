@@ -42,6 +42,28 @@ return {
         return vim.json.decode(json.json_strip_comments(str))
       end
 
+      -- Default-link to built-in Diagnostic groups; an active colorscheme's own
+      -- DapBreakpoint*/DapLogPoint/DapStopped definitions still win.
+      for name, link in pairs({
+        DapBreakpoint = "DiagnosticError",
+        DapBreakpointCondition = "DiagnosticWarn",
+        DapBreakpointRejected = "DiagnosticHint",
+        DapLogPoint = "DiagnosticInfo",
+        DapStopped = "DiagnosticOk",
+      }) do
+        vim.api.nvim_set_hl(0, name, { link = link, default = true })
+      end
+
+      for name, sign in pairs({
+        DapBreakpoint = { text = "●", texthl = "DapBreakpoint", linehl = "", numhl = "" },
+        DapBreakpointCondition = { text = "◆", texthl = "DapBreakpointCondition", linehl = "", numhl = "" },
+        DapBreakpointRejected = { text = "○", texthl = "DapBreakpointRejected", linehl = "", numhl = "" },
+        DapLogPoint = { text = "◈", texthl = "DapLogPoint", linehl = "", numhl = "" },
+        DapStopped = { text = "▶", texthl = "DapStopped", linehl = "debugPC", numhl = "" },
+      }) do
+        vim.fn.sign_define(name, sign)
+      end
+
       -- Load linked_plugins.
       vim.schedule(function()
         local plugin_names = vim.tbl_map(function(plugin)
