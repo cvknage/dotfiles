@@ -43,9 +43,9 @@ return {
         },
       })
 
-      vim.keymap.set("n", "<leader>Ts", function()
+      vim.keymap.set("n", "<leader>te", function()
         dotnet.testrunner()
-      end, { desc = "Toggle Summary" })
+      end, { desc = "Toggle easy-dotnet Summary" })
     end,
   },
   {
