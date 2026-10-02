@@ -1,0 +1,120 @@
+# Skip the first-run notification setup on startup
+onboarding = false
+
+[terminal]
+# Always load a login shell
+shell_mode = "login"
+
+# Start new panes, tabs, and workspaces on current path
+new_cwd = "follow"
+
+[session]
+# Resume supported AI-agent panes into their native sessions on restore
+resume_agents_on_restore = true
+
+[theme]
+name = "catppuccin"
+
+[ui]
+# Enable mouse
+mouse_capture = true
+
+# Copy mouse selections to the system clipboard
+copy_on_select = true
+
+# Accent color for highlights, borders, and navigation UI
+accent = "#91d7e3"
+
+# Keep split panes flush and frameless
+pane_gaps = false          # share one divider instead of a separated pair
+pane_outer_borders = false # no outer frame; also removes the box drawn around a zoomed pane
+
+# Agent status indicator style
+status_indicators = "dots"
+
+[ui.toast]
+# Show notifications inside herdr
+delivery = "herdr"
+
+[keys]
+# Rebind the prefix key to Alt-Space
+prefix = "alt+space"
+
+# Split the focused pane
+# split_horizontal = "prefix+minus" # new pane below
+# split_vertical = "prefix+v" # new pane to the right
+
+# Vim keys to move focus between panes
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+
+# Open the session navigator
+goto = "prefix+s"
+
+# Open settings
+settings = "prefix+shift+s"
+
+# Detach the client
+detach = "prefix+d"
+
+# Cycle to the next pane
+cycle_pane_next = "prefix+o"
+
+# Focus the visible notification target (herdr defaults this to prefix+o)
+open_notification_target = "prefix+shift+o"
+
+# Shift Alt vim keys to switch tabs
+previous_tab = "alt+shift+h"
+next_tab = "alt+shift+l"
+
+# Enter resize mode; arrows then resize the focused pane
+resize_mode = "prefix+r"
+
+# Plugins
+
+# Vim-aware pane navigation: bare Ctrl+h/j/k/l move between panes
+[[keys.command]]
+key = "ctrl+h"
+type = "plugin_action"
+command = "vim-herdr-navigation.left"
+description = "navigate left (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+j"
+type = "plugin_action"
+command = "vim-herdr-navigation.down"
+description = "navigate down (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+k"
+type = "plugin_action"
+command = "vim-herdr-navigation.up"
+description = "navigate up (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "plugin_action"
+command = "vim-herdr-navigation.right"
+description = "navigate right (vim/herdr)"
+
+# Open the plugin manager (takes prefix+shift+l from swap_pane_right)
+[[keys.command]]
+key = "prefix+shift+l"
+type = "plugin_action"
+command = "herdr-lazy.manage"
+description = "manage plugins"
+
+# Save and restore the session
+[[keys.command]]
+key = "prefix+ctrl+s"
+type = "plugin_action"
+command = "ntindle.herdr-resurrect.save"
+description = "resurrect: save"
+
+[[keys.command]]
+key = "prefix+ctrl+r"
+type = "plugin_action"
+command = "ntindle.herdr-resurrect.restore"
+description = "resurrect: restore"

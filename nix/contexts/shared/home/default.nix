@@ -37,6 +37,14 @@
         )
         old.buildInputs;
     });
+  herdrPackage = pkgs.symlinkJoin {
+    name = "herdr";
+    paths = [inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.herdr];
+    nativeBuildInputs = [pkgs.makeWrapper];
+    postBuild = ''
+      wrapProgram "$out/bin/herdr" --prefix PATH : ${lib.makeBinPath [pkgs.nodejs]}
+    '';
+  };
   claudeAgentAcp = let
     base = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-agent-acp;
   in
@@ -103,6 +111,7 @@ in {
   );
   home.packages = [
     pkgs.tmux
+    herdrPackage
     pkgs.git
     pkgs.jq
     pkgs.gnused
@@ -199,6 +208,7 @@ in {
     "${config.xdg.configHome}/ghostty".source = "${dotfiles}/ghostty";
     "${config.xdg.configHome}/git".source = "${dotfiles}/git";
     "${config.xdg.configHome}/gitui".source = "${dotfiles}/gitui";
+    "${config.xdg.configHome}/herdr".source = "${dotfiles}/herdr";
     "${config.xdg.configHome}/k9s".source = "${dotfiles}/k9s";
     "${config.xdg.configHome}/kanata".source = "${dotfiles}/kanata";
     # "${config.xdg.configHome}/nvim".source = "${dotfiles}/neovim/logic";
