@@ -1,20 +1,11 @@
-local light = "frappe"
-local dark = "mocha"
+local light = require("utils").light_flavour
+local dark = require("utils").dark_flavour
 
 return {
   "catppuccin/nvim",
   name = "catppuccin",
   priority = 1000,
   config = function(_, opts)
-    -- The catppuccin "background" and "flavour=auto" options do not work properly, use an autocmd to make it work.
-    -- https://github.com/jaeheonji/catppuccin-nvim#usage-with-set-background
-    vim.api.nvim_create_autocmd("OptionSet", {
-      pattern = "background",
-      callback = function()
-        vim.cmd("Catppuccin " .. (vim.v.option_new == "light" and light or dark))
-      end,
-    })
-
     require("catppuccin").setup(opts)
     vim.cmd.colorscheme("catppuccin")
     vim.opt.winblend = 10 -- Enables pseudo-transparency for a floating window
