@@ -19,6 +19,19 @@
     }"
   ];
 
+  # Ancestors strictly between a path and $HOME, where the blanket home deny applies.
+  homeAncestors = path: let
+    walk = p: let
+      parent = builtins.dirOf p;
+    in
+      if parent == homeDirectory
+      then [parent]
+      else if lib.hasPrefix "${homeDirectory}/" parent
+      then [parent] ++ walk parent
+      else [];
+  in
+    lib.unique (lib.concatMap walk path);
+
   # Keep each agent's paths together so its launch, runtime, and permission
   # roots cannot drift apart.
   agentPaths = {
@@ -52,6 +65,10 @@
       configRoot = "${xdgConfigHome}/opencode";
       authFile = "${homeDirectory}/.local/share/opencode/auth.json";
       trustedRoots = workspaceRoots ++ [configRoot];
+      # opencode stats config names per ancestor dir; the home deny answers with EPERM, not ENOENT.
+      ancestorDirs = homeAncestors trustedRoots;
+      readOnlyRoots = map (dir: "${dir}/.opencode") ancestorDirs;
+      homeProbeDirs = ancestorDirs;
       runtimeRoots = [
         configRoot
         "${homeDirectory}/.cache/opencode"
@@ -198,15 +215,18 @@
     trustedRoots,
     runtimeRoots,
     runtimeFiles,
+    readOnlyRoots ? [],
+    homeProbeDirs ? [],
     ...
   }: let
     dockerConfigRoot = "${configRoot}/.sandbox/docker";
   in {
-    inherit dockerConfigRoot;
+    inherit dockerConfigRoot homeProbeDirs;
     launchRoots = trustedRoots;
     readOnlyPaths =
       sharedReadOnlyPaths
-      ++ systemReadOnlyPaths;
+      ++ systemReadOnlyPaths
+      ++ readOnlyRoots;
     socketPaths = map (m: "${m.host}:${m.sandbox}") serviceSocketMappings;
     writePaths = workspaceRoots ++ sharedWritablePaths ++ runtimeRoots ++ runtimeFiles ++ kubernetesStateRoots;
     ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot];
@@ -333,6 +353,7 @@ in {
     deniedPaths
     dockerDeniedPaths
     dockerProxySocketPath
+    homeAncestors
     homeDirectory
     opencodeGlobalSettingsPaths
     opencodeProjectSettingsPaths

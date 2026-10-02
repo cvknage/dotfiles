@@ -49,8 +49,8 @@
       null
       policy.deniedPaths;
 
-    # $HOME, denied outright and then re-opened by the two allows below. The metadata ops make
-    # unlisted home paths unstatable, not just unreadable -- no file-existence oracle at all.
+    # $HOME, denied outright and then re-opened by the allows below. The metadata ops make
+    # unlisted home paths unstatable, not just unreadable -- no existence oracle, bar the carve-out.
     homeDenyRules =
       lib.concatMapStrings (spelling: ''
         (deny file-read* file-write* file-read-metadata file-test-existence (subpath "${escapeSeatbeltPath spelling}"))
@@ -75,25 +75,42 @@
     # Path lookup checks metadata on every directory component, which the home deny above took
     # away: re-grant it for $HOME itself and the ancestors of every re-opened path. Computed so
     # a deeper re-opened root tomorrow cannot silently break lookup here.
-    lookupDirs = let
-      walk = path: let
-        parent = dirOf path;
-      in
-        if parent == policy.homeDirectory
-        then [parent]
-        else if lib.hasPrefix "${policy.homeDirectory}/" parent
-        then [parent] ++ walk parent
-        else [];
-    in
-      lib.unique (
-        lib.concatMap walk (
-          profile.readOnlyPaths
-          ++ profile.writePaths
-          ++ lib.optional (ownCredentialPath != null) ownCredentialPath
-          ++ socketHostPaths
+    lookupDirs = policy.homeAncestors (
+      profile.readOnlyPaths
+      ++ profile.writePaths
+      ++ lib.optional (ownCredentialPath != null) ownCredentialPath
+      ++ socketHostPaths
+    );
+    lookupAllows = lib.concatMapStrings (literalAllow "file-read-metadata file-test-existence") lookupDirs;
+
+    # Escape regex metacharacters; filters are anchored and quoted.
+    escapeSeatbeltRegex = path:
+      builtins.replaceStrings
+      ["\\" "." "[" "]" "^" "$" "*" "+" "?" "(" ")" "{" "}" "|"]
+      ["\\\\" "\\." "\\[" "\\]" "\\^" "\\$" "\\*" "\\+" "\\?" "\\(" "\\)" "\\{" "\\}" "\\|"]
+      path;
+
+    # Probe dirs' children stat cleanly; the concealed ones are re-denied just below.
+    homeChildProbeAllows = lib.concatMapStrings (
+      dir: ''
+        (allow file-read-metadata file-test-existence (regex "^${escapeSeatbeltPath (escapeSeatbeltRegex dir)}/[^/]+$"))
+      ''
+    ) (lib.concatMap homeSpellings profile.homeProbeDirs);
+    # Never re-deny what a re-opened path depends on (~/.ssh, ~/.config/git/credentials).
+    touchesReopened = path:
+      lib.any (root: root == path || lib.hasPrefix "${path}/" root || lib.hasPrefix "${root}/" path) (
+        profile.readOnlyPaths ++ profile.writePaths
+      );
+    homeChildProbeDenies =
+      lib.concatMapStrings (
+        path: ''
+          (deny file-read-metadata file-test-existence (literal "${escapeSeatbeltPath path}"))
+        ''
+      ) (
+        lib.concatMap homeSpellings (
+          lib.filter (p: lib.any (dir: builtins.dirOf p == dir) profile.homeProbeDirs && !touchesReopened p) policy.deniedPaths
         )
       );
-    lookupAllows = lib.concatMapStrings (literalAllow "file-read-metadata file-test-existence") lookupDirs;
 
     # The sops-nix runtime store lives under the scratch-space allows above, so it is denied
     # here and last: last match wins, and each firmlink spelling is denied to override the
@@ -213,7 +230,7 @@
       ${homeWriteAllows}
       ${socketReadAllows}
       ${socketNetworkAllows}
-      ${lookupAllows}
+      ${lookupAllows}${homeChildProbeAllows}${homeChildProbeDenies}
       ${sopsSecretsDenies}
     '';
   in

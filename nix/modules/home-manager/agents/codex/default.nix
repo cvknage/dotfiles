@@ -56,7 +56,7 @@
   settings =
     agentPolicy.codex.settings
     // {
-      features.child_agents_md = true;
+      features.daemon_auto_start = false;
       suppress_unstable_features_warning = true;
       # Recapture from a trusted session whenever the hook definition changes.
       hooks.state."${config.home.homeDirectory}/${configDir}/hooks.json:post_tool_use:0:0".trusted_hash = "sha256:655cfe92116fd6fb09b6f8dec597169d9100c8d80f5b9fa07473830674ca491b";

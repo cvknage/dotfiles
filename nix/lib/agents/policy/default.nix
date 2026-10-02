@@ -24,6 +24,7 @@ in {
     deniedPaths
     dockerDeniedPaths
     dockerProxySocketPath
+    homeAncestors
     homeDirectory
     outerSandboxProfiles
     runtimeCredentialDirs
