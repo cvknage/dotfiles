@@ -5,7 +5,7 @@
   policy,
   common,
 }: let
-  inherit (common) agentTools mkLaunchSetup;
+  inherit (common) agentTools herdrAgentProxy mkLaunchSetup;
 
   mkMacRunner = agent: profile: let
     # Filters quote their paths, so escape whatever would end the string early.
@@ -72,15 +72,17 @@
     socketReadAllows = lib.concatMapStrings (literalAllow "file-read*") socketHostPaths;
     socketNetworkAllows = lib.concatMapStrings (literalAllow "network-outbound") socketHostPaths;
 
-    # Path lookup checks metadata on every directory component, which the home deny above took
-    # away: re-grant it for $HOME itself and the ancestors of every re-opened path. Computed so
-    # a deeper re-opened root tomorrow cannot silently break lookup here.
-    lookupDirs = policy.homeAncestors (
-      profile.readOnlyPaths
-      ++ profile.writePaths
-      ++ lib.optional (ownCredentialPath != null) ownCredentialPath
-      ++ socketHostPaths
-    );
+    # Re-grants lookup metadata the home deny above removed: $HOME, ancestors of every re-opened
+    # path, and herdrProxyRoot itself (excluded from readOnlyPaths, so homeAncestors alone misses it).
+    lookupDirs =
+      policy.homeAncestors (
+        profile.readOnlyPaths
+        ++ profile.writePaths
+        ++ lib.optional (ownCredentialPath != null) ownCredentialPath
+        ++ socketHostPaths
+        ++ [profile.herdrProxyRoot]
+      )
+      ++ [profile.herdrProxyRoot];
     lookupAllows = lib.concatMapStrings (literalAllow "file-read-metadata file-test-existence") lookupDirs;
 
     # Escape regex metacharacters; filters are anchored and quoted.
@@ -122,6 +124,14 @@
         (deny file-read* file-read-metadata file-test-existence file-write* (subpath (param "${param}")))
       ''
     ) ["SOPS_SECRETS" "SOPS_SECRETS_PRIVATE" "SOPS_SECRETS_DATA"];
+
+    # core.fsmonitor in .git/config runs as an arbitrary command on `git status`, which shell
+    # integrations (e.g. starship) invoke on every prompt; deny writes to it anywhere under $HOME.
+    gitConfigDenies =
+      lib.concatMapStrings (spelling: ''
+        (deny file-write* (regex "^${escapeSeatbeltRegex spelling}/.*/\\.git/config$"))
+      '')
+      (homeSpellings policy.homeDirectory);
 
     # Deny-by-default Seatbelt profile. macOS pitfalls: an undefined `(param ...)`
     # breaks compilation, and denied IPC/tty/file-map-executable ops abort the
@@ -232,11 +242,16 @@
       ${socketNetworkAllows}
       ${lookupAllows}${homeChildProbeAllows}${homeChildProbeDenies}
       ${sopsSecretsDenies}
+      ${gitConfigDenies}
+
+      ; This launch's own herdr-agent-proxy socket, resolved at invocation time (-D below).
+      (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "HERDR_PROXY_SOCKET")))
+      (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "HERDR_PROXY_SOCKET_DATA")))
     '';
   in
     pkgs.writeShellApplication {
       name = "${agent}-outer-sandbox";
-      runtimeInputs = agentTools ++ [pkgs.nix];
+      runtimeInputs = agentTools ++ [pkgs.nix herdrAgentProxy];
       text = ''
         target="''${1-}"
         if [ -z "$target" ]; then
@@ -245,7 +260,8 @@
         fi
         shift
 
-        ${mkLaunchSetup agent profile}
+        # Failing to stat ~/Library is reliable proof of Seatbelt confinement (always present, never re-opened).
+        ${mkLaunchSetup agent profile ''! stat "$HOME/Library" >/dev/null 2>&1''}
 
         export DOCKER_CONFIG=${lib.escapeShellArg profile.dockerConfigRoot}
         export NIX_REMOTE=daemon
@@ -276,12 +292,24 @@
           exit 1
         fi
 
+        # No proxy this launch (herdr wasn't running) -- (param ...) still needs a value, so give it
+        # one that can never exist on a real filesystem rather than leaving the allow rule unused.
+        if [ -n "''${herdr_proxy_socket:-}" ]; then
+          herdr_proxy_socket_param="$herdr_proxy_socket"
+          herdr_proxy_socket_data_param="''${herdr_proxy_socket/\/Users\//\/System\/Volumes\/Data\/Users\/}"
+        else
+          herdr_proxy_socket_param="/nonexistent-herdr-proxy-socket"
+          herdr_proxy_socket_data_param="/nonexistent-herdr-proxy-socket"
+        fi
+
         sandbox_command=(
           /usr/bin/sandbox-exec
           -D "TMPDIR=''${TMPDIR:-/tmp}"
           -D "SOPS_SECRETS=$sops_secrets"
           -D "SOPS_SECRETS_PRIVATE=/private$sops_secrets"
           -D "SOPS_SECRETS_DATA=/System/Volumes/Data/private$sops_secrets"
+          -D "HERDR_PROXY_SOCKET=$herdr_proxy_socket_param"
+          -D "HERDR_PROXY_SOCKET_DATA=$herdr_proxy_socket_data_param"
           -f ${seatbeltProfile}
         )
 

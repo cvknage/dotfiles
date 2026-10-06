@@ -208,7 +208,8 @@ in {
     "${config.xdg.configHome}/ghostty".source = "${dotfiles}/ghostty";
     "${config.xdg.configHome}/git".source = "${dotfiles}/git";
     "${config.xdg.configHome}/gitui".source = "${dotfiles}/gitui";
-    "${config.xdg.configHome}/herdr".source = "${dotfiles}/herdr";
+    "${config.xdg.configHome}/herdr/config.toml".source = "${dotfiles}/herdr/config.toml";
+    "${config.xdg.configHome}/herdr/plugins/config".source = "${dotfiles}/herdr/plugins/config";
     "${config.xdg.configHome}/k9s".source = "${dotfiles}/k9s";
     "${config.xdg.configHome}/kanata".source = "${dotfiles}/kanata";
     # "${config.xdg.configHome}/nvim".source = "${dotfiles}/neovim/logic";

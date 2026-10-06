@@ -5,7 +5,7 @@
   policy,
   common,
 }: let
-  inherit (common) agentTools mkLaunchSetup;
+  inherit (common) agentTools herdrAgentProxy mkLaunchSetup;
 
   tiocstiSeccompFilter = import ./tiocsti-seccomp.nix {inherit pkgs;};
 
@@ -13,6 +13,7 @@
     readOnlyPaths = lib.escapeShellArgs profile.readOnlyPaths;
     socketPaths = lib.escapeShellArgs profile.socketPaths;
     writePaths = lib.escapeShellArgs profile.writePaths;
+    launchRoots = lib.escapeShellArgs profile.launchRoots;
   in
     pkgs.writeShellApplication {
       name = "${agent}-outer-sandbox";
@@ -21,6 +22,7 @@
         ++ [
           pkgs.bubblewrap
           pkgs.nix
+          herdrAgentProxy
         ];
       text = ''
         target="''${1-}"
@@ -30,7 +32,7 @@
         fi
         shift
 
-        ${mkLaunchSetup agent profile}
+        ${mkLaunchSetup agent profile ''[ -f /run/agent-sandbox-marker ]''}
 
         # Keeps the controlling terminal for SIGWINCH; TIOCSTI is blocked below instead of using --new-session
         exec {seccomp_fd}<"${tiocstiSeccompFilter}"
@@ -87,6 +89,15 @@
           sandbox+=(--ro-bind /run/systemd/resolve/resolv.conf /run/systemd/resolve/stub-resolv.conf)
         fi
 
+        # A real file bwrap synthesizes with no backing path on the host, unlike a forgeable env var.
+        exec {agent_sandbox_marker_fd}<<<"agent-sandbox"
+        sandbox+=(--file "$agent_sandbox_marker_fd" /run/agent-sandbox-marker)
+
+        # Bind only this launch's own proxy socket, not the whole per-agent-kind directory.
+        if [ -n "''${herdr_proxy_socket:-}" ] && [ -S "$herdr_proxy_socket" ]; then
+          sandbox+=(--ro-bind "$herdr_proxy_socket" "$herdr_proxy_socket")
+        fi
+
         socket_paths=(${socketPaths})
 
         for path in ${readOnlyPaths}; do
@@ -117,6 +128,16 @@
           if [ -e "$path" ]; then
             sandbox+=(--bind "$path" "$path")
           fi
+        done
+
+        # Last of all: re-deny write access to every .git/config under a launch root.
+        # core.fsmonitor runs as an arbitrary command on `git status`, which shell integrations
+        # (e.g. starship) invoke on every prompt.
+        for root in ${launchRoots}; do
+          [ -d "$root" ] || continue
+          while IFS= read -r -d "" git_config; do
+            sandbox+=(--ro-bind "$git_config" "$git_config")
+          done < <(find "$root" -type f -path "*/.git/config" -print0 2>/dev/null)
         done
 
         exec bwrap "''${sandbox[@]}" \

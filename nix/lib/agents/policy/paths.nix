@@ -211,6 +211,7 @@
 
   # Translate the path model above into the common whole-process sandbox shape.
   mkOuterProfile = {
+    agent,
     configRoot,
     trustedRoots,
     runtimeRoots,
@@ -220,20 +221,23 @@
     ...
   }: let
     dockerConfigRoot = "${configRoot}/.sandbox/docker";
+    # Never in writePaths: a sandboxed agent only connects to the proxy's socket here.
+    herdrProxyRoot = "${homeDirectory}/.cache/agent-sandbox/herdr-proxy/${agent}";
   in {
-    inherit dockerConfigRoot homeProbeDirs;
+    inherit agent dockerConfigRoot herdrProxyRoot homeProbeDirs;
     launchRoots = trustedRoots;
+    # herdrProxyRoot is bound per-socket at runtime instead (linux.nix/darwin.nix), not here.
     readOnlyPaths =
       sharedReadOnlyPaths
       ++ systemReadOnlyPaths
       ++ readOnlyRoots;
     socketPaths = map (m: "${m.host}:${m.sandbox}") serviceSocketMappings;
     writePaths = workspaceRoots ++ sharedWritablePaths ++ runtimeRoots ++ runtimeFiles ++ kubernetesStateRoots;
-    ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot];
+    ensureDirectories = sharedWritablePaths ++ runtimeRoots ++ kubernetesStateRoots ++ [dockerConfigRoot herdrProxyRoot];
     ensureFiles = runtimeFiles;
   };
 
-  outerSandboxProfiles = lib.mapAttrs (_: paths: mkOuterProfile paths) agentPaths;
+  outerSandboxProfiles = lib.mapAttrs (name: paths: mkOuterProfile (paths // {agent = name;})) agentPaths;
 
   # Private host data excluded from both the agent and Docker views.
   credentialPaths =

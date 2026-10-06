@@ -7,14 +7,3 @@ plugins/config/herdr-lazy/plugins.lock.[0-9]*
 plugins/config/herdr-lazy/.plugins.*.tmp-*
 plugins/config/herdr-lazy/bootstrapped
 plugins/config/herdr-lazy/auto-sync
-
-# herdr's own runtime state: plugin registry, session shape, logs
-plugins.json
-.plugins.lock
-release-notes.json
-session.json
-session-history.json
-sessions
-herdr.log
-herdr-client.log
-herdr-server.log
