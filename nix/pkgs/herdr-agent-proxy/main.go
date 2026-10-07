@@ -39,17 +39,23 @@ var allowedKeys = map[string]bool{"enter": true, "return": true, "up": true, "do
 var validReadSource = map[string]bool{"visible": true, "recent": true, "recent_unwrapped": true, "detection": true}
 var validAgentStates = map[string]bool{"idle": true, "working": true, "blocked": true, "unknown": true, "done": true}
 
-// pendingEntry is recorded only for the four methods whose response this guard must act on. extra
-// carries the one piece of request-time context each needs to act on its response: the workspace_id/
-// tab_id being closed for workspace.close/tab.close (workspace.create/tab.create need none -- every
-// pane this guard ever grants is for g.ownKind, never recorded per-pane). Connection-local (request
-// ids are client-chosen), unlike guard's own state.
+// pendingEntry is recorded only for the methods whose response this guard must act on
+// (workspace.create/close, tab.create/close, pane.split). extra carries the one piece of
+// request-time context each needs to act on its response: the workspace_id/tab_id being closed for
+// workspace.close/tab.close (the other three need none -- every pane this guard ever grants is for
+// g.ownKind, never recorded per-pane). Connection-local (request ids are client-chosen), unlike
+// guard's own state.
 type pendingEntry struct {
 	method string
 	extra  string
 }
 
-var trackedMethods = map[string]bool{"workspace.create": true, "workspace.close": true, "tab.create": true, "tab.close": true}
+var trackedMethods = map[string]bool{
+	"workspace.create": true, "workspace.close": true, "tab.create": true, "tab.close": true,
+	"pane.split": true,
+}
+
+var validSplitDirection = map[string]bool{"right": true, "down": true}
 
 type guard struct {
 	upstreamPath string
@@ -66,7 +72,8 @@ type guard struct {
 	// address an unrelated live agent whose name happens to collide with it.
 	ownedTabs      map[string]struct{} // tab ids created by tab.create, closable via tab.close
 	workspacePanes map[string][]string // workspace_id -> pane ids granted alongside it
-	tabPane        map[string]string   // tab_id -> its pane id, so tab.close revokes both
+	tabPanes       map[string][]string // tab_id -> pane ids granted alongside it (root pane, plus any
+	// pane.split off an existing pane in that tab), so tab.close revokes all of them
 }
 
 func newGuard(upstreamPath string, trustedRoots []string, ownKind string, activeWorkspace string) *guard {
@@ -79,7 +86,7 @@ func newGuard(upstreamPath string, trustedRoots []string, ownKind string, active
 		ownedPanes:      map[string]struct{}{},
 		ownedTabs:       map[string]struct{}{},
 		workspacePanes:  map[string][]string{},
-		tabPane:         map[string]string{},
+		tabPanes:        map[string][]string{},
 	}
 }
 
@@ -272,6 +279,8 @@ func (g *guard) relayUpstreamToClient(upstream net.Conn, cw *safeWriter, mu *syn
 					g.grantTab(resp.Result)
 				case "tab.close":
 					g.revokeTab(entry.extra)
+				case "pane.split":
+					g.grantSplitPane(resp.Result)
 				}
 			}
 		}
@@ -343,6 +352,18 @@ func (g *guard) buildRequest(method string, params json.RawMessage) (forward map
 			return nil, "", "tab.close: " + reason
 		}
 		return map[string]any{"tab_id": id}, id, ""
+	case "pane.split":
+		forward, reason = g.buildPaneSplit(params)
+		return forward, "", reason
+	case "tab.rename":
+		forward, reason = g.buildTabRename(params)
+		return forward, "", reason
+	case "workspace.rename":
+		forward, reason = g.buildWorkspaceRename(params)
+		return forward, "", reason
+	case "pane.rename":
+		forward, reason = g.buildPaneRename(params)
+		return forward, "", reason
 	case "agent.start":
 		forward, reason = g.buildAgentStart(params)
 		return forward, "", reason
@@ -393,9 +414,10 @@ func (g *guard) buildWorkspaceCreate(params json.RawMessage) (forward map[string
 	return out, ""
 }
 
-// optionalLabel reads and validates a client-supplied "label" for workspace.create/tab.create --
-// the only field those methods forward besides cwd/workspace_id, so a sandboxed caller can give its
-// own spawned pane a name describing the task instead of a bare number.
+// optionalLabel reads and validates a client-supplied "label" for workspace.create/tab.create, so a
+// sandboxed caller can give its own spawned pane a name describing the task instead of a bare number.
+// tab.rename/workspace.rename/pane.rename reuse it too, via requireLabel below, where the label is the
+// method's whole point rather than one optional field among several.
 func optionalLabel(params json.RawMessage) (label string, present bool, reason string) {
 	label, present, isStr := fieldString(params, "label")
 	if !present {
@@ -447,6 +469,112 @@ func (g *guard) buildTabCreate(params json.RawMessage) (forward map[string]any, 
 		out["label"] = label
 	}
 	return out, ""
+}
+
+// buildPaneSplit adds a second (or further) pane to a tab/workspace this guard already granted --
+// e.g. to put several agents working on the same assignment in one tab instead of separate tabs.
+// "target_pane_id" is required even though herdr's own schema allows omitting it (falling back to
+// herdr's own ambient "current pane"): that ambient pane could be anyone's, not this sandbox's own,
+// same reasoning as tab.create pinning workspace_id instead of trusting an implicit default. "env",
+// "right_click", and "workspace_id" are deliberately never read or forwarded: env for the same reason
+// workspace.create/tab.create never forward it (the new pane's shell isn't jailed by this proxy);
+// right_click has no use case here; workspace_id is herdr's own alternative way to pick a split target
+// when target_pane_id is omitted, which this proxy never allows to be reached in the first place.
+func (g *guard) buildPaneSplit(params json.RawMessage) (map[string]any, string) {
+	targetPaneID, reason := requireOwnedPane(g, params, "target_pane_id")
+	if reason != "" {
+		return nil, "pane.split: " + reason
+	}
+	direction, present, isStr := fieldString(params, "direction")
+	if !present {
+		return nil, `pane.split: missing required "direction"`
+	}
+	if !isStr || !validSplitDirection[direction] {
+		return nil, `pane.split: "direction" must be "right" or "down"`
+	}
+	out := map[string]any{"target_pane_id": targetPaneID, "direction": direction}
+	if cwd, present, isStr := fieldString(params, "cwd"); present {
+		if !isStr {
+			return nil, `pane.split: "cwd" must be a string`
+		}
+		if reason := g.checkCwd(cwd); reason != "" {
+			return nil, "pane.split: " + reason
+		}
+		out["cwd"] = cwd
+	}
+	if raw, present := rawField(params, "focus"); present {
+		var focus bool
+		if json.Unmarshal(raw, &focus) != nil {
+			return nil, `pane.split: "focus" must be a boolean`
+		}
+		out["focus"] = focus
+	}
+	if raw, present := rawField(params, "ratio"); present {
+		var ratio float64
+		if json.Unmarshal(raw, &ratio) != nil {
+			return nil, `pane.split: "ratio" must be a number`
+		}
+		out["ratio"] = ratio
+	}
+	return out, ""
+}
+
+// requireLabel is optionalLabel plus the missing-label case, for tab.rename/workspace.rename/
+// pane.rename, where (unlike workspace.create/tab.create) the label isn't optional -- it's the
+// method's whole point.
+func requireLabel(method string, params json.RawMessage) (string, string) {
+	label, present, reason := optionalLabel(params)
+	if reason != "" {
+		return "", method + ": " + reason
+	}
+	if !present {
+		return "", fmt.Sprintf(`%s: missing required "label"`, method)
+	}
+	return label, ""
+}
+
+// buildTabRename and buildWorkspaceRename let a sandboxed caller relabel a tab/workspace it already
+// owns -- e.g. to rename an assignment, independent of any individual pane/agent's own name (set via
+// buildPaneRename below, not this).
+func (g *guard) buildTabRename(params json.RawMessage) (map[string]any, string) {
+	tabID, reason := requireOwnedTab(g, params, "tab_id")
+	if reason != "" {
+		return nil, "tab.rename: " + reason
+	}
+	label, reason := requireLabel("tab.rename", params)
+	if reason != "" {
+		return nil, reason
+	}
+	return map[string]any{"tab_id": tabID, "label": label}, ""
+}
+
+func (g *guard) buildWorkspaceRename(params json.RawMessage) (map[string]any, string) {
+	workspaceID, reason := requireOwnedWorkspace(g, params, "workspace_id")
+	if reason != "" {
+		return nil, "workspace.rename: " + reason
+	}
+	label, reason := requireLabel("workspace.rename", params)
+	if reason != "" {
+		return nil, reason
+	}
+	return map[string]any{"workspace_id": workspaceID, "label": label}, ""
+}
+
+// buildPaneRename labels an individual pane this guard already owns, independent of its tab/
+// workspace's own label -- so each agent sharing a tab (via pane.split) can be told apart by name,
+// while the tab/workspace keeps a separate, stable label for the shared assignment. Unlike
+// tab.rename/workspace.rename, herdr's own schema allows an absent/null label here (clearing it); this
+// proxy still requires one, since this method's only use in this skill is setting a pane's agent name.
+func (g *guard) buildPaneRename(params json.RawMessage) (map[string]any, string) {
+	paneID, reason := requireOwnedPane(g, params, "pane_id")
+	if reason != "" {
+		return nil, "pane.rename: " + reason
+	}
+	label, reason := requireLabel("pane.rename", params)
+	if reason != "" {
+		return nil, reason
+	}
+	return map[string]any{"pane_id": paneID, "label": label}, ""
 }
 
 func (g *guard) buildAgentStart(params json.RawMessage) (map[string]any, string) {
@@ -806,7 +934,7 @@ func (g *guard) grantTab(result json.RawMessage) {
 	defer g.mu.Unlock()
 	g.ownedTabs[r.Tab.TabID] = struct{}{}
 	g.ownedPanes[paneID] = struct{}{}
-	g.tabPane[r.Tab.TabID] = paneID
+	g.tabPanes[r.Tab.TabID] = []string{paneID}
 }
 
 func (g *guard) revokeTab(tabID string) {
@@ -816,10 +944,42 @@ func (g *guard) revokeTab(tabID string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	delete(g.ownedTabs, tabID)
-	if paneID, ok := g.tabPane[tabID]; ok {
+	for _, paneID := range g.tabPanes[tabID] {
 		delete(g.ownedPanes, paneID)
 	}
-	delete(g.tabPane, tabID)
+	delete(g.tabPanes, tabID)
+}
+
+// grantSplitPane is called only on a successful pane.split response. The new pane always belongs to
+// the same tab/workspace as the target pane it was split from (already verified owned in
+// buildPaneSplit), so it's granted by appending to whichever of tabPanes/workspacePanes that
+// container is tracked under -- tab.close/workspace.close then revoke it along with everything else
+// in that container. If the response names neither an owned tab nor an owned workspace, nothing is
+// granted; this shouldn't happen given the target_pane_id check, but a pane this guard can't attach
+// to a container it already owns must never become independently ownable.
+func (g *guard) grantSplitPane(result json.RawMessage) {
+	var r struct {
+		Pane struct {
+			PaneID      string `json:"pane_id"`
+			TabID       string `json:"tab_id"`
+			WorkspaceID string `json:"workspace_id"`
+		} `json:"pane"`
+	}
+	if json.Unmarshal(result, &r) != nil || r.Pane.PaneID == "" {
+		return
+	}
+
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if _, ok := g.ownedTabs[r.Pane.TabID]; ok {
+		g.ownedPanes[r.Pane.PaneID] = struct{}{}
+		g.tabPanes[r.Pane.TabID] = append(g.tabPanes[r.Pane.TabID], r.Pane.PaneID)
+		return
+	}
+	if _, ok := g.ownedWorkspaces[r.Pane.WorkspaceID]; ok {
+		g.ownedPanes[r.Pane.PaneID] = struct{}{}
+		g.workspacePanes[r.Pane.WorkspaceID] = append(g.workspacePanes[r.Pane.WorkspaceID], r.Pane.PaneID)
+	}
 }
 
 // checkCwd uses only the symlink-resolved comparison: a lexical prefix check would pass for a path

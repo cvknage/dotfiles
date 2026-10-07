@@ -198,6 +198,160 @@ func TestBuildTabCreateRequiresActiveWorkspace(t *testing.T) {
 	}
 }
 
+func TestBuildPaneSplit(t *testing.T) {
+	dir := t.TempDir()
+	trusted := filepath.Join(dir, "work")
+	os.MkdirAll(trusted, 0o755)
+	g := newGuard("", []string{trusted}, "", "")
+	g.ownedPanes["w1:p1"] = struct{}{}
+
+	if _, reason := g.buildPaneSplit(json.RawMessage(`{"direction":"right"}`)); reason == "" {
+		t.Error("pane.split without target_pane_id should be rejected -- herdr's own ambient-current-pane fallback must never be reachable")
+	}
+	if _, reason := g.buildPaneSplit(json.RawMessage(`{"target_pane_id":"w9:p9","direction":"right"}`)); reason == "" {
+		t.Error("pane.split on an unowned target_pane_id should be rejected")
+	}
+	if _, reason := g.buildPaneSplit(json.RawMessage(`{"target_pane_id":"w1:p1"}`)); reason == "" {
+		t.Error("pane.split without direction should be rejected")
+	}
+	if _, reason := g.buildPaneSplit(json.RawMessage(`{"target_pane_id":"w1:p1","direction":"up"}`)); reason == "" {
+		t.Error(`pane.split with an invalid direction ("up" is not "right"/"down") should be rejected`)
+	}
+
+	forward, reason := g.buildPaneSplit(json.RawMessage(fmt.Sprintf(
+		`{"target_pane_id":"w1:p1","direction":"right","cwd":%q,"focus":true,"ratio":0.4,"env":{"BASH_ENV":"/tmp/evil.sh"},"right_click":"pane","workspace_id":"w9"}`,
+		trusted,
+	)))
+	if reason != "" {
+		t.Fatalf("a valid split should be accepted: %s", reason)
+	}
+	if forward["target_pane_id"] != "w1:p1" || forward["direction"] != "right" || forward["cwd"] != trusted || forward["focus"] != true || forward["ratio"] != 0.4 {
+		t.Errorf("forward = %v, missing or wrong validated fields", forward)
+	}
+	if _, present := forward["env"]; present {
+		t.Error("env must never be forwarded from pane.split, same as workspace.create/tab.create")
+	}
+	if _, present := forward["right_click"]; present {
+		t.Error("right_click must never be forwarded -- not needed for this proxy's use case")
+	}
+	if _, present := forward["workspace_id"]; present {
+		t.Error("workspace_id must never be forwarded -- it's herdr's own alternative split-target selector, which this proxy never lets be reached instead of target_pane_id")
+	}
+
+	if _, reason := g.buildPaneSplit(json.RawMessage(`{"target_pane_id":"w1:p1","direction":"right","cwd":"/etc"}`)); reason == "" {
+		t.Error("a cwd outside every trusted root should be rejected")
+	}
+}
+
+func TestBuildTabAndWorkspaceRename(t *testing.T) {
+	g := newGuard("", nil, "", "")
+	g.ownedTabs["t1"] = struct{}{}
+	g.ownedWorkspaces["w1"] = struct{}{}
+
+	if _, reason := g.buildTabRename(json.RawMessage(`{"tab_id":"t9","label":"assignment"}`)); reason == "" {
+		t.Error("tab.rename on an unowned tab should be rejected")
+	}
+	if _, reason := g.buildTabRename(json.RawMessage(`{"tab_id":"t1"}`)); reason == "" {
+		t.Error("tab.rename without a label should be rejected")
+	}
+	if _, reason := g.buildTabRename(json.RawMessage(`{"tab_id":"t1","label":"line one\nline two"}`)); reason == "" {
+		t.Error("tab.rename with a control character in the label should be rejected, same as workspace.create/tab.create's label")
+	}
+	if _, reason := g.buildTabRename(json.RawMessage(fmt.Sprintf(`{"tab_id":"t1","label":%q}`, strings.Repeat("x", maxLabelLength+1)))); reason == "" {
+		t.Error("tab.rename with an overlong label should be rejected")
+	}
+	forward, reason := g.buildTabRename(json.RawMessage(`{"tab_id":"t1","label":"assignment"}`))
+	if reason != "" {
+		t.Fatalf("a valid tab.rename should be accepted: %s", reason)
+	}
+	if forward["tab_id"] != "t1" || forward["label"] != "assignment" {
+		t.Errorf("forward = %v, want tab_id t1 and label assignment", forward)
+	}
+
+	if _, reason := g.buildWorkspaceRename(json.RawMessage(`{"workspace_id":"w9","label":"assignment"}`)); reason == "" {
+		t.Error("workspace.rename on an unowned workspace should be rejected")
+	}
+	forward, reason = g.buildWorkspaceRename(json.RawMessage(`{"workspace_id":"w1","label":"assignment"}`))
+	if reason != "" {
+		t.Fatalf("a valid workspace.rename should be accepted: %s", reason)
+	}
+	if forward["workspace_id"] != "w1" || forward["label"] != "assignment" {
+		t.Errorf("forward = %v, want workspace_id w1 and label assignment", forward)
+	}
+}
+
+func TestBuildPaneRename(t *testing.T) {
+	g := newGuard("", nil, "", "")
+	g.ownedPanes["w1:p1"] = struct{}{}
+
+	if _, reason := g.buildPaneRename(json.RawMessage(`{"pane_id":"w9:p9","label":"agent-a"}`)); reason == "" {
+		t.Error("pane.rename on an unowned pane should be rejected")
+	}
+	if _, reason := g.buildPaneRename(json.RawMessage(`{"pane_id":"w1:p1"}`)); reason == "" {
+		t.Error("pane.rename without a label should be rejected -- this proxy never exposes herdr's own label-clearing behavior")
+	}
+	if _, reason := g.buildPaneRename(json.RawMessage(`{"pane_id":"w1:p1","label":null}`)); reason == "" {
+		t.Error(`pane.rename with a null label should be rejected, same as omitting it -- herdr's own schema allows null here to clear the pane's label, which this proxy must never expose`)
+	}
+	if _, reason := g.buildPaneRename(json.RawMessage(`{"pane_id":"w1:p1","label":"line one\nline two"}`)); reason == "" {
+		t.Error("pane.rename with a control character in the label should be rejected")
+	}
+	forward, reason := g.buildPaneRename(json.RawMessage(`{"pane_id":"w1:p1","label":"agent-a"}`))
+	if reason != "" {
+		t.Fatalf("a valid pane.rename should be accepted: %s", reason)
+	}
+	if forward["pane_id"] != "w1:p1" || forward["label"] != "agent-a" {
+		t.Errorf("forward = %v, want pane_id w1:p1 and label agent-a", forward)
+	}
+}
+
+// TestGrantSplitPaneAppendsToCorrectContainer is the regression test for the ownership-bookkeeping
+// side of pane.split: the new pane must join whichever container (tab or workspace) is actually
+// tracked as owned, so a later tab.close/workspace.close revokes it along with everything else in that
+// container -- and must never be granted at all if neither container is owned.
+func TestGrantSplitPaneAppendsToCorrectContainer(t *testing.T) {
+	g := newGuard("", nil, "", "")
+	g.ownedTabs["t1"] = struct{}{}
+	g.tabPanes["t1"] = []string{"w1:p1"}
+	g.ownedWorkspaces["w2"] = struct{}{}
+	g.workspacePanes["w2"] = []string{"w2:p1"}
+
+	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w1:p2","tab_id":"t1","workspace_id":"w1"}}`))
+	if _, owned := g.ownedPanes["w1:p2"]; !owned {
+		t.Error("a pane split into an owned tab should be granted")
+	}
+	if len(g.tabPanes["t1"]) != 2 {
+		t.Errorf("tabPanes[t1] = %v, want both the original and split pane", g.tabPanes["t1"])
+	}
+
+	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w2:p2","tab_id":"t9","workspace_id":"w2"}}`))
+	if _, owned := g.ownedPanes["w2:p2"]; !owned {
+		t.Error("a pane split into an owned workspace (tab not separately owned) should be granted")
+	}
+	if len(g.workspacePanes["w2"]) != 2 {
+		t.Errorf("workspacePanes[w2] = %v, want both the original and split pane", g.workspacePanes["w2"])
+	}
+
+	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w9:p9","tab_id":"t9","workspace_id":"w9"}}`))
+	if _, owned := g.ownedPanes["w9:p9"]; owned {
+		t.Error("a pane whose reported tab/workspace are both unowned must never be granted")
+	}
+
+	// A malformed or error-shaped response (no "pane" object, or no pane_id) must never grant
+	// anything either -- relayUpstreamToClient only calls grantSplitPane for a successful result, but
+	// grantSplitPane itself must still fail closed on bad input, not just well-behaved ones.
+	g.grantSplitPane(json.RawMessage(`{}`))
+	g.grantSplitPane(json.RawMessage(`{"pane":{"tab_id":"t1","workspace_id":"w1"}}`))
+	if len(g.tabPanes["t1"]) != 2 {
+		t.Errorf("a response with no pane_id must not grant or append anything; tabPanes[t1] = %v", g.tabPanes["t1"])
+	}
+
+	g.revokeWorkspace("w2")
+	if _, owned := g.ownedPanes["w2:p2"]; owned {
+		t.Error("workspace.close must revoke a pane that was split into that workspace, not just its original root pane")
+	}
+}
+
 func TestBuildAgentStartRequiresOwnKind(t *testing.T) {
 	g := newGuard("", nil, "claude", "")
 	g.ownedPanes["w1:p1"] = struct{}{}
@@ -490,6 +644,114 @@ func TestTabCreateEndToEnd(t *testing.T) {
 	unrelatedWorkspaceResp := send(`{"id":"5","method":"tab.create","params":{"workspace_id":"w2","cwd":"/tmp","kind":"claude"}}`)
 	if !isError(unrelatedWorkspaceResp) {
 		t.Fatalf("tab.create targeting a workspace other than the pinned active one should be rejected, got: %s", unrelatedWorkspaceResp)
+	}
+}
+
+// TestPaneSplitEndToEnd exercises tab.create -> pane.split -> agent.start on both the root and split
+// pane -> tab.rename -> tab.close, confirming the split pane is usable like any granted pane and that
+// closing the tab revokes BOTH panes (the regression this test exists for: the tabPane -> tabPanes
+// refactor must not leave a split pane behind when its tab closes).
+func TestPaneSplitEndToEnd(t *testing.T) {
+	dir := t.TempDir()
+	upstreamPath := filepath.Join(dir, "upstream.sock")
+	listenPath := filepath.Join(dir, "proxy.sock")
+	trustedRoot := filepath.Join(dir, "work")
+	os.MkdirAll(trustedRoot, 0o755)
+
+	upstreamLn, err := net.Listen("unix", upstreamPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer upstreamLn.Close()
+	go func() {
+		conn, err := upstreamLn.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+		scanner := bufio.NewScanner(conn)
+		for scanner.Scan() {
+			var req struct {
+				ID     json.RawMessage `json:"id"`
+				Method string          `json:"method"`
+			}
+			json.Unmarshal(scanner.Bytes(), &req)
+			id := idString(req.ID)
+			switch req.Method {
+			case "tab.create":
+				fmt.Fprintf(conn, `{"id":%q,"result":{"tab":{"tab_id":"t9"},"root_pane":{"pane_id":"w1:p9"}}}`+"\n", id)
+			case "pane.split":
+				fmt.Fprintf(conn, `{"id":%q,"result":{"type":"pane_info","pane":{"pane_id":"w1:p10","tab_id":"t9","workspace_id":"w1"}}}`+"\n", id)
+			default:
+				fmt.Fprintf(conn, `{"id":%q,"result":{}}`+"\n", id)
+			}
+		}
+	}()
+
+	g := newGuard(upstreamPath, []string{trustedRoot}, "claude", "w1")
+	proxyLn, err := net.Listen("unix", listenPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer proxyLn.Close()
+	go func() {
+		for {
+			conn, err := proxyLn.Accept()
+			if err != nil {
+				return
+			}
+			go g.handleConn(conn)
+		}
+	}()
+
+	client, err := net.Dial("unix", listenPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer client.Close()
+	reader := bufio.NewScanner(client)
+	reader.Buffer(make([]byte, 0, 64*1024), maxLineLength)
+	send := func(line string) string {
+		fmt.Fprintln(client, line)
+		if !reader.Scan() {
+			t.Fatalf("no response to %s: %v", line, reader.Err())
+		}
+		return reader.Text()
+	}
+	isError := func(resp string) bool { return strings.Contains(resp, `"error"`) }
+
+	createResp := send(fmt.Sprintf(`{"id":"1","method":"tab.create","params":{"workspace_id":"w1","cwd":%q,"kind":"claude"}}`, trustedRoot))
+	if isError(createResp) {
+		t.Fatalf("tab.create rejected: %s", createResp)
+	}
+
+	splitResp := send(`{"id":"2","method":"pane.split","params":{"target_pane_id":"w1:p9","direction":"right"}}`)
+	if isError(splitResp) {
+		t.Fatalf("pane.split rejected: %s", splitResp)
+	}
+
+	for i, paneID := range []string{"w1:p9", "w1:p10"} {
+		resp := send(fmt.Sprintf(`{"id":"3.%d","method":"agent.start","params":{"pane_id":%q,"name":"a%d","kind":"claude"}}`, i, paneID, i))
+		if isError(resp) {
+			t.Fatalf("agent.start on pane %s was rejected: %s", paneID, resp)
+		}
+	}
+
+	renameResp := send(`{"id":"4","method":"tab.rename","params":{"tab_id":"t9","label":"shared-assignment"}}`)
+	if isError(renameResp) {
+		t.Fatalf("tab.rename rejected: %s", renameResp)
+	}
+
+	closeResp := send(`{"id":"5","method":"tab.close","params":{"tab_id":"t9"}}`)
+	if isError(closeResp) {
+		t.Fatalf("tab.close rejected: %s", closeResp)
+	}
+
+	for _, paneID := range []string{"w1:p9", "w1:p10"} {
+		staleResp := send(fmt.Sprintf(`{"id":"6","method":"agent.read","params":{"target":%q}}`, paneID))
+		if !isError(staleResp) {
+			t.Fatalf("agent.read on pane %s should be rejected after tab.close revoked it, got: %s", paneID, staleResp)
+		}
 	}
 }
 
