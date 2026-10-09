@@ -137,8 +137,8 @@ func main() {
 }
 
 // handleConn bridges one client connection to its own upstream connection. pending is scoped to
-// this connection (request ids are client-chosen); ownedWorkspaces/workspacePanes/paneKind live on
-// guard, shared for the proxy's whole lifetime.
+// this connection (request ids are client-chosen); ownedWorkspaces/ownedTabs/ownedPanes and
+// workspacePanes/tabPanes live on guard, shared for the proxy's whole lifetime.
 func (g *guard) handleConn(client net.Conn) {
 	defer client.Close()
 	upstream, err := net.Dial("unix", g.upstreamPath)
@@ -740,14 +740,14 @@ func buildWait(raw json.RawMessage) (map[string]any, string) {
 		return nil, `"wait" must be an object`
 	}
 	out := map[string]any{}
-	if untilRaw, present := m["until"]; present {
+	if untilRaw, present := rawOrNull(m, "until"); present {
 		until, reason := validateUntil(untilRaw)
 		if reason != "" {
 			return nil, reason
 		}
 		out["until"] = until
 	}
-	if tmRaw, present := m["timeout_ms"]; present {
+	if tmRaw, present := rawOrNull(m, "timeout_ms"); present {
 		var tm float64
 		if json.Unmarshal(tmRaw, &tm) != nil {
 			return nil, `"timeout_ms" must be a number`
@@ -986,6 +986,11 @@ func (g *guard) grantSplitPane(result json.RawMessage) {
 // that is lexically under a trusted root but, via a symlink the agent itself created inside that
 // root, resolves outside it.
 func (g *guard) checkCwd(cwd string) string {
+	// An empty or relative path resolves against the proxy's own cwd (which the launcher guarantees
+	// sits under a trusted root), never the caller's, so reject it before the containment check.
+	if !filepath.IsAbs(cwd) {
+		return fmt.Sprintf("cwd %q must be an absolute path", cwd)
+	}
 	resolved := resolveDeepest(cwd)
 	for _, root := range g.trustedRoots {
 		if underPath(resolved, resolveDeepest(root)) {
@@ -1033,12 +1038,22 @@ func rawField(params json.RawMessage, field string) (json.RawMessage, bool) {
 	if json.Unmarshal(params, &m) != nil {
 		return nil, false
 	}
+	return rawOrNull(m, field)
+}
+
+// rawOrNull is rawField for an already-decoded object. An explicit JSON null is absent, not a zero
+// value: unmarshalling null into a string/number/bool leaves the zero value with a nil error, which
+// would forward cwd:"" past checkCwd or timeout_ms:0.
+func rawOrNull(m map[string]json.RawMessage, field string) (json.RawMessage, bool) {
 	raw, ok := m[field]
-	return raw, ok
+	if !ok || string(raw) == "null" {
+		return nil, false
+	}
+	return raw, true
 }
 
 // fieldString reports presence and string-typedness separately: a field present but not a string
-// must be rejected, not treated as absent.
+// must be rejected, not treated as absent. An explicit JSON null already reports absent (rawField).
 func fieldString(params json.RawMessage, field string) (value string, present, isString bool) {
 	raw, ok := rawField(params, field)
 	if !ok {

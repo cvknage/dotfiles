@@ -12,6 +12,19 @@ import (
 	"time"
 )
 
+// shortSocketDir is t.TempDir() without the test name in the path: a unix socket's sun_path is
+// 104 bytes on darwin, and t.TempDir() under nix's /nix/var/nix/builds/... overflows it, so bind
+// fails with EINVAL for the longer test names.
+func shortSocketDir(t *testing.T) string {
+	t.Helper()
+	dir, err := os.MkdirTemp("", "hdr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(dir) })
+	return dir
+}
+
 func TestCheckCwd(t *testing.T) {
 	base := t.TempDir()
 	home := filepath.Join(base, "home")
@@ -56,6 +69,19 @@ func TestCheckCwd(t *testing.T) {
 			}
 		})
 	}
+
+	// The proxy's own cwd is a trusted root in production (the launcher runs it from inside one), so
+	// an empty or relative path must be rejected outright -- otherwise resolveDeepest would resolve
+	// it against that cwd and containment would pass.
+	processCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, cwd := range []string{"", "sub"} {
+		if newGuard("", []string{processCwd}, "", "").checkCwd(cwd) == "" {
+			t.Errorf("checkCwd(%q) accepted; a non-absolute cwd must be rejected even when the proxy's own cwd is a trusted root", cwd)
+		}
+	}
 }
 
 func TestParseEnvelopeExactCase(t *testing.T) {
@@ -75,6 +101,9 @@ func TestFieldString(t *testing.T) {
 	}
 	if _, present, isStr := fieldString(params, "count"); !present || isStr {
 		t.Error("count should report present but not a string")
+	}
+	if v, present, isStr := fieldString(json.RawMessage(`{"label":null}`), "label"); present || isStr || v != "" {
+		t.Error("an explicit null should report absent, not a present empty string")
 	}
 }
 
@@ -240,6 +269,31 @@ func TestBuildPaneSplit(t *testing.T) {
 
 	if _, reason := g.buildPaneSplit(json.RawMessage(`{"target_pane_id":"w1:p1","direction":"right","cwd":"/etc"}`)); reason == "" {
 		t.Error("a cwd outside every trusted root should be rejected")
+	}
+	// The proxy's own cwd is a trusted root in production, so an empty or relative cwd must be
+	// rejected outright -- otherwise it would resolve against that cwd and pass containment.
+	processCwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	gCwd := newGuard("", []string{processCwd}, "", "")
+	gCwd.ownedPanes["w1:p1"] = struct{}{}
+	for _, cwd := range []string{"", "sub"} {
+		if _, reason := gCwd.buildPaneSplit(json.RawMessage(fmt.Sprintf(`{"target_pane_id":"w1:p1","direction":"right","cwd":%q}`, cwd))); reason == "" {
+			t.Errorf("pane.split with cwd %q must be rejected even when the proxy's own cwd is a trusted root", cwd)
+		}
+	}
+
+	// Explicit null must be dropped, not coerced to a zero value: cwd:null would otherwise forward
+	// cwd:"" and ratio:null 0, the same empty-path hole the absolute-path check in checkCwd closes.
+	nullForward, reason := g.buildPaneSplit(json.RawMessage(`{"target_pane_id":"w1:p1","direction":"right","cwd":null,"ratio":null,"focus":null}`))
+	if reason != "" {
+		t.Fatalf("null fields should be dropped, not rejected: %s", reason)
+	}
+	for _, field := range []string{"cwd", "ratio", "focus"} {
+		if _, present := nullForward[field]; present {
+			t.Errorf("%s:null must not be forwarded", field)
+		}
 	}
 }
 
@@ -417,7 +471,7 @@ func TestBuildAgentSendKeysAllowlist(t *testing.T) {
 // an unowned pane is rejected; a denied method never reaches upstream; workspace.close revokes
 // ownership.
 func TestGuardEndToEnd(t *testing.T) {
-	dir := t.TempDir()
+	dir := shortSocketDir(t)
 	upstreamPath := filepath.Join(dir, "upstream.sock")
 	listenPath := filepath.Join(dir, "proxy.sock")
 	trustedRoot := filepath.Join(dir, "work")
@@ -555,7 +609,7 @@ done:
 // agent.start on the resulting pane, and tab.close -- the alternative to workspace.create that puts
 // the spawned agent in a tab next to the caller instead of a separate workspace.
 func TestTabCreateEndToEnd(t *testing.T) {
-	dir := t.TempDir()
+	dir := shortSocketDir(t)
 	upstreamPath := filepath.Join(dir, "upstream.sock")
 	listenPath := filepath.Join(dir, "proxy.sock")
 	trustedRoot := filepath.Join(dir, "work")
@@ -652,7 +706,7 @@ func TestTabCreateEndToEnd(t *testing.T) {
 // closing the tab revokes BOTH panes (the regression this test exists for: the tabPane -> tabPanes
 // refactor must not leave a split pane behind when its tab closes).
 func TestPaneSplitEndToEnd(t *testing.T) {
-	dir := t.TempDir()
+	dir := shortSocketDir(t)
 	upstreamPath := filepath.Join(dir, "upstream.sock")
 	listenPath := filepath.Join(dir, "proxy.sock")
 	trustedRoot := filepath.Join(dir, "work")
@@ -762,7 +816,7 @@ func TestPaneSplitEndToEnd(t *testing.T) {
 // at that point -- instead of a half-close -- would tear down relayUpstreamToClient's read and the
 // response would never reach the client.
 func TestHalfCloseDoesNotDropInFlightResponse(t *testing.T) {
-	dir := t.TempDir()
+	dir := shortSocketDir(t)
 	upstreamPath := filepath.Join(dir, "upstream.sock")
 	listenPath := filepath.Join(dir, "proxy.sock")
 	trustedRoot := filepath.Join(dir, "work")
