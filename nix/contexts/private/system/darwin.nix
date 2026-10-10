@@ -35,7 +35,7 @@
 
       # Browsers
       "firefox"
-      # "ungoogled-chromium"
+      "ungoogled-chromium"
 
       # Audio & Video Tools
       "iina"
