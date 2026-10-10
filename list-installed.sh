@@ -4,7 +4,8 @@
 #
 #   nix        system, home-manager, and imperative `nix profile` / `nix-env`
 #   neovim     plugins from lazy-lock.json, tools from mason
-#   browsers   firefox and chromium-family extensions, firefox web apps
+#   browsers   every installed browser - firefox, safari, and the chromium
+#              family - with the extensions it has, plus firefox web apps
 #   ai         mcp servers declared in nix, plus per-agent mcp servers and
 #              plugins for claude, codex, and opencode
 #   cargo      crates installed with `cargo install`
@@ -67,26 +68,43 @@ DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
 STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
 APP_SUPPORT="$HOME/Library/Application Support" # macOS
+OS="$(uname -s)"
 
 all=""
 
-# emit <label> <source> <noun> <body>; body is one entry per line, may be empty.
+# emit <label> <source> <noun> <body> [always]; body is one entry per line and may
+# be empty, in which case only `always` prints the heading.
 emit() {
-  local label=$1 source=$2 noun=$3 body=$4 count
-  [ -n "$body" ] || return 0
-  all="$all$body"$'\n'
-  count="$(echo "$body" | wc -l)"
+  local label=$1 source=$2 noun=$3 body=$4 always=${5:-} count=""
+  [ -n "$body" ] || [ -n "$always" ] || return 0
+  if [ -n "$body" ]; then all="$all$body"$'\n'; fi
+  if [ "$FORMAT" != plain ]; then
+    count="$(printf '%s' "$body" | grep -c . || true)"
+  fi
   case "$FORMAT" in
     plain) ;;
     markdown)
       # shellcheck disable=SC2016  # the backticks are markdown, not a subshell
       printf '\n## %s\n\n`%s` — %s %s\n\n' "$label" "$source" "$count" "$noun"
-      echo "$body" | sed 's/^/- /'
+      if [ -n "$body" ]; then echo "$body" | sed 's/^/- /'; fi
       ;;
     *)
       printf '\n%s%s%s %s (%s %s)\n\n' "$BOLD" "$label" "$RESET" "$source" "$count" "$noun"
-      echo "$body" | sed 's/^/  /'
+      if [ -n "$body" ]; then echo "$body" | sed 's/^/  /'; fi
       ;;
+  esac
+}
+
+# note <label> <source> <text>; a remark about a section rather than an entry, so
+# it stays out of the plain listing and out of the total.
+note() {
+  case "$FORMAT" in
+    plain) ;;
+    markdown)
+      # shellcheck disable=SC2016  # the backticks are markdown, not a subshell
+      printf '\n## %s\n\n`%s` — %s\n\n' "$1" "$2" "$3"
+      ;;
+    *) printf '\n%s%s%s %s\n  %s\n' "$BOLD" "$1" "$RESET" "$2" "$3" ;;
   esac
 }
 
@@ -211,23 +229,120 @@ list_mason() {
 
 # --- browsers -----------------------------------------------------------
 
+app_bundle() {
+  local dir
+  for dir in /Applications "$HOME/Applications" /System/Applications; do
+    if [ -d "$dir/$1.app" ]; then echo "$dir/$1.app"; return 0; fi
+  done
+  return 1
+}
+
+# <name>|<profile root under APP_SUPPORT>|<config roots under CONFIG_HOME>|<binaries>
+CHROMIUM_BROWSERS=(
+  "Chromium|Chromium|chromium:ungoogled-chromium|chromium"
+  "Google Chrome|Google/Chrome|google-chrome:google-chrome-beta:google-chrome-unstable|google-chrome-stable"
+  "Microsoft Edge|Microsoft Edge|microsoft-edge|microsoft-edge"
+  "Brave Browser|BraveSoftware/Brave-Browser|BraveSoftware/Brave-Browser|brave"
+  "Vivaldi|Vivaldi|vivaldi|vivaldi"
+  "Opera|com.operasoftware.Opera|opera|opera"
+)
+
+# Config roots for one chromium browser, :-separated and absolute.
+chromium_roots() {
+  local root roots=""
+  local -a parts=()
+  if [ "$OS" = Darwin ]; then echo "$APP_SUPPORT/$1"; return; fi
+  IFS=':' read -r -a parts <<<"$2"
+  for root in "${parts[@]}"; do roots="$roots$CONFIG_HOME/$root:"; done
+  echo "${roots%:}"
+}
+
+# <name>, config roots, binaries - the two lists :-separated. macOS goes by the
+# bundle; elsewhere either a binary on PATH or an existing config root counts.
+browser_present() {
+  local bin root bins="${3:-}"
+  local -a root_list=()
+  if [ "$OS" = Darwin ]; then app_bundle "$1" >/dev/null; return; fi
+  # Binary names hold no spaces; root paths may.
+  for bin in ${bins//:/ }; do command -v "$bin" >/dev/null && return 0; done
+  IFS=':' read -r -a root_list <<<"$2"
+  for root in "${root_list[@]}"; do [ -d "$root" ] && return 0; done
+  return 1
+}
+
+# `<name>` and `<directory>`, tab-separated, per profile in `profiles.ini`; a
+# directory not registered there is a leftover, not a profile.
+firefox_profiles() {
+  local root=$1 ini dir
+  for ini in "$root/profiles.ini" "$(dirname "$root")/profiles.ini"; do
+    [ -f "$ini" ] || continue
+    awk -v base="$(dirname "$ini")" '
+      function flush() {
+        if (name != "" && path != "")
+          print name "\t" (path ~ /^\// ? path : base "/" path)
+        name = ""; path = ""
+      }
+      { gsub(/\r/, "") }
+      /^\[Profile[0-9]+\]/ { flush(); next }
+      /^\[/ { flush(); next }
+      /^Name=/ { sub(/^Name=/, ""); name = $0 }
+      /^Path=/ { sub(/^Path=/, ""); path = $0 }
+      END { flush() }
+    ' "$ini"
+    return 0
+  done
+  for dir in "$root"/*/; do
+    [ -f "$dir/extensions.json" ] || continue
+    dir="${dir%/}"
+    printf '%s\t%s\n' "${dir##*/}" "$dir"
+  done
+}
+
+# Roots Firefox may write profiles into.
+FIREFOX_ROOTS=( "$CONFIG_HOME/mozilla/firefox" "$HOME/.mozilla/firefox" "$APP_SUPPORT/Firefox/Profiles" )
+
+firefox_installed() {
+  local root
+  if [ "$OS" = Darwin ]; then app_bundle Firefox >/dev/null; return; fi
+  command -v firefox >/dev/null && return 0
+  for root in "${FIREFOX_ROOTS[@]}"; do [ -d "$root" ] && return 0; done
+  return 1
+}
+
 list_firefox() {
-  local root profile ext_json
-  for root in "$CONFIG_HOME/mozilla/firefox" "$HOME/.mozilla/firefox" \
-              "$APP_SUPPORT/Firefox/Profiles"; do
+  local root entries name dir ext_json body any="" seen_root="" src
+  firefox_installed || return 0
+
+  for root in "${FIREFOX_ROOTS[@]}"; do
     [ -d "$root" ] || continue
-    for ext_json in "$root"/*/extensions.json; do
+    [ -n "$seen_root" ] || seen_root="$root"
+    entries="$(firefox_profiles "$root")"
+    [ -n "$entries" ] || continue
+
+    while IFS=$'\t' read -r name dir; do
+      [ -n "$name" ] || continue
+      ext_json="$dir/extensions.json"
       [ -f "$ext_json" ] || continue
-      profile="$(basename "$(dirname "$ext_json")")"
-      # Everything shipping with firefox itself lives in an `app-builtin*` or
-      # `app-system-*` location; the rest is what was actually installed.
-      emit "browser · firefox" "$profile" extensions "$(jq -r '
+      # Firefox's own addons: an `app-builtin*`/`app-system-*`/`app-global` location,
+      # or a `@mozilla.*` id.
+      body="$(jq -r '
         .addons[]
-        | select(.location | test("^app-(builtin|system)") | not)
+        | select(.location | test("^app-(builtin|system|global)") | not)
+        | select(.id | test("@mozilla\\.(org|com)$") | not)
         | "\(.defaultLocale.name // .id) (\(.version))"
       ' "$ext_json" | sort -f)"
-    done
+      [ -n "$body" ] || continue
+      any=1
+      emit "browser · Firefox" "$name" extensions "$body"
+    done <<<"$entries"
   done
+
+  # Installed but nothing to list: still one heading.
+  if [ -z "$any" ]; then
+    src="${seen_root:-$(command -v firefox 2>/dev/null || true)}"
+    [ -n "$src" ] || src="${FIREFOX_ROOTS[0]}"
+    emit "browser · Firefox" "$(app_bundle Firefox || printf '%s' "$src")" extensions "" always
+  fi
 }
 
 # Extension names, one per line, from a chromium `Preferences`-style file.
@@ -259,23 +374,132 @@ list_firefox_pwa() {
 }
 
 list_chromium() {
-  local root profile prefs body
-  for root in "$CONFIG_HOME"/{chromium,ungoogled-chromium,google-chrome*,microsoft-edge,vivaldi,BraveSoftware/Brave-Browser} \
-              "$APP_SUPPORT"/{Chromium,Google/Chrome,Microsoft\ Edge,Vivaldi,BraveSoftware/Brave-Browser}; do
-    [ -d "$root" ] || continue
-    for profile in Default "$root"/Profile*; do
-      profile="$root/${profile##*/}"
-      body=""
-      # Chrome moved extension state into `Secure Preferences`; chromium and
-      # older profiles still keep it in `Preferences`.
-      for prefs in "$profile/Preferences" "$profile/Secure Preferences"; do
-        [ -f "$prefs" ] || continue
-        body="$body$(chromium_extensions_in "$prefs")"$'\n'
+  local entry app mac_root linux_roots bins roots root profile prefs body any label src seen_root
+  local -a root_list=()
+  local roots_present
+  for entry in "${CHROMIUM_BROWSERS[@]}"; do
+    IFS='|' read -r app mac_root linux_roots bins <<<"$entry"
+    roots="$(chromium_roots "$mac_root" "$linux_roots")"
+    browser_present "$app" "$roots" "$bins" || continue
+
+    any=""
+    # Split on the separator, not on whitespace: an Edge root holds a space.
+    IFS=':' read -r -a root_list <<<"$roots"
+
+    # A channel build adds a second root; naming it keeps the headings distinct.
+    roots_present=0
+    seen_root=""
+    for root in "${root_list[@]}"; do
+      [ -d "$root" ] || continue
+      roots_present=$((roots_present + 1))
+      [ -n "$seen_root" ] || seen_root="$root"
+    done
+
+    for root in "${root_list[@]}"; do
+      label="browser · $app"
+      if [ "$roots_present" -gt 1 ]; then label="$label (${root##*/})"; fi
+      for profile in Default "$root"/Profile*; do
+        profile="$root/${profile##*/}"
+        [ -d "$profile" ] || continue
+        any=1
+        body=""
+        # Chrome moved extension state into `Secure Preferences`; chromium and
+        # older profiles still keep it in `Preferences`.
+        for prefs in "$profile/Preferences" "$profile/Secure Preferences"; do
+          [ -f "$prefs" ] || continue
+          body="$body$(chromium_extensions_in "$prefs")"$'\n'
+        done
+        body="$(printf '%s' "$body" | { grep -v '^$' || true; } | sort -f -u)"
+        emit "$label" "${profile##*/}" extensions "$body" always
       done
-      emit "browser · ${root##*/}" "${profile##*/}" extensions \
-        "$(printf '%s' "$body" | { grep -v '^$' || true; } | sort -f -u)"
+    done
+
+    # Never launched: name what proved it is installed, not a root that is not there.
+    if [ -z "$any" ]; then
+      src="$seen_root"
+      [ -n "$src" ] || src="$(command -v "${bins%%:*}" 2>/dev/null || true)"
+      [ -n "$src" ] || src="${roots%%:*}"
+      emit "browser · $app" "$(app_bundle "$app" || printf '%s' "$src")" extensions "" always
+    fi
+  done
+}
+
+# Safari's extensions, plists keyed by `<bundle-id> (<team-id>)`; `WebExtensions` is the
+# modern kind, `AppExtensions` ship inside a host app.
+SAFARI_CONTAINER="$HOME/Library/Containers/com.apple.Safari/Data/Library/Safari"
+
+# `<bundle-id> <host app name>` per extension bundle inside an installed app.
+appex_names() {
+  local app appex name id
+  for app in /Applications/*.app "$HOME/Applications"/*.app /System/Applications/*.app; do
+    [ -d "$app" ] || continue
+    name="${app##*/}"
+    name="${name%.app}"
+    for appex in "$app"/Contents/PlugIns/*.appex; do
+      [ -d "$appex" ] || continue
+      id="$(plutil -extract CFBundleIdentifier raw -o - "$appex/Contents/Info.plist" 2>/dev/null || true)"
+      [ -n "$id" ] || continue
+      printf '%s %s\n' "$id" "$name"
     done
   done
+}
+
+# Bundle ids of the extensions Safari has switched on. The store is XML because its
+# entries carry dates, which `plutil -convert json` rejects. An entry with no
+# `Enabled` key was never switched on, which is not the same as enabled.
+safari_extensions_in() {
+  plutil -convert xml1 -o - "$1" 2>/dev/null | awk '
+    /<dict>/ { depth++ }
+    /<\/dict>/ { depth-- }
+    /<key>/ {
+      k = $0; sub(/^.*<key>/, "", k); sub(/<\/key>.*/, "", k)
+      if (depth == 1) cur = k
+      else if (depth == 2) want = (k == "Enabled")
+      next
+    }
+    want && depth == 2 && /<true\/>/ {
+      gsub(/ \([A-Z0-9]+\)$/, "", cur)
+      print cur
+      want = 0
+      next
+    }
+    want && depth == 2 && /<false\/>/ { want = 0; next }
+  '
+}
+
+list_safari() {
+  command -v plutil >/dev/null || return 0
+  browser_present Safari "$SAFARI_CONTAINER" || return 0
+
+  local plist id ids name names="" ids_all="" unreadable="" body=""
+  for plist in "$SAFARI_CONTAINER/WebExtensions/Extensions.plist" \
+               "$SAFARI_CONTAINER/AppExtensions/Extensions.plist"; do
+    # A store that is not there yet is an empty one, not a failure.
+    [ -e "$plist" ] || continue
+    if [ ! -r "$plist" ] || ! ids="$(safari_extensions_in "$plist")"; then
+      unreadable=1
+      continue
+    fi
+    ids_all="$ids_all$ids"$'\n'
+  done
+  ids_all="$(printf '%s' "$ids_all" | { grep -v '^$' || true; } | sort -f -u)"
+
+  # Nothing to show and something unreadable: the count is unknowable, not zero.
+  if [ -z "$ids_all" ] && { [ -n "$unreadable" ] || [ ! -d "$SAFARI_CONTAINER" ]; }; then
+    note "browser · Safari" "$(app_bundle Safari)" \
+      "extension list unavailable - absent, or not readable without Full Disk Access"
+    return 0
+  fi
+
+  if [ -n "$ids_all" ]; then names="$(appex_names)"; fi
+  while read -r id; do
+    [ -n "$id" ] || continue
+    name="$(printf '%s\n' "$names" | awk -v id="$id" '$1 == id { sub(/^[^ ]+ /, ""); print; exit }')"
+    body="$body${name:-$id}"$'\n'
+  done <<<"$ids_all"
+
+  emit "browser · Safari" "$(app_bundle Safari)" extensions \
+    "$(printf '%s' "$body" | { grep -v '^$' || true; } | sort -f)" always
 }
 
 # --- project devshells --------------------------------------------------
@@ -505,7 +729,7 @@ fi
 
 if wanted nix; then list_nix && list_wrapped; fi
 if wanted neovim; then list_lazy && list_mason; fi
-if wanted browsers; then list_firefox && list_firefox_pwa && list_chromium; fi
+if wanted browsers; then list_firefox && list_firefox_pwa && list_chromium && list_safari; fi
 if wanted ai; then list_nix_mcp && list_claude && list_codex && list_opencode; fi
 if wanted cargo; then list_cargo; fi
 if wanted brew; then list_brew && list_mas; fi
