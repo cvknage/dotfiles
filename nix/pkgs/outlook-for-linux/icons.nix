@@ -10,7 +10,7 @@
   # every size we emit.
   master = fetchurl {
     url = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Microsoft_Outlook_Icon_%282025%E2%80%93present%29.svg/1280px-Microsoft_Outlook_Icon_%282025%E2%80%93present%29.svg.png";
-    hash = "sha256-TJV1gOT4UFK2x6Hrpjw+GUHVjws43ndrHQqAss06rBo=";
+    hash = "sha256-nAtQBVghaLsRKkh9gM04v5kjfk7E2aHRRpK5cE0hFd8=";
   };
 
   sizes = [
