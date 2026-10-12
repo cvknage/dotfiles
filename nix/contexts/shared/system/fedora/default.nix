@@ -14,6 +14,7 @@ in {
   imports = [
     ../../../../../kanata/kanata_install_system_manager.nix
     ../../../../modules/shared/desktops/gnome/option.nix
+    ../../../../modules/shared/vpn/snx-rs.nix
     ../../../../modules/system-manager
   ];
 

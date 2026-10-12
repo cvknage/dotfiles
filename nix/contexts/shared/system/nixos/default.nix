@@ -33,7 +33,6 @@ in {
 
   # Enable networking
   networking.networkmanager.enable = true;
-  networking.networkmanager.plugins = [pkgs.networkmanager-openvpn];
 
   # Set your time zone.
   time.timeZone = "Europe/Copenhagen";

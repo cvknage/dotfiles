@@ -33,10 +33,6 @@ PACKAGES=(
   moby-engine
   docker-compose
 
-  # NetworkManager VPN plugin, matching networkmanager-openvpn on NixOS
-  NetworkManager-openvpn
-  NetworkManager-openvpn-gnome
-
   # Work-only: Red Hat IdM client; ipa-client-install itself stays manual
   # (needs a personal enrollment password from IT)
   freeipa-client

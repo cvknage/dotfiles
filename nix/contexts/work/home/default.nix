@@ -23,8 +23,9 @@
       "github_public_key"
       "github_private_key"
       "docker_registry_hostname"
+      "vpn_ca_certificate"
       "vpn_connection_name"
-      "vpn_trusted_wifi_ssid"
+      "vpn_server_address"
     ] (_: {sopsFile = "${inputs.secrets.outPath}/secrets/homes/work/secrets.yaml";});
 
   home.packages = [

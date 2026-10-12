@@ -466,10 +466,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1790685863,
-        "narHash": "sha256-7ZHvd3BtTpWhbfhwvuUbh+cnRVokW56ZTPIQcm9CESY=",
+        "lastModified": 1791788941,
+        "narHash": "sha256-TkybLx1MH6tPyet/e0rA+dJO4psY6kYruqrTKh7WHnI=",
         "ref": "refs/heads/main",
-        "rev": "1f6106317e98160fba43599a1d71610daf1ffbfe",
+        "rev": "559653db005560160df8c1b14fbb5c9909fd55af",
         "revCount": 1,
         "type": "git",
         "url": "ssh://github-secrets/cvknage/dotfiles-secrets"

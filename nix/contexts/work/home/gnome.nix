@@ -84,7 +84,18 @@
         "${pkgs.teams-for-linux}/share/applications/teams-for-linux.desktop"
         "${config.home.profileDirectory}/share/applications/outlook-for-linux.desktop"
         # "${config.home.homeDirectory}/.nix-profile/share/applications/FFPWA-3ZPKFCVA6N628YZFAFDB2MVRPN.desktop" # Outlook PWA
+        "${config.home.profileDirectory}/share/applications/snx-rs-gui.desktop"
       ];
+    };
+
+    # nixpkgs' snx-rs ships no desktop file; built from upstream's package/snx-rs-gui.desktop.
+    xdg.desktopEntries.snx-rs-gui = {
+      name = "SNX-RS VPN client";
+      genericName = "Check Point VPN client";
+      comment = "Check Point VPN client";
+      exec = "snx-rs-gui";
+      icon = "network-vpn";
+      categories = ["Network"];
     };
 
     # Drop from GNOME's app grid and search
