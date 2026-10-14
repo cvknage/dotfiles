@@ -51,6 +51,26 @@
         "type": "github"
       }
     },
+    "claude-cowork-linux": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791709946,
+        "narHash": "sha256-lhdJ/lunCJH+RJnl3jOtCkl/1dgRJ93fz29zGQo5PLY=",
+        "owner": "johnzfitch",
+        "repo": "claude-cowork-linux",
+        "rev": "a01e9bf35b93114055c90132f989afe4f9ff3101",
+        "type": "github"
+      },
+      "original": {
+        "owner": "johnzfitch",
+        "repo": "claude-cowork-linux",
+        "type": "github"
+      }
+    },
     "claude-pace": {
       "flake": false,
       "locked": {
@@ -439,6 +459,7 @@
     },
     "root": {
       "inputs": {
+        "claude-cowork-linux": "claude-cowork-linux",
         "claude-pace": "claude-pace",
         "code-graph-mcp-linux-x86_64": "code-graph-mcp-linux-x86_64",
         "code-graph-mcp-macos-arm64": "code-graph-mcp-macos-arm64",

@@ -53,6 +53,10 @@
     ollama = {
       url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     };
+    claude-cowork-linux = {
+      url = "github:johnzfitch/claude-cowork-linux";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     claude-pace = {
       url = "github:Astro-Han/claude-pace/v0.9.4";
       # url = "github:Astro-Han/claude-pace"; # main, untagged

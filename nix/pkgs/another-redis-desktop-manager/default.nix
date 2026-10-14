@@ -1,17 +1,18 @@
 {
-  lib,
-  pkgs,
-  ...
+  appimageTools,
+  fetchurl,
+  imagemagick,
+  runCommand,
 }: let
   # Set Version and SHA
   version = "1.7.1";
   SHA = "0m64isixgv6yx7h69x81nq97lx732dvvcdj1c7l9llp1qs7bir2y";
 
   # Build AnotherRedisDesktopManager from AppImage
-  another-redis-desktop-manager = pkgs.appimageTools.wrapType2 {
+  another-redis-desktop-manager = appimageTools.wrapType2 {
     pname = "AnotherRedisDesktopManager";
     version = "${version}";
-    src = pkgs.fetchurl {
+    src = fetchurl {
       url = "https://github.com/qishibo/AnotherRedisDesktopManager/releases/download/v${version}/Another-Redis-Desktop-Manager-linux-${version}-x86_64.AppImage";
       sha256 = "${SHA}";
     };
@@ -40,9 +41,9 @@
 
   # Fetch and convert the icon
   icon =
-    pkgs.runCommand "another-redis-desktop-manager-icon" {
-      nativeBuildInputs = [pkgs.imagemagick];
-      src = pkgs.fetchurl {
+    runCommand "another-redis-desktop-manager-icon" {
+      nativeBuildInputs = [imagemagick];
+      src = fetchurl {
         url = "https://raw.githubusercontent.com/qishibo/AnotherRedisDesktopManager/9cdeea3887ead462b89dfeab7a12b93c739b1c43/pack/electron/icons/icon.png";
         sha256 = "05m5wrzz7lmv75rvp8j0fmph141jp8vvvy5hqjrp1v4dpvrl6xw6";
       };
@@ -50,10 +51,5 @@
       mkdir -p $out/share/icons/hicolor/512x512/apps
       convert $src $out/share/icons/hicolor/512x512/apps/another-redis-desktop-manager.png
     '';
-in {
-  config = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
-    home.packages = [
-      another-redis-desktop-manager
-    ];
-  };
-}
+in
+  another-redis-desktop-manager
