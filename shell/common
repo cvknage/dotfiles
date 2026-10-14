@@ -16,23 +16,23 @@ function gitui_themed() {
     "Linux")
       if [[ "$XDG_CURRENT_DESKTOP" == *GNOME* ]]; then
         if [[ $(gsettings get org.gnome.desktop.interface color-scheme) =~ "dark" ]]; then
-          gitui -t catppuccin-mocha.ron
+          command gitui -t catppuccin-mocha.ron
         else
-          gitui -t catppuccin-frappe.ron
+          command gitui -t catppuccin-frappe.ron
         fi
       else
-        gitui -t catppuccin-macchiato.ron
+        command gitui -t catppuccin-macchiato.ron
       fi
       ;;
     "Darwin")
       if [[ "$(osascript -l JavaScript -e "Application('System Events').appearancePreferences.darkMode.get()")" == "true" ]]; then
-        gitui -t catppuccin-mocha.ron
+        command gitui -t catppuccin-mocha.ron
       else
-        gitui -t catppuccin-frappe.ron
+        command gitui -t catppuccin-frappe.ron
       fi
       ;;
     *)
-      gitui -t catppuccin-macchiato.ron
+      command gitui -t catppuccin-macchiato.ron
       ;;
   esac
 }
@@ -46,59 +46,67 @@ function export_sops_secret() {
 
 # shortcut for cloning in to a bare repo
 function git-worktree-clone() {
+  local Repository Directory GitDir RemoteHead DefaultBranch DirectoryExisted EmptyRemote arg SingleBranch=0
+  local Usage='Usage: [--single-branch] <repository> [<directory>]'
+
   for arg; do
     if [ "$arg" = --single-branch ]; then
       SingleBranch=1
-    elif [ -z ${Repository+x} ]; then
+    elif [ -z "$Repository" ]; then
       Repository="$arg"
-    elif [ -z ${Directory+x} ]; then
+    elif [ -z "$Directory" ]; then
       Directory="$arg"
     else
-      echo 'Usage: [--single-branch] <repository> [<directory>]'
-      exit 1
+      echo "$Usage"
+      return 1
     fi
   done
 
-  if [ -z ${Repository+x} ]; then
-    echo 'Usage: [--single-branch] <repository> [<directory>]'
-    exit 1
+  if [ -z "$Repository" ]; then
+    echo "$Usage"
+    return 1
   fi
 
-  if [ -z ${Directory+x} ]; then
-    Directory="$(basename "${Repository}" .git)"
+  [ -n "$Directory" ] || Directory="$(basename "${Repository}" .git)"
+  GitDir="${Directory}/.git"
+
+  if [ -e "$GitDir" ]; then
+    echo "${GitDir} already exists"
+    return 1
   fi
 
-  DirectoryExists="$(
-    test -d "${Directory}"
-    echo $?
-  )"
-
-  if [ "$SingleBranch" = 1 ]; then
-    git clone --single-branch --bare "${Repository}" "${Directory}/.git"
-  else
-    git clone --bare "${Repository}" "${Directory}/.git"
+  RemoteHead="$(git ls-remote --symref "${Repository}" HEAD)" || return 1
+  DefaultBranch="$(printf '%s\n' "${RemoteHead}" | awk '/^ref:/ { sub("refs/heads/", "", $2); print $2; exit }')"
+  if [ -z "$DefaultBranch" ] && [ -n "$RemoteHead" ]; then
+    DefaultBranch="$(git ls-remote --heads "${Repository}" |
+      awk -v sha="$(printf '%s\n' "${RemoteHead}" | awk '{ print $1; exit }')" '$1 == sha { sub("refs/heads/", "", $2); print $2; exit }')"
+  fi
+  if [ -z "$DefaultBranch" ]; then
+    EmptyRemote=1
+    DefaultBranch="$(git config --get init.defaultBranch || echo main)"
   fi
 
-  if [ $? -ne 0 ]; then
-    if [ ${DirectoryExists} -ne 0 ]; then
-      rmdir "${Directory}"
-    fi
-    exit 1
+  [ -d "${Directory}" ] && DirectoryExisted=1
+
+  echo "Fetching ${Repository}..."
+  if ! {
+    git init --bare --quiet -b "${DefaultBranch}" "${GitDir}" &&
+      git -C "${GitDir}" remote add origin "${Repository}" &&
+      { [ "$SingleBranch" != 1 ] || git -C "${GitDir}" remote set-branches origin "${DefaultBranch}"; } &&
+      git -C "${GitDir}" fetch --quiet origin &&
+      if [ -n "$EmptyRemote" ]; then
+        git -C "${GitDir}" config "branch.${DefaultBranch}.remote" origin &&
+          git -C "${GitDir}" config "branch.${DefaultBranch}.merge" "refs/heads/${DefaultBranch}" &&
+          git -C "${Directory}" worktree add --quiet --orphan -b "${DefaultBranch}" "${DefaultBranch}"
+      else
+        git -C "${GitDir}" remote set-head origin "${DefaultBranch}" &&
+          git -C "${Directory}" worktree add --quiet --track -b "${DefaultBranch}" "${DefaultBranch}" "origin/${DefaultBranch}"
+      fi
+  }; then
+    rm -rf "${GitDir}"
+    [ -n "$DirectoryExisted" ] || rmdir "${Directory}"
+    return 1
   fi
-
-  pushd "${Directory}" >/dev/null
-
-  DefaultBranch="$(git rev-parse --abbrev-ref HEAD)"
-
-  if [ "$SingleBranch" = 1 ]; then
-    git config --add remote.origin.fetch "+refs/heads/${DefaultBranch}:refs/remotes/origin/${DefaultBranch}"
-  else
-    git config --add remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-  fi
-
-  git worktree add "${DefaultBranch}"
-
-  popd >/dev/null
 }
 alias gwtc="git-worktree-clone"
 
