@@ -72,26 +72,26 @@ in {
         command = lib.getExe (mkMcpCmd "code-graph-mcp" [] {} (lib.getExe codeGraphMcp));
         args = ["serve"];
       };
-      atlassian = lib.mkIf (homeContext.isWork config) {
+      atlassian = lib.mkIf homeContext.isWork {
         type = "local";
         command = lib.getExe (mkMcpCmd "atlassian" [pkgs.nodejs] {} "npx");
         args = ["-y" "mcp-remote" "https://mcp.atlassian.com/v1/mcp"];
       };
       /*
-      kubernetes = lib.mkIf (homeContext.isWork config) {
+      kubernetes = lib.mkIf homeContext.isWork {
         type = "local";
         command = lib.getExe (mkMcpCmd "kubernetes" [pkgs.nodejs] {} "npx");
         args = ["-y" "kubernetes-mcp-server@latest"];
       };
       */
       /*
-      figma = lib.mkIf (homeContext.isWork config) {
+      figma = lib.mkIf homeContext.isWork {
         type = "remote";
         url = "https://mcp.figma.com/mcp";
       };
       */
       /*
-      github = lib.mkIf (homeContext.isWork config) {
+      github = lib.mkIf homeContext.isWork {
         type = "remote";
         url = "https://api.githubcopilot.com/mcp/";
         headers = {
@@ -100,7 +100,7 @@ in {
       };
       */
       /*
-      azure = lib.mkIf (homeContext.isWork config) {
+      azure = lib.mkIf homeContext.isWork {
         type = "local";
         command = lib.getExe (mkMcpCmd "azure" [pkgs.nodejs pkgs.azure-cli] {
           LD_LIBRARY_PATH = ''"${lib.makeLibraryPath [pkgs.icu]}:''${LD_LIBRARY_PATH:-}"'';

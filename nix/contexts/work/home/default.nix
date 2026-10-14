@@ -63,8 +63,4 @@
     profileExtra = ''
     '';
   };
-
-  home.sessionVariables = {
-    HOME_CONFIGURATION_CONTEXT = "work";
-  };
 }

@@ -34,7 +34,7 @@ in {
     '';
   };
   programs.opencode = {
-    enable = !(homeContext.isWork config);
+    enable = !homeContext.isWork;
     enableMcpIntegration = true;
     package = sandboxedPackage;
     themes = {

@@ -1,6 +1,6 @@
-let
-  is = expected: config: config.home.sessionVariables.HOME_CONFIGURATION_CONTEXT == expected;
-in {
-  isPrivate = is "private";
-  isWork = is "work";
-}
+{lib}: let
+  names = ["private" "work"];
+in
+  lib.genAttrs names (name:
+    {inherit name;}
+    // lib.listToAttrs (map (other: lib.nameValuePair "is${lib.toSentenceCase other}" (name == other)) names))

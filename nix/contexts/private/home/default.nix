@@ -49,8 +49,4 @@
       export_sops_secret MUTATION_STRINGS "${config.sops.secrets.mutation_strings.path}"
     '';
   };
-
-  home.sessionVariables = {
-    HOME_CONFIGURATION_CONTEXT = "private";
-  };
 }

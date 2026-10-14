@@ -86,10 +86,8 @@
     aarch64Darwin = "aarch64-darwin";
     x86_64Linux = "x86_64-linux";
 
-    mkArgs = user: {
-      inherit inputs user;
-      homeContext = import ./lib/home-context.nix;
-    };
+    homeContexts = import ./lib/home-context.nix {inherit lib;};
+    mkArgs = user: homeContext: {inherit inputs user homeContext;};
     # Like nixpkgs.lib.nixosSystem, but for System Manager machines.
     mkGenericLinuxSystem = import ./lib/mk-generic-linux-system.nix {
       inherit inputs nixpkgs;
@@ -100,8 +98,8 @@
     owner = "Christophe Knage";
     privateUser = "chris";
     workUser = "ckn";
-    privateArgs = mkArgs privateUser;
-    workArgs = mkArgs workUser;
+    privateArgs = mkArgs privateUser homeContexts.private;
+    workArgs = mkArgs workUser homeContexts.work;
 
     sharedModules = [
       ./modules/shared

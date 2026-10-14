@@ -4,7 +4,7 @@
   homeContext,
   ...
 }: {
-  enabled = homeContext.isPrivate config;
+  enabled = homeContext.isPrivate;
 
   # First entry is codex's default model; keep the opus tier there.
   models = [

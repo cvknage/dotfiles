@@ -21,20 +21,20 @@ in {
         name = ".claude/skills/${name}";
         value.source = skillSource name;
       })
-      (commonSkills ++ lib.optionals (homeContext.isWork config) workOnlySkills)))
+      (commonSkills ++ lib.optionals homeContext.isWork workOnlySkills)))
 
     # Codex discovers user-level skills from the shared agents directory.
     (lib.listToAttrs (map (name: {
         name = ".agents/skills/${name}";
         value.source = skillSource name;
       })
-      (commonSkills ++ lib.optionals (homeContext.isWork config) workOnlySkills)))
+      (commonSkills ++ lib.optionals homeContext.isWork workOnlySkills)))
 
     # OpenCode is disabled entirely on work hosts, so skip it there.
     (lib.listToAttrs (map (name: {
         name = "${config.xdg.configHome}/opencode/skills/${name}";
         value = {
-          enable = !(homeContext.isWork config);
+          enable = !homeContext.isWork;
           source = skillSource name;
         };
       })

@@ -84,11 +84,11 @@
       # Swift LSP
       # pkgs.sourcekit-lsp
     ]
-    ++ lib.optionals (homeContext.isPrivate config) [
+    ++ lib.optionals homeContext.isPrivate [
       # ACP adapter for Claude Code, used by codecompanion.nvim
       claudeAgentAcp
     ]
-    ++ lib.optionals (homeContext.isWork config) [
+    ++ lib.optionals homeContext.isWork [
       # Needed by easy-dotnet.nvim
       easy-dotnet-server
 
@@ -220,7 +220,7 @@ in {
     ".claude/CLAUDE.md".source = "${dotfiles}/agents/AGENTS.md";
     ".codex/AGENTS.md".source = "${dotfiles}/agents/AGENTS.md";
     "${config.xdg.configHome}/opencode/AGENTS.md" = {
-      enable = !(homeContext.isWork config);
+      enable = !homeContext.isWork;
       source = "${dotfiles}/agents/AGENTS.md";
     };
     "${config.xdg.configHome}/starship.toml".source = "${dotfiles}/starship/starship.toml";
@@ -243,6 +243,7 @@ in {
     EDITOR = "nvim";
     VISUAL = "nvim";
     TERMINAL = "ghostty";
+    HOME_CONFIGURATION_CONTEXT = homeContext.name;
   };
 
   # Let Home Manager install and manage itself.
