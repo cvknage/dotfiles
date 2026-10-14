@@ -13,7 +13,6 @@
     readOnlyPaths = lib.escapeShellArgs profile.readOnlyPaths;
     socketPaths = lib.escapeShellArgs profile.socketPaths;
     writePaths = lib.escapeShellArgs profile.writePaths;
-    launchRoots = lib.escapeShellArgs profile.launchRoots;
   in
     pkgs.writeShellApplication {
       name = "${agent}-outer-sandbox";
@@ -128,16 +127,6 @@
           if [ -e "$path" ]; then
             sandbox+=(--bind "$path" "$path")
           fi
-        done
-
-        # Last of all: re-deny write access to every .git/config under a launch root.
-        # core.fsmonitor runs as an arbitrary command on `git status`, which shell integrations
-        # (e.g. starship) invoke on every prompt.
-        for root in ${launchRoots}; do
-          [ -d "$root" ] || continue
-          while IFS= read -r -d "" git_config; do
-            sandbox+=(--ro-bind "$git_config" "$git_config")
-          done < <(find "$root" -type f -path "*/.git/config" -print0 2>/dev/null)
         done
 
         exec bwrap "''${sandbox[@]}" \

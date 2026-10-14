@@ -4,11 +4,11 @@ description: Second-opinion review of a completed code change by a fresh-context
 ---
 - **When**: after completing a code change — once per change, before reporting
   done or proposing a commit. Not between edits, and not a gate to re-run on
-  every iteration.
+  every iteration. Re-run it when the user asks, after the change was reworked.
 - **Tier**: the default model — the opus tier in Claude Code and Codex. Leave
   the cheapest tier alone, since a review needs real reasoning, and leave the
   premium tier for deliberate escalation on a genuinely high-risk change, where
-  its order-of-magnitude cost is earned.
+  its higher cost is earned.
 - **Fresh context**: the reviewer must not be you re-reading your own work, so
   spawn a subagent — Claude Code: the Agent tool with `model: opus`; Codex: its
   subagent/task tool; OpenCode: its subagent mechanism. With no subagent
@@ -19,7 +19,10 @@ description: Second-opinion review of a completed code change by a fresh-context
   instruction to run `git diff` itself (untracked files count as new-file
   diffs) and review that diff in a single pass. Ask for correctness defects
   first, each with file:line and the concrete failure scenario, then
-  simplification and efficiency findings. Calibrated output, no style nits.
+  simplification, reuse (could something existing be extended instead of
+  building new?) and efficiency findings, including comments that are long,
+  narrate history, or restate obvious code, and tests that reimplement the
+  logic under test instead of exercising the real code. Calibrated output.
 - **Triage**: fix or refute every finding before finishing. A finding you
   cannot refute is not resolved by ignoring it.
 - **Handoff to the user**: once findings are triaged and the change is staged,

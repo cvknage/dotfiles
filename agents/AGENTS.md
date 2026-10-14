@@ -20,35 +20,42 @@
 ## Workflow
 
 - Follow repository-local instructions; prefer project tools, formatters, and test commands.
-- When `.envrc` uses `use flake`, review `.envrc` and `flake.nix`, then `direnv allow` (or
-  `nix develop` if direnv is unavailable) and work in that shell.
+- When the repo has a flake dev shell (`use flake` in `.envrc`) that isn't already active — a fresh
+  worktree, say — review `.envrc` and `flake.nix`, then run commands through `nix develop`.
+- In a bare-repo container (`git rev-parse --is-bare-repository` prints `true`), edit no code. A
+  session-start hook starts the `refresh-main` skill's background job, which keeps the default branch's
+  worktree and its code-graph index current; if it didn't, start that job before anything else.
 - Keep dependency lockfile changes intentional, using the ecosystem's supported update commands.
 - Preserve existing user changes; avoid unrelated files and new documentation unless asked.
 
 ## Review Flow
 
 - If the current harness has a built-in review skill (for example, Claude Code's `code-review` or
-  Codex's `@review-agent`), run it during implementation itself, not only right before a commit — at
-  least once per completed milestone of a multi-step plan, and again mid-milestone if it's large
-  enough to have its own meaningful sub-steps, but not on every incremental edit. It typically forks
+  Codex's `@review-agent`), run it repeatedly while implementing, on small sections: after each
+  cohesive chunk of work (a finished plan milestone, or a self-contained set of edits within a
+  larger one) and before starting the next chunk — not only at the end, and not on every incremental
+  edit. Fix or refute its findings before moving on so errors don't compound. It typically forks
   the current session rather than starting fresh, so it's fast but shares whatever blind spot
-  produced the change; still catches correctness bugs plus reuse/simplification/efficiency issues
-  early, while they're cheap to fix. Where no such skill exists, review the diff yourself against the
-  same criteria instead.
-- Before proposing a commit for a completed change, run that built-in review once more where
-  available, then run the `agent-review` skill — a genuinely fresh-context second opinion, on the
-  default model per that skill's own tier policy, that has seen none of the reasoning behind the
-  change, unlike the forked in-session pass above. `agent-review` is the automatic per-change gate
-  that always follows; don't skip straight to it, and don't let either substitute for `human-review`
-  below. Fix or explicitly refute every finding from both passes before moving on — never silently
-  drop one.
+  produced the change; its job is catching correctness bugs plus reuse/simplification/efficiency
+  issues while they're cheap to fix. Where no such skill exists, review the diff yourself against
+  the same criteria instead.
+- Every review pass, built-in or `agent-review`, also asks: is there a simpler way; can something
+  that already exists be reused, or extended a little, instead of building new; are comments and
+  docs short and current-state only (see Code Comments); do tests exercise the real code instead of
+  reimplementing the logic they claim to test.
+- When the implementation is complete, run the `agent-review` skill once — the single big review at
+  the end: a genuinely fresh-context second opinion, on the default model per that skill's own tier
+  policy, that has seen none of the reasoning behind the change. The built-in review has already
+  run along the way, so don't repeat it here; `agent-review` is the automatic per-change gate before
+  proposing a commit, and neither review substitutes for `human-review` below. Fix or explicitly
+  refute every finding from every pass before moving on — never silently drop one.
 - Once findings are triaged, stage the change and run the `human-review` skill so the user can leave
   inline `REVIEW:` comments in the staged files. Wait for them to say they're done, then read and
   resolve each comment.
-- Only propose the commit once all passes are resolved. A bare request like "review time" means run
-  this whole sequence in order — the built-in review where available, `agent-review`, then after
-  staging `human-review` — not a single skill picked in isolation. This flow governs the top-level
-  session's own edits; a review subagent does not re-run it on its own output.
+- Only propose the commit once all passes are resolved. A bare request like "review time" means the
+  change was reworked (human-review comments or otherwise) and the user wants an assessment of the
+  whole: run `agent-review` only. This flow governs the top-level session's own edits; a review
+  subagent does not re-run it on its own output.
 
 ## Session State & Memory
 
@@ -58,8 +65,8 @@
   the task entirely.
 - Compose the plan the same way regardless of which tool below writes it: small milestones that each
   leave the tree building and committable on their own, not just independently verifiable, with a
-  concrete done-check (a command, test, or observable result), kept under 100 lines — planning only,
-  don't write code yet, and ask first if the task is unclear.
+  concrete done-check (a command, test, or observable result), and kept short enough to re-read in
+  full at pickup — planning only, don't write code yet, and ask first if the task is unclear.
 - Before multi-step work, persist that plan by calling `write_plan` (`mcp__sessions__write_plan`) —
   it replaces any existing plan outright and archives notes.md wholesale to notes.md.bak, so don't
   read the old plan first. Use it only when starting genuinely new work.
@@ -129,9 +136,13 @@
 - Before writing a comment, check whether the fact is already visible nearby — a parameter name, an
   adjacent value, a key that already says what it does. If a reader would see it within a few lines
   anyway, the comment is redundant no matter how short; don't write it.
-- Default to zero comments. When one is genuinely warranted, a single short line stating the
+- Default to zero inline comments. When one is genuinely warranted, a single short line stating the
   non-obvious fact is enough — a hidden constraint, an external requirement, a subtle invariant.
 - Multi-line is fine, but only for a genuinely hard-won gotcha (a bug that took real investigation to
   root-cause, a subtle footgun) — keep it dense and factual, not a narrative walkthrough. Design
   rationale, intent, and "why this approach" belong in the commit message, not the file.
+- A comment says what the code does now, never its history — no "changed to X because", "no longer
+  does Y"; that belongs in the commit message.
+- Method and API documentation is welcome but a line or two, not a wall of text. Prefer renaming or
+  restructuring so the code explains itself over documenting it.
 - No comment is better than a redundant one.

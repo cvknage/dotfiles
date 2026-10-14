@@ -2,6 +2,7 @@
   agentPolicy,
   agentSandbox,
   config,
+  dotfiles,
   homeContext,
   inputs,
   lib,
@@ -14,7 +15,7 @@
     package = basePackage;
     executable = "codex";
   };
-  codeGraphHooks = import ../hooks;
+  codeGraphHooks = import ../hooks {inherit dotfiles;};
   materialize = import ../materialize-config.nix {inherit lib pkgs;};
 
   settingsFormat = pkgs.formats.toml {};
@@ -60,6 +61,7 @@
       suppress_unstable_features_warning = true;
       # Recapture from a trusted session whenever the hook definition changes.
       hooks.state."${config.home.homeDirectory}/${configDir}/hooks.json:post_tool_use:0:0".trusted_hash = "sha256:655cfe92116fd6fb09b6f8dec597169d9100c8d80f5b9fa07473830674ca491b";
+      hooks.state."${config.home.homeDirectory}/${configDir}/hooks.json:session_start:0:0".trusted_hash = "sha256:b365c592ee40e038ebe59abd4c15b4795e5be540c72f545d778b35bfb05f7eeb";
     }
     // lib.optionalAttrs config.programs.mcp.enable {
       mcp_servers = mcpServers;
@@ -101,6 +103,17 @@ in {
     # NOTE: settings are intentionally NOT passed here — the module would write
     # config.toml as a Home Manager-managed file, colliding with the mutable
     # link the activation above owns.
+    hooks.SessionStart = [
+      {
+        matcher = "startup|resume";
+        hooks = [
+          {
+            type = "command";
+            command = codeGraphHooks.refreshMainCommand;
+          }
+        ];
+      }
+    ];
     hooks.PostToolUse = [
       {
         hooks = [

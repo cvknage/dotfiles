@@ -125,14 +125,6 @@
       ''
     ) ["SOPS_SECRETS" "SOPS_SECRETS_PRIVATE" "SOPS_SECRETS_DATA"];
 
-    # core.fsmonitor in .git/config runs as an arbitrary command on `git status`, which shell
-    # integrations (e.g. starship) invoke on every prompt; deny writes to it anywhere under $HOME.
-    gitConfigDenies =
-      lib.concatMapStrings (spelling: ''
-        (deny file-write* (regex "^${escapeSeatbeltRegex spelling}/.*/\\.git/config$"))
-      '')
-      (homeSpellings policy.homeDirectory);
-
     # Deny-by-default Seatbelt profile. macOS pitfalls: an undefined `(param ...)`
     # breaks compilation, and denied IPC/tty/file-map-executable ops abort the
     # process silently (SIGABRT), so the system baseline must stay complete.
@@ -242,7 +234,6 @@
       ${socketNetworkAllows}
       ${lookupAllows}${homeChildProbeAllows}${homeChildProbeDenies}
       ${sopsSecretsDenies}
-      ${gitConfigDenies}
 
       ; This launch's own herdr-agent-proxy socket, resolved at invocation time (-D below).
       (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "HERDR_PROXY_SOCKET")))

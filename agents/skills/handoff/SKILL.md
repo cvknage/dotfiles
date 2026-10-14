@@ -10,6 +10,6 @@ Hand off in order:
    - What was just done.
    - The exact next step.
    - Open questions and suspicions.
-   Keep the entry under 30 lines and prune anything resolved or stale.
+   Keep the entry short enough to read in one pass, and prune anything resolved or stale.
 3. Record anything durable — gotchas, cross-project learnings — in the memory graph via `mcp__memory__create_entities`/`add_observations`/`create_relations`. Session state is cleared on reset; the graph is not.
 4. Tell the user to start a fresh session and run the pickup ritual.

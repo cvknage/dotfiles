@@ -10,10 +10,10 @@ description: "Review another developer's GitHub PR by checking it out and having
   sha, and PR URL.
 - **Hand off**: tell the user the PR is checked out and ready to review, then wait — do not
   scan for comments until the user says they're finished.
-- **Collect**: once done, for each changed file, `grep -n 'REVIEW:'` the working tree. For
-  the i-th match (1-indexed, top to bottom) at raw line L, the real target line is `L - i` —
-  each earlier `REVIEW:` line inserted above it shifts everything below down by one. Take the
-  text after `REVIEW:` as the comment body.
+- **Collect**: once done, run this skill's `scripts/collect-review-comments.py <baseRefName>` in the
+  checkout. It prints the `comments` array (`path`, `line`, `side`, `body`) for every `REVIEW:` marker
+  in the PR's changed files. A marker sits on its own line directly below the line it comments on, and
+  the script already subtracts the markers above it, so `line` is the real target line.
 - **Check for a prior pass**: only now (after the human is done — an automated review may
   still have been running elsewhere while the human was reviewing) check whether the
   conversation already holds output from an automated review of this PR — a structured
@@ -38,6 +38,5 @@ description: "Review another developer's GitHub PR by checking it out and having
   auto-submitted — the user reviews it there and publishes it themselves. Never add an
   AI-attribution line or footer to the body or any comment, even if a held-over automated
   finding came with one attached — strip it out.
-- **Clean up**: never touch the PR's code. Once the review is posted, remove only the
-  `REVIEW:` marker lines from the local working tree — the same annotation-only cleanup as
-  `human-review`'s "Resolve" step, without the code fix.
+- **Clean up**: never touch the PR's code. Once the review is posted, rerun the collect script with
+  `--remove`; it deletes the marker lines the user added and nothing else.

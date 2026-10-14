@@ -10,7 +10,7 @@
 3. Secrets are delivered via `sops-nix` + the `secrets` flake input—never open decrypted payloads, only reference the managed paths.
 
 ## 1. Getting Set Up
-- Run `bash init.sh` once after cloning; it links `~/.dotfiles`, installs Nix if needed, then performs the appropriate rebuild (`darwin-rebuild`, `nixos-rebuild`, or `home-manager switch`).
+- Run `bash init.sh` once after cloning; it links `~/.dotfiles`, installs Nix if needed, then performs the appropriate rebuild (`darwin-rebuild`, `nixos-rebuild`, `fedora-rebuild`, or `home-manager switch`).
 - MCP servers (NixOS, Context7, etc.) are configured in `nix/modules/home-manager/agents/mcp`; prefer using them whenever applicable.
 
 ## 2. Command Reference (Build/Lint/Test)
@@ -40,7 +40,7 @@
 - **Format Nix:** `(cd nix && nix fmt -- .)` — Alejandra via the flake's `formatter` output. `nix fmt` resolves the
   formatter from the *current* directory's flake, not from its argument, so it must run inside `nix/`; from the repo
   root it fails with "is not part of a flake". For single files: `alejandra path/to/file.nix` if available.
-- **Lua formatting:** `cd neovim && stylua .` (configs expect 2 spaces / 120 cols; formatting on save is normally enabled).
+- **Lua formatting:** `cd neovim && stylua --indent-type Spaces --indent-width 2 .` (the Neovim formatter passes the same flags when no stylua config or `.editorconfig` exists; 120 cols is stylua's default; formatting on save is normally enabled).
 - **Shell linting:** use `bash -n script.sh` for syntax checks and `shellcheck script.sh` (install via Nix if missing) before committing substantive shell changes.
 
 ## 3. Repo Map & Ownership
@@ -49,7 +49,8 @@
   of that distro gets, `<role>` contexts carry role bits. A new machine is one composition entry in `nix/flake.nix`;
   machine keys in `linuxConfigurations` must equal the machine's short hostname. Anything user/system-facing
   ultimately flows through here.
-- `agents/` — global instructions shared by all configured coding agents.
+- `agents/` — global instructions shared by all configured coding agents; `agents/lib/` holds the Python
+  modules the skill scripts import.
 - `shell/` and `rust/` — shared shell behavior and Rust toolchain configuration.
 - `btop/`, `direnv/`, `equaliser/`, `ghostty/`, `git/`, `gitui/`, `k9s/`, `kanata/`, `neovim/`, `starship/`,
   `tmux/`, `wezterm/`, and `yazi/` — tool-specific configuration.
@@ -97,10 +98,9 @@
 **Shell (bash/zsh)**
 - Start scripts with `#!/usr/bin/env bash` and `set -e` (or `set -euo pipefail` if safe); keep functions in `shell/common` when they need cross-shell reuse.
 - Use long-form function names; avoid single-letter aliases except where already established.
-- Rely on built-in helpers from `shell/common` for git/distro detection; avoid copy/pasting OS detection logic.
 
 **Lua / Neovim**
-- Keep plugin specs under `neovim/logic/lua/plugins/`; language-specific configuration belongs in `neovim/logic/lua/lang/`.
+- Keep plugin specs under `neovim/logic/lua/plugins/`; language-specific configuration belongs in `neovim/logic/lua/plugins/lang/`.
 - Stylua with default project settings (2 spaces, 120 columns). No trailing semicolons.
 - When adding plugins, ensure they are hooked into the appropriate lazy loader and note dependencies inside the same table.
 

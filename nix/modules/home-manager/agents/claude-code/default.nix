@@ -2,6 +2,7 @@
   agentPolicy,
   agentSandbox,
   config,
+  dotfiles,
   homeContext,
   inputs,
   lib,
@@ -14,7 +15,7 @@
     package = basePackage;
     executable = "claude";
   };
-  codeGraphHooks = import ../hooks;
+  codeGraphHooks = import ../hooks {inherit dotfiles;};
   materialize = import ../materialize-config.nix {inherit lib pkgs;};
   statuslinePackage = pkgs.runCommand "claude-pace-statusline" {nativeBuildInputs = [pkgs.makeWrapper];} ''
     install -Dm755 ${inputs.claude-pace}/claude-pace.sh $out/bin/claude-pace-statusline
@@ -93,6 +94,16 @@
         type = "command";
         command = "${statuslinePackage}/bin/claude-pace-statusline";
       };
+      hooks.SessionStart = [
+        {
+          hooks = [
+            {
+              type = "command";
+              command = codeGraphHooks.refreshMainCommand;
+            }
+          ];
+        }
+      ];
       hooks.PostToolUse = [
         {
           matcher = "Edit|Write|NotebookEdit";

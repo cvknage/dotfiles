@@ -8,7 +8,7 @@
 }: let
   # MCP servers inherit the agent's environment, so package managers inside
   # them reuse the agent's shared caches instead of a temp dir per server.
-  mkMcpCmd = name: runtimeInputs: env: command:
+  mkMcpCmdWithPreamble = preamble: name: runtimeInputs: env: command:
     pkgs.writeShellApplication {
       name = "mcp-${name}";
       inherit runtimeInputs;
@@ -18,10 +18,12 @@
             export ${key}=${value}
           '')
           env)
+        + preamble
         + ''
           exec ${command} "$@"
         '';
     };
+  mkMcpCmd = mkMcpCmdWithPreamble "";
 
   sessionsServer =
     pkgs.writers.writePython3 "mcp-agent-sessions"
@@ -43,6 +45,14 @@
     src = codeGraphMcpSrc;
     modelsSrc = inputs.code-graph-mcp-models;
   };
+  # serve indexes its working directory on startup.
+  codeGraphServer =
+    mkMcpCmdWithPreamble ''
+      if [ "$(git rev-parse --is-bare-repository 2>/dev/null)" = true ]; then
+        echo "code-graph: bare repository, not indexing; start the session from a worktree" >&2
+        exit 1
+      fi
+    '' "code-graph-mcp" [pkgs.git] {} (lib.getExe codeGraphMcp);
 in {
   home.packages = [codeGraphMcp];
 
@@ -69,7 +79,7 @@ in {
         args = ["-y" "@upstash/context7-mcp"];
       };
       code-graph = {
-        command = lib.getExe (mkMcpCmd "code-graph-mcp" [] {} (lib.getExe codeGraphMcp));
+        command = lib.getExe codeGraphServer;
         args = ["serve"];
       };
       atlassian = lib.mkIf homeContext.isWork {

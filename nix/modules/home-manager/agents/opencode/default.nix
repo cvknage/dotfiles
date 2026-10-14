@@ -2,6 +2,7 @@
   agentPolicy,
   agentSandbox,
   config,
+  dotfiles,
   homeContext,
   inputs,
   pkgs,
@@ -13,8 +14,29 @@
     package = basePackage;
     executable = "opencode";
   };
-  codeGraphHooks = import ../hooks;
+  codeGraphHooks = import ../hooks {inherit dotfiles;};
 in {
+  home.file."${config.xdg.configHome}/opencode/plugins/refresh-main.ts" = {
+    enable = config.programs.opencode.enable;
+    text = ''
+      export const RefreshMain = async ({$, directory}: any) => {
+        try {
+          const bare = await $`git rev-parse --is-bare-repository`.cwd(directory).quiet().text();
+          if (bare.trim() === "true") {
+            Bun.spawn(["${codeGraphHooks.refreshMainPath}"], {
+              cwd: directory,
+              stdin: "ignore",
+              stdout: "ignore",
+              stderr: "ignore",
+            }).unref();
+          }
+        } catch {
+          // best-effort; the agent starts the job itself when this fails
+        }
+        return {};
+      };
+    '';
+  };
   home.file."${config.xdg.configHome}/opencode/plugins/code-graph-reindex.ts" = {
     enable = config.programs.opencode.enable;
     text = ''

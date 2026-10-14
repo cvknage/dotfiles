@@ -13,4 +13,4 @@ reports the index stale or corrupt. Otherwise use it in this order: `mcp__code-g
 `code-graph-mcp overview <path>` for a specific directory or file's symbols, then
 `mcp__code-graph__ast_search`/`mcp__code-graph__semantic_code_search` to find a specific concept or
 symbol by concept rather than exact name. Fall back to Glob/Grep/Read only for what neither covers
--- see `agents/AGENTS.md`'s Code Navigation section for what to trust and what not to.
+-- see the Code Navigation section of the global agent instructions for what to trust and what not to.
