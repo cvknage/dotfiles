@@ -67,13 +67,15 @@
     real_herdr_socket="$HOME/.config/herdr/herdr.sock"
     if [ -S "$real_herdr_socket" ]; then
       herdr_proxy_log_dir="$HOME/.cache/agent-sandbox/herdr-proxy-logs"
-      mkdir -p "$herdr_proxy_log_dir"
+      herdr_proxy_state_dir="$HOME/.cache/agent-sandbox/herdr-proxy-state"
+      mkdir -p "$herdr_proxy_log_dir" "$herdr_proxy_state_dir"
       herdr_proxy_socket=${lib.escapeShellArg profile.herdrProxyRoot}/proxy-$$.sock
       herdr-agent-proxy \
         -listen "$herdr_proxy_socket" \
         -upstream "$real_herdr_socket" \
         ${trustedRootFlags} \
         -agent-kind ${lib.escapeShellArg agent} \
+        -state-file "$herdr_proxy_state_dir/${agent}.json" \
         -active-workspace "''${HERDR_WORKSPACE_ID:-}" \
         >"$herdr_proxy_log_dir/${agent}-$$.log" 2>&1 &
       for _ in $(seq 1 50); do

@@ -138,12 +138,39 @@ func TestBuildRequestDenyByDefault(t *testing.T) {
 
 	mustDeny := []string{
 		"server.stop", "session.delete", "plugin.install", "terminal.attach",
-		"events.subscribe", "worktree.create", "layout.apply", "agent.list",
-		"pane.list", "pane.send_text", "pane.send_keys", "pane.close", "pane.read", "tab.create",
+		"events.subscribe", "worktree.create", "layout.apply",
+		"pane.send_text", "pane.send_keys", "pane.close", "pane.read", "tab.create",
 	}
 	for _, m := range mustDeny {
 		if _, _, reason := g.buildRequest(m, json.RawMessage(`{}`)); reason == "" {
 			t.Errorf("%q should be denied", m)
+		}
+	}
+}
+
+func TestBuildRequestReadOnlyDiscovery(t *testing.T) {
+	g := newGuard("", nil, "claude", "")
+
+	for _, m := range []string{"workspace.list", "tab.list", "pane.list", "agent.list"} {
+		forward, _, reason := g.buildRequest(m, json.RawMessage(`{"workspace_id":"w9","extra":"x"}`))
+		if reason != "" {
+			t.Errorf("%s should be allowed: %s", m, reason)
+		}
+		if _, present := forward["extra"]; present {
+			t.Errorf("%s must forward only validated fields", m)
+		}
+	}
+	if _, _, reason := g.buildRequest("tab.list", json.RawMessage(`{"workspace_id":5}`)); reason == "" {
+		t.Error("a non-string workspace_id filter should be rejected")
+	}
+
+	for m, field := range map[string]string{"workspace.get": "workspace_id", "tab.get": "tab_id", "pane.get": "pane_id"} {
+		forward, _, reason := g.buildRequest(m, json.RawMessage(fmt.Sprintf(`{%q:"w7"}`, field)))
+		if reason != "" || forward[field] != "w7" {
+			t.Errorf("%s on an unowned id should be allowed, got %v / %q", m, forward, reason)
+		}
+		if _, _, reason := g.buildRequest(m, json.RawMessage(`{}`)); reason == "" {
+			t.Errorf("%s without its id should be rejected", m)
 		}
 	}
 }
@@ -370,7 +397,7 @@ func TestGrantSplitPaneAppendsToCorrectContainer(t *testing.T) {
 	g.ownedWorkspaces["w2"] = struct{}{}
 	g.workspacePanes["w2"] = []string{"w2:p1"}
 
-	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w1:p2","tab_id":"t1","workspace_id":"w1"}}`))
+	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w1:p2","tab_id":"t1","workspace_id":"w1"}}`), "")
 	if _, owned := g.ownedPanes["w1:p2"]; !owned {
 		t.Error("a pane split into an owned tab should be granted")
 	}
@@ -378,7 +405,7 @@ func TestGrantSplitPaneAppendsToCorrectContainer(t *testing.T) {
 		t.Errorf("tabPanes[t1] = %v, want both the original and split pane", g.tabPanes["t1"])
 	}
 
-	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w2:p2","tab_id":"t9","workspace_id":"w2"}}`))
+	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w2:p2","tab_id":"t9","workspace_id":"w2"}}`), "")
 	if _, owned := g.ownedPanes["w2:p2"]; !owned {
 		t.Error("a pane split into an owned workspace (tab not separately owned) should be granted")
 	}
@@ -386,7 +413,7 @@ func TestGrantSplitPaneAppendsToCorrectContainer(t *testing.T) {
 		t.Errorf("workspacePanes[w2] = %v, want both the original and split pane", g.workspacePanes["w2"])
 	}
 
-	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w9:p9","tab_id":"t9","workspace_id":"w9"}}`))
+	g.grantSplitPane(json.RawMessage(`{"pane":{"pane_id":"w9:p9","tab_id":"t9","workspace_id":"w9"}}`), "")
 	if _, owned := g.ownedPanes["w9:p9"]; owned {
 		t.Error("a pane whose reported tab/workspace are both unowned must never be granted")
 	}
@@ -394,8 +421,8 @@ func TestGrantSplitPaneAppendsToCorrectContainer(t *testing.T) {
 	// A malformed or error-shaped response (no "pane" object, or no pane_id) must never grant
 	// anything either -- relayUpstreamToClient only calls grantSplitPane for a successful result, but
 	// grantSplitPane itself must still fail closed on bad input, not just well-behaved ones.
-	g.grantSplitPane(json.RawMessage(`{}`))
-	g.grantSplitPane(json.RawMessage(`{"pane":{"tab_id":"t1","workspace_id":"w1"}}`))
+	g.grantSplitPane(json.RawMessage(`{}`), "")
+	g.grantSplitPane(json.RawMessage(`{"pane":{"tab_id":"t1","workspace_id":"w1"}}`), "")
 	if len(g.tabPanes["t1"]) != 2 {
 		t.Errorf("a response with no pane_id must not grant or append anything; tabPanes[t1] = %v", g.tabPanes["t1"])
 	}

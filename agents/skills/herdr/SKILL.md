@@ -10,6 +10,11 @@ Commands go through a local proxy, not the real herdr socket. It accepts fewer t
 `herdr` CLI docs describe (`herdr worktree open` and `worktree list` are rejected, for example), so
 follow the exact forms below, not `--help` output.
 
+To find work from earlier sessions that is still open, the read-only `herdr workspace list`,
+`herdr tab list [--workspace <id>]`, `herdr pane list [--workspace <id>]`, `herdr agent list`, and
+`herdr workspace|tab|pane get <id>` work on any id. Reading output or acting on a pane still needs one
+you created.
+
 ## 1. Preconditions
 
 - `command -v herdr` -- if missing, tell the user.

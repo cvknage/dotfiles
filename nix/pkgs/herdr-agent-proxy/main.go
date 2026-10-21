@@ -64,6 +64,7 @@ type guard struct {
 	// activeWorkspace is this sandbox's own pre-existing herdr workspace (from $HERDR_WORKSPACE_ID
 	// at launch time), if any -- the only workspace_id tab.create will ever accept.
 	activeWorkspace string
+	statePath       string // where grants are persisted across proxy restarts; empty disables it
 
 	mu              sync.Mutex
 	ownedWorkspaces map[string]struct{}
@@ -91,13 +92,14 @@ func newGuard(upstreamPath string, trustedRoots []string, ownKind string, active
 }
 
 func main() {
-	var listenPath, upstreamPath, ownKind, activeWorkspace string
+	var listenPath, upstreamPath, ownKind, activeWorkspace, statePath string
 	var trustedRoots stringSlice
 	flag.StringVar(&listenPath, "listen", "", "unix socket to listen on")
 	flag.StringVar(&upstreamPath, "upstream", "", "real herdr control socket to forward to")
 	flag.Var(&trustedRoots, "trusted-root", "path a workspace.create cwd may be created under (repeatable)")
 	flag.StringVar(&ownKind, "agent-kind", "", "this sandbox's own agent kind (claude/codex/opencode); the only kind it may ever start")
 	flag.StringVar(&activeWorkspace, "active-workspace", "", "this sandbox's own pre-existing workspace id, if known; enables tab.create")
+	flag.StringVar(&statePath, "state-file", "", "file persisting this agent kind's created workspaces/tabs/panes across restarts")
 	flag.Parse()
 
 	if listenPath == "" || upstreamPath == "" || ownKind == "" {
@@ -125,6 +127,8 @@ func main() {
 	}
 
 	g := newGuard(upstreamPath, trustedRoots, ownKind, activeWorkspace)
+	g.statePath = statePath
+	g.restoreState()
 	log.Printf("herdr-agent-proxy: %s -> %s (%d trusted roots, agent kind %q, active workspace %q)",
 		listenPath, upstreamPath, len(trustedRoots), ownKind, activeWorkspace)
 	for {
@@ -272,15 +276,15 @@ func (g *guard) relayUpstreamToClient(upstream net.Conn, cw *safeWriter, mu *syn
 			if ok && len(resp.Result) > 0 {
 				switch entry.method {
 				case "workspace.create":
-					g.grantWorkspace(resp.Result)
+					g.grantWorkspace(resp.Result, entry.extra)
 				case "workspace.close":
 					g.revokeWorkspace(entry.extra)
 				case "tab.create":
-					g.grantTab(resp.Result)
+					g.grantTab(resp.Result, entry.extra)
 				case "tab.close":
 					g.revokeTab(entry.extra)
 				case "pane.split":
-					g.grantSplitPane(resp.Result)
+					g.grantSplitPane(resp.Result, entry.extra)
 				}
 			}
 		}
@@ -330,13 +334,32 @@ func parseEnvelope(line []byte) (id, method string, params json.RawMessage, ok b
 	return id, method, top["params"], true
 }
 
+func cwdOf(forward map[string]any) string {
+	cwd, _ := forward["cwd"].(string)
+	return cwd
+}
+
 func (g *guard) buildRequest(method string, params json.RawMessage) (forward map[string]any, extra string, reason string) {
 	switch method {
 	case "ping":
 		return map[string]any{}, "", ""
+	case "workspace.list", "agent.list":
+		return map[string]any{}, "", ""
+	case "tab.list", "pane.list":
+		forward, reason = buildOptionalWorkspaceFilter(method, params)
+		return forward, "", reason
+	case "workspace.get":
+		forward, reason = buildReadTarget(method, params, "workspace_id")
+		return forward, "", reason
+	case "tab.get":
+		forward, reason = buildReadTarget(method, params, "tab_id")
+		return forward, "", reason
+	case "pane.get":
+		forward, reason = buildReadTarget(method, params, "pane_id")
+		return forward, "", reason
 	case "workspace.create":
 		forward, reason = g.buildWorkspaceCreate(params)
-		return forward, "", reason
+		return forward, cwdOf(forward), reason
 	case "workspace.close":
 		id, reason := requireOwnedWorkspace(g, params, "workspace_id")
 		if reason != "" {
@@ -345,7 +368,7 @@ func (g *guard) buildRequest(method string, params json.RawMessage) (forward map
 		return map[string]any{"workspace_id": id}, id, ""
 	case "tab.create":
 		forward, reason = g.buildTabCreate(params)
-		return forward, "", reason
+		return forward, cwdOf(forward), reason
 	case "tab.close":
 		id, reason := requireOwnedTab(g, params, "tab_id")
 		if reason != "" {
@@ -354,7 +377,7 @@ func (g *guard) buildRequest(method string, params json.RawMessage) (forward map
 		return map[string]any{"tab_id": id}, id, ""
 	case "pane.split":
 		forward, reason = g.buildPaneSplit(params)
-		return forward, "", reason
+		return forward, cwdOf(forward), reason
 	case "tab.rename":
 		forward, reason = g.buildTabRename(params)
 		return forward, "", reason
@@ -385,6 +408,32 @@ func (g *guard) buildRequest(method string, params json.RawMessage) (forward map
 	default:
 		return nil, "", fmt.Sprintf("method %q is not permitted in the agent sandbox", method)
 	}
+}
+
+// buildOptionalWorkspaceFilter and buildReadTarget back the read-only discovery methods, which
+// deliberately skip the ownership check: an agent has to see workspaces, tabs, and panes started in
+// earlier sessions to find work that is still open. They expose metadata only -- reading pane output
+// or acting on a pane still requires one this sandbox created.
+func buildOptionalWorkspaceFilter(method string, params json.RawMessage) (map[string]any, string) {
+	out := map[string]any{}
+	if id, present, isStr := fieldString(params, "workspace_id"); present {
+		if !isStr {
+			return nil, method + `: "workspace_id" must be a string`
+		}
+		out["workspace_id"] = id
+	}
+	return out, ""
+}
+
+func buildReadTarget(method string, params json.RawMessage, field string) (map[string]any, string) {
+	id, present, isStr := fieldString(params, field)
+	if !present {
+		return nil, fmt.Sprintf("%s: missing required %q", method, field)
+	}
+	if !isStr {
+		return nil, fmt.Sprintf("%s: %q must be a string", method, field)
+	}
+	return map[string]any{field: id}, ""
 }
 
 // buildWorkspaceCreate is the only place a workspace gets created, besides buildTabCreate's tab
@@ -862,13 +911,14 @@ func requireOwnedWorkspace(g *guard, params json.RawMessage, field string) (stri
 // grantWorkspace is called only on a successful workspace.create response. Its tab_id is
 // deliberately not tracked: workspace tear-down always goes through workspace.close, never
 // tab.close, which is for tabs from tab.create only.
-func (g *guard) grantWorkspace(result json.RawMessage) {
+func (g *guard) grantWorkspace(result json.RawMessage, requestCwd string) {
 	var r struct {
 		Workspace struct {
 			WorkspaceID string `json:"workspace_id"`
 		} `json:"workspace"`
 		RootPane struct {
 			PaneID string `json:"pane_id"`
+			Cwd    string `json:"cwd"`
 		} `json:"root_pane"`
 	}
 	if json.Unmarshal(result, &r) != nil || r.Workspace.WorkspaceID == "" {
@@ -881,7 +931,17 @@ func (g *guard) grantWorkspace(result json.RawMessage) {
 	if r.RootPane.PaneID != "" {
 		g.ownedPanes[r.RootPane.PaneID] = struct{}{}
 		g.workspacePanes[r.Workspace.WorkspaceID] = []string{r.RootPane.PaneID}
+		g.persist(func(s *persistedState) {
+			s.Workspaces[r.Workspace.WorkspaceID] = persistedContainer{Panes: map[string]string{r.RootPane.PaneID: firstNonEmpty(r.RootPane.Cwd, requestCwd)}}
+		})
 	}
+}
+
+func firstNonEmpty(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
 }
 
 func (g *guard) revokeWorkspace(workspaceID string) {
@@ -895,6 +955,7 @@ func (g *guard) revokeWorkspace(workspaceID string) {
 		delete(g.ownedPanes, id)
 	}
 	delete(g.workspacePanes, workspaceID)
+	g.persist(func(s *persistedState) { delete(s.Workspaces, workspaceID) })
 }
 
 func requireOwnedTab(g *guard, params json.RawMessage, field string) (string, string) {
@@ -916,13 +977,14 @@ func requireOwnedTab(g *guard, params json.RawMessage, field string) (string, st
 
 // grantTab is called only on a successful tab.create response. Its shape (tab/root_pane, same
 // naming as workspace.create) is confirmed via `herdr api schema --json`'s tab_created variant.
-func (g *guard) grantTab(result json.RawMessage) {
+func (g *guard) grantTab(result json.RawMessage, requestCwd string) {
 	var r struct {
 		Tab struct {
 			TabID string `json:"tab_id"`
 		} `json:"tab"`
 		RootPane struct {
 			PaneID string `json:"pane_id"`
+			Cwd    string `json:"cwd"`
 		} `json:"root_pane"`
 	}
 	if json.Unmarshal(result, &r) != nil || r.Tab.TabID == "" || r.RootPane.PaneID == "" {
@@ -935,6 +997,9 @@ func (g *guard) grantTab(result json.RawMessage) {
 	g.ownedTabs[r.Tab.TabID] = struct{}{}
 	g.ownedPanes[paneID] = struct{}{}
 	g.tabPanes[r.Tab.TabID] = []string{paneID}
+	g.persist(func(s *persistedState) {
+		s.Tabs[r.Tab.TabID] = persistedContainer{Panes: map[string]string{paneID: firstNonEmpty(r.RootPane.Cwd, requestCwd)}}
+	})
 }
 
 func (g *guard) revokeTab(tabID string) {
@@ -948,6 +1013,7 @@ func (g *guard) revokeTab(tabID string) {
 		delete(g.ownedPanes, paneID)
 	}
 	delete(g.tabPanes, tabID)
+	g.persist(func(s *persistedState) { delete(s.Tabs, tabID) })
 }
 
 // grantSplitPane is called only on a successful pane.split response. The new pane always belongs to
@@ -957,12 +1023,13 @@ func (g *guard) revokeTab(tabID string) {
 // in that container. If the response names neither an owned tab nor an owned workspace, nothing is
 // granted; this shouldn't happen given the target_pane_id check, but a pane this guard can't attach
 // to a container it already owns must never become independently ownable.
-func (g *guard) grantSplitPane(result json.RawMessage) {
+func (g *guard) grantSplitPane(result json.RawMessage, requestCwd string) {
 	var r struct {
 		Pane struct {
 			PaneID      string `json:"pane_id"`
 			TabID       string `json:"tab_id"`
 			WorkspaceID string `json:"workspace_id"`
+			Cwd         string `json:"cwd"`
 		} `json:"pane"`
 	}
 	if json.Unmarshal(result, &r) != nil || r.Pane.PaneID == "" {
@@ -974,11 +1041,21 @@ func (g *guard) grantSplitPane(result json.RawMessage) {
 	if _, ok := g.ownedTabs[r.Pane.TabID]; ok {
 		g.ownedPanes[r.Pane.PaneID] = struct{}{}
 		g.tabPanes[r.Pane.TabID] = append(g.tabPanes[r.Pane.TabID], r.Pane.PaneID)
+		g.persist(func(s *persistedState) {
+			if c, ok := s.Tabs[r.Pane.TabID]; ok {
+				c.Panes[r.Pane.PaneID] = firstNonEmpty(r.Pane.Cwd, requestCwd)
+			}
+		})
 		return
 	}
 	if _, ok := g.ownedWorkspaces[r.Pane.WorkspaceID]; ok {
 		g.ownedPanes[r.Pane.PaneID] = struct{}{}
 		g.workspacePanes[r.Pane.WorkspaceID] = append(g.workspacePanes[r.Pane.WorkspaceID], r.Pane.PaneID)
+		g.persist(func(s *persistedState) {
+			if c, ok := s.Workspaces[r.Pane.WorkspaceID]; ok {
+				c.Panes[r.Pane.PaneID] = firstNonEmpty(r.Pane.Cwd, requestCwd)
+			}
+		})
 	}
 }
 
