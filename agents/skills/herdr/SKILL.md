@@ -141,6 +141,11 @@ task has run far longer than it should, read the pane (below) instead of waiting
 3. `herdr agent send-keys <pane_id> <key...>` -- only `enter`/`return`/`up`/`down`/`esc`/`escape`
    work; everything else is rejected. Need more than that? Use `agent prompt` instead.
    Then wait again as above.
+   A `send-keys` that approves a prompt needs the prompt text in your context from a read made
+   just before it, including the exact command and every path it touches. A bare `enter` against
+   an unread prompt is unverifiable, and the permission classifier blocks it, deletions especially.
+   If it still denies, stop and show the user the prompt; don't retry or find another way to press
+   the key.
 4. Treat `unknown` like `blocked`: read and decide, don't assume success.
 
 Repeat until `done`, or escalate to the user.

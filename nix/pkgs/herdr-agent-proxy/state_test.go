@@ -91,3 +91,19 @@ func TestRestoreStateKeepsFileWhenHerdrUnreachable(t *testing.T) {
 		t.Error("with herdr unreachable nothing should be granted or pruned")
 	}
 }
+
+func TestWorkspaceCreateGrantsItsFirstTab(t *testing.T) {
+	g := newGuard("", nil, "claude", "")
+	g.grantWorkspace(json.RawMessage(`{"workspace":{"workspace_id":"w1"},"tab":{"tab_id":"w1:t1"},"root_pane":{"pane_id":"w1:p1"}}`), "")
+
+	if _, _, reason := g.buildRequest("tab.rename", json.RawMessage(`{"tab_id":"w1:t1","label":"x"}`)); reason != "" {
+		t.Errorf("a workspace's first tab should be renamable: %s", reason)
+	}
+	g.revokeWorkspace("w1")
+	if _, _, reason := g.buildRequest("tab.rename", json.RawMessage(`{"tab_id":"w1:t1","label":"x"}`)); reason == "" {
+		t.Error("closing the workspace must revoke its first tab")
+	}
+	if _, owned := g.ownedPanes["w1:p1"]; owned {
+		t.Error("closing the workspace must revoke its panes")
+	}
+}

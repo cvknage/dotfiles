@@ -72,6 +72,7 @@ type guard struct {
 	// agent target as "agent name or pane id", so a workspace id accepted in that slot could
 	// address an unrelated live agent whose name happens to collide with it.
 	ownedTabs      map[string]struct{} // tab ids created by tab.create, closable via tab.close
+	workspaceTabs  map[string]string   // workspace_id -> its first tab, granted alongside it
 	workspacePanes map[string][]string // workspace_id -> pane ids granted alongside it
 	tabPanes       map[string][]string // tab_id -> pane ids granted alongside it (root pane, plus any
 	// pane.split off an existing pane in that tab), so tab.close revokes all of them
@@ -87,6 +88,7 @@ func newGuard(upstreamPath string, trustedRoots []string, ownKind string, active
 		ownedPanes:      map[string]struct{}{},
 		ownedTabs:       map[string]struct{}{},
 		workspacePanes:  map[string][]string{},
+		workspaceTabs:   map[string]string{},
 		tabPanes:        map[string][]string{},
 	}
 }
@@ -908,14 +910,17 @@ func requireOwnedWorkspace(g *guard, params json.RawMessage, field string) (stri
 	return val, ""
 }
 
-// grantWorkspace is called only on a successful workspace.create response. Its tab_id is
-// deliberately not tracked: workspace tear-down always goes through workspace.close, never
-// tab.close, which is for tabs from tab.create only.
+// grantWorkspace is called only on a successful workspace.create response. The workspace's first tab
+// is granted too, so it can be renamed or closed like any tab this sandbox created; workspace.close
+// revokes it along with the workspace.
 func (g *guard) grantWorkspace(result json.RawMessage, requestCwd string) {
 	var r struct {
 		Workspace struct {
 			WorkspaceID string `json:"workspace_id"`
 		} `json:"workspace"`
+		Tab struct {
+			TabID string `json:"tab_id"`
+		} `json:"tab"`
 		RootPane struct {
 			PaneID string `json:"pane_id"`
 			Cwd    string `json:"cwd"`
@@ -931,8 +936,17 @@ func (g *guard) grantWorkspace(result json.RawMessage, requestCwd string) {
 	if r.RootPane.PaneID != "" {
 		g.ownedPanes[r.RootPane.PaneID] = struct{}{}
 		g.workspacePanes[r.Workspace.WorkspaceID] = []string{r.RootPane.PaneID}
+		cwd := firstNonEmpty(r.RootPane.Cwd, requestCwd)
+		if r.Tab.TabID != "" {
+			g.ownedTabs[r.Tab.TabID] = struct{}{}
+			g.tabPanes[r.Tab.TabID] = []string{r.RootPane.PaneID}
+			g.workspaceTabs[r.Workspace.WorkspaceID] = r.Tab.TabID
+		}
 		g.persist(func(s *persistedState) {
-			s.Workspaces[r.Workspace.WorkspaceID] = persistedContainer{Panes: map[string]string{r.RootPane.PaneID: firstNonEmpty(r.RootPane.Cwd, requestCwd)}}
+			s.Workspaces[r.Workspace.WorkspaceID] = persistedContainer{Panes: map[string]string{r.RootPane.PaneID: cwd}}
+			if r.Tab.TabID != "" {
+				s.Tabs[r.Tab.TabID] = persistedContainer{Panes: map[string]string{r.RootPane.PaneID: cwd}}
+			}
 		})
 	}
 }
@@ -955,7 +969,19 @@ func (g *guard) revokeWorkspace(workspaceID string) {
 		delete(g.ownedPanes, id)
 	}
 	delete(g.workspacePanes, workspaceID)
-	g.persist(func(s *persistedState) { delete(s.Workspaces, workspaceID) })
+	tabID := g.workspaceTabs[workspaceID]
+	if tabID != "" {
+		delete(g.ownedTabs, tabID)
+		for _, id := range g.tabPanes[tabID] {
+			delete(g.ownedPanes, id)
+		}
+		delete(g.tabPanes, tabID)
+		delete(g.workspaceTabs, workspaceID)
+	}
+	g.persist(func(s *persistedState) {
+		delete(s.Workspaces, workspaceID)
+		delete(s.Tabs, tabID)
+	})
 }
 
 func requireOwnedTab(g *guard, params json.RawMessage, field string) (string, string) {
