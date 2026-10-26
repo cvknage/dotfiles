@@ -5,7 +5,7 @@
   policy,
   common,
 }: let
-  inherit (common) agentTools herdrAgentProxy mkLaunchSetup;
+  inherit (common) agentTools herdrAgentProxy mkLaunchSetup openUrlProxy;
 
   mkMacRunner = agent: profile: let
     # Filters quote their paths, so escape whatever would end the string early.
@@ -238,11 +238,15 @@
       ; This launch's own herdr-agent-proxy socket, resolved at invocation time (-D below).
       (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "HERDR_PROXY_SOCKET")))
       (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "HERDR_PROXY_SOCKET_DATA")))
+
+      ; This launch's own open-url-proxy socket, same scheme as herdr's above.
+      (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "OPEN_URL_PROXY_SOCKET")))
+      (allow file-read* file-read-metadata file-test-existence network-outbound (literal (param "OPEN_URL_PROXY_SOCKET_DATA")))
     '';
   in
     pkgs.writeShellApplication {
       name = "${agent}-outer-sandbox";
-      runtimeInputs = agentTools ++ [pkgs.nix herdrAgentProxy];
+      runtimeInputs = agentTools ++ [pkgs.nix herdrAgentProxy openUrlProxy];
       text = ''
         target="''${1-}"
         if [ -z "$target" ]; then
@@ -293,6 +297,9 @@
           herdr_proxy_socket_data_param="/nonexistent-herdr-proxy-socket"
         fi
 
+        open_url_socket_param="''${open_url_proxy_socket:-/nonexistent-open-url-proxy-socket}"
+        open_url_socket_data_param="''${open_url_socket_param/\/Users\//\/System\/Volumes\/Data\/Users\/}"
+
         sandbox_command=(
           /usr/bin/sandbox-exec
           -D "TMPDIR=''${TMPDIR:-/tmp}"
@@ -301,6 +308,8 @@
           -D "SOPS_SECRETS_DATA=/System/Volumes/Data/private$sops_secrets"
           -D "HERDR_PROXY_SOCKET=$herdr_proxy_socket_param"
           -D "HERDR_PROXY_SOCKET_DATA=$herdr_proxy_socket_data_param"
+          -D "OPEN_URL_PROXY_SOCKET=$open_url_socket_param"
+          -D "OPEN_URL_PROXY_SOCKET_DATA=$open_url_socket_data_param"
           -f ${seatbeltProfile}
         )
 

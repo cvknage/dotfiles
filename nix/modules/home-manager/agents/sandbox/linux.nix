@@ -5,7 +5,7 @@
   policy,
   common,
 }: let
-  inherit (common) agentTools herdrAgentProxy mkLaunchSetup;
+  inherit (common) agentTools herdrAgentProxy mkLaunchSetup openUrlProxy;
 
   tiocstiSeccompFilter = import ./tiocsti-seccomp.nix {inherit pkgs;};
 
@@ -22,6 +22,7 @@
           pkgs.bubblewrap
           pkgs.nix
           herdrAgentProxy
+          openUrlProxy
         ];
       text = ''
         target="''${1-}"
@@ -97,6 +98,22 @@
           sandbox+=(--ro-bind "$herdr_proxy_socket" "$herdr_proxy_socket")
         fi
 
+        # Without a display or desktop env, npm `open`'s bundled xdg-open falls through to $BROWSER (the shim).
+        open_url_env=()
+        if [ -n "$open_url_proxy_socket" ]; then
+          sandbox+=(--ro-bind "$open_url_proxy_socket" "$open_url_proxy_socket")
+          open_url_env=(
+            --unsetenv DISPLAY
+            --unsetenv WAYLAND_DISPLAY
+            --unsetenv XDG_CURRENT_DESKTOP
+            --unsetenv DESKTOP_SESSION
+            --unsetenv KDE_FULL_SESSION
+            --unsetenv GNOME_DESKTOP_SESSION_ID
+            --unsetenv MATE_DESKTOP_SESSION_ID
+            --unsetenv LXQT_SESSION_CONFIG
+          )
+        fi
+
         socket_paths=(${socketPaths})
 
         for path in ${readOnlyPaths}; do
@@ -142,6 +159,7 @@
           --setenv NUGET_HTTP_CACHE_PATH ${lib.escapeShellArg policy.toolCachePaths.nugetHttp} \
           --setenv NUGET_PLUGINS_CACHE_PATH ${lib.escapeShellArg policy.toolCachePaths.nugetPlugins} \
           --setenv GIT_SSH_COMMAND "ssh -o BatchMode=yes" \
+          "''${open_url_env[@]}" \
           ${
           if policy.sshAgentSocket != ""
           then "--setenv SSH_AUTH_SOCK ${lib.escapeShellArg policy.sshAgentSocket} \\"
