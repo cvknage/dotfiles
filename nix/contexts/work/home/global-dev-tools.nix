@@ -23,7 +23,7 @@ in
     # pkgs.gh-stack
 
     # Azure Tools
-    pkgs.azure-cli
+    pkgs.stable.azure-cli
     pkgs.bicep
 
     # Kubernetes Tools
