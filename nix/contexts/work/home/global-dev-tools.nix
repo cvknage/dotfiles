@@ -17,11 +17,12 @@ in
 {
   imports = [];
 
-  home.packages = [
-    # Git Tools
-    pkgs.gh
-    # pkgs.gh-stack
+  programs.gh = {
+    enable = true;
+    extensions = [pkgs.gh-stack];
+  };
 
+  home.packages = [
     # Azure Tools
     pkgs.stable.azure-cli
     pkgs.bicep

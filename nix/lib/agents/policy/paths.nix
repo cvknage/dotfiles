@@ -139,6 +139,7 @@
     ".local/share/NuGet"
     ".local/share/Nuget"
     ".local/share/dotnet"
+    ".local/share/gh/extensions"
     ".local/share/nix"
     ".local/share/pnpm"
     ".local/share/uv"
