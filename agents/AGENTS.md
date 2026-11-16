@@ -30,25 +30,19 @@
 
 ## Review Flow
 
-- If the current harness has a built-in review skill (for example, Claude Code's `code-review` or
-  Codex's `@review-agent`), run it repeatedly while implementing, on small sections: after each
-  cohesive chunk of work (a finished plan milestone, or a self-contained set of edits within a
-  larger one) and before starting the next chunk — not only at the end, and not on every incremental
-  edit. Fix or refute its findings before moving on so errors don't compound. It typically forks
-  the current session rather than starting fresh, so it's fast but shares whatever blind spot
-  produced the change; its job is catching correctness bugs plus reuse/simplification/efficiency
-  issues while they're cheap to fix. Where no such skill exists, review the diff yourself against
-  the same criteria instead.
-- Every review pass, built-in or `agent-review`, also asks: is there a simpler way; can something
-  that already exists be reused, or extended a little, instead of building new; are comments and
-  docs short and current-state only (see Code Comments); do tests exercise the real code instead of
-  reimplementing the logic they claim to test.
-- When the implementation is complete, run the `agent-review` skill once — the single big review at
-  the end: a genuinely fresh-context second opinion, on the default model per that skill's own tier
-  policy, that has seen none of the reasoning behind the change. The built-in review has already
-  run along the way, so don't repeat it here; `agent-review` is the automatic per-change gate before
-  proposing a commit, and neither review substitutes for `human-review` below. Fix or explicitly
-  refute every finding from every pass before moving on — never silently drop one.
+- Review once per plan milestone, not per chunk of edits. When a milestone's done-check passes (a
+  change without a plan counts as one milestone), run the `recap` skill, then `agent-review` on that
+  milestone's diff, then `human-review`, then propose the commit. Keep milestones small so each
+  review stays small. Don't run the harness's built-in review (Claude Code's `code-review`, Codex's
+  `@review-agent`) repeatedly while implementing: it forks the whole session and carries its context.
+- Every review pass also asks: is there a simpler way; can something that already exists be reused,
+  or extended a little, instead of building new; are comments and docs short and current-state only
+  (see Code Comments); do tests exercise the real code instead of reimplementing the logic they
+  claim to test.
+- `agent-review` is a genuinely fresh-context second opinion, on the default model per that skill's
+  own tier policy, that has seen none of the reasoning behind the change. It is the automatic gate
+  before proposing a commit, and it doesn't substitute for `human-review` below. Fix or explicitly
+  refute every finding before moving on — never silently drop one.
 - Once findings are triaged, stage the change and run the `human-review` skill so the user can leave
   inline `REVIEW:` comments in the staged files. Wait for them to say they're done, then read and
   resolve each comment.
@@ -66,7 +60,10 @@
 - Compose the plan the same way regardless of which tool below writes it: small milestones that each
   leave the tree building and committable on their own, not just independently verifiable, with a
   concrete done-check (a command, test, or observable result), and kept short enough to re-read in
-  full at pickup — planning only, don't write code yet, and ask first if the task is unclear.
+  full at pickup — planning only, don't write code yet, and ask first if the task is unclear. Make
+  each milestone self-contained enough for a fresh agent that sees only it, without guessing at
+  files (details in `write_plan`). A later milestone may stay a rough line until the one before it
+  finishes; detail it before it starts.
 - Before multi-step work, persist that plan by calling `write_plan` (`mcp__sessions__write_plan`) —
   it replaces any existing plan outright and archives notes.md wholesale to notes.md.bak, so don't
   read the old plan first. Use it only when starting genuinely new work.

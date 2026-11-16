@@ -3,13 +3,14 @@
 The file operation itself needs no LLM turn.
 """
 
+import difflib
 import shutil
 from datetime import date
 from pathlib import Path
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-mcp = FastMCP("agent-sessions")
+mcp = MCPServer("agent-sessions")
 
 
 def _sessions_dir(repo_root: str) -> Path:
@@ -96,15 +97,17 @@ def append_note(repo_root: str, bullets: list[str]) -> str:
     return f"Appended {len(bullets)} note(s) to {notes_path}"
 
 
-def _write_plan_file(repo_root: str, content: str) -> Path:
+def _with_newline(content: str) -> str:
     if not content.strip():
         raise ValueError("content must be non-empty")
+    return content if content.endswith("\n") else content + "\n"
 
+
+def _write_plan_file(repo_root: str, content: str) -> Path:
+    text = _with_newline(content)
     sessions_dir = _ensure_sessions_dir(repo_root)
     plan_path = sessions_dir / "plan.md"
-    plan_path.write_text(
-        content if content.endswith("\n") else content + "\n", encoding="utf-8"
-    )
+    plan_path.write_text(text, encoding="utf-8")
     return plan_path
 
 
@@ -113,8 +116,12 @@ def write_plan(repo_root: str, content: str) -> str:
     """Start a new task: replace plan.md and archive any prior notes.
 
     Call with the finished plan already composed -- small, independently
-    verifiable milestones, each with a concrete done-check. This tool only
-    persists it; breaking the task into milestones is the caller's job.
+    verifiable milestones, each with a concrete done-check. Size each
+    milestone to finish in one fresh agent session, and state any decisions
+    or constraints that bind it, so an agent seeing only that milestone can
+    execute it. Name files or an approach only where already known. This
+    tool only persists the plan; breaking the task into milestones is the
+    caller's job.
 
     Use this only when starting genuinely new work; never call it just to
     revise the plan for the task already in progress -- use revise_plan
@@ -149,7 +156,8 @@ def write_plan(repo_root: str, content: str) -> str:
 def revise_plan(repo_root: str, content: str) -> str:
     """Replace plan.md with a revised plan for the task already in progress.
 
-    Use this to update milestones as the current task's plan evolves.
+    Use this to update milestones as the current task's plan evolves; keep
+    each one self-contained (goal, constraints, done-check) as in write_plan.
     Unlike write_plan, this does not touch notes.md -- notes accumulated
     so far stay intact. Use write_plan instead when starting new,
     unrelated work.
@@ -164,6 +172,95 @@ def revise_plan(repo_root: str, content: str) -> str:
     """
     plan_path = _write_plan_file(repo_root, content)
     return f"Updated {plan_path}"
+
+
+def _spec_paths(repo_root: str) -> tuple[Path, Path]:
+    sessions_dir = _sessions_dir(repo_root)
+    return sessions_dir / "spec.md", sessions_dir / "spec.md.orig"
+
+
+@mcp.tool()
+def write_spec(
+    repo_root: str, content: str, discard_edits: bool = False
+) -> str:
+    """Write a spec draft for the user to edit, plus an untouched copy.
+
+    The copy is what read_spec diffs the user's edits against. Refuses
+    when a draft exists that differs from its copy (or has no copy)
+    unless discard_edits is true. Returns the path to hand the user.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+        content: The full draft text.
+        discard_edits: Overwrite an existing draft, edited or not.
+
+    Raises:
+        ValueError: If content is empty, or the existing draft may hold
+            user edits.
+    """
+    text = _with_newline(content)
+
+    spec_path, orig_path = _spec_paths(repo_root)
+    if not discard_edits and spec_path.exists():
+        unchanged = orig_path.exists() and spec_path.read_text(
+            encoding="utf-8"
+        ) == orig_path.read_text(encoding="utf-8")
+        if not unchanged:
+            raise ValueError(
+                "spec.md may hold user edits; read them with read_spec, "
+                "then pass discard_edits=true to overwrite"
+            )
+
+    _ensure_sessions_dir(repo_root)
+    orig_path.write_text(text, encoding="utf-8")
+    spec_path.write_text(text, encoding="utf-8")
+    return f"Wrote {spec_path}"
+
+
+@mcp.tool()
+def read_spec(repo_root: str) -> str:
+    """Return the user's edits to the spec draft, then its full current text.
+
+    The edits are a unified diff of spec.md.orig against spec.md, so
+    deleted lines show in the diff and added lines in the current text.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+    """
+    spec_path, orig_path = _spec_paths(repo_root)
+    if not spec_path.exists():
+        return "No spec draft."
+
+    current = spec_path.read_text(encoding="utf-8")
+    if not orig_path.exists():
+        changes = "Unknown: spec.md.orig is missing."
+        return f"## Changes\n{changes}\n\n## Current\n{current}"
+    original = orig_path.read_text(encoding="utf-8")
+    diff = "".join(
+        difflib.unified_diff(
+            original.splitlines(keepends=True),
+            current.splitlines(keepends=True),
+            "spec.md.orig",
+            "spec.md",
+        )
+    )
+    return f"## Changes\n{diff or 'No changes.'}\n\n## Current\n{current}"
+
+
+@mcp.tool()
+def clear_spec(repo_root: str) -> str:
+    """Delete the spec draft and its untouched copy.
+
+    Args:
+        repo_root: Absolute path to the repository root.
+    """
+    spec_path, orig_path = _spec_paths(repo_root)
+    removed = [p.name for p in (spec_path, orig_path) if p.exists()]
+    for path in (spec_path, orig_path):
+        path.unlink(missing_ok=True)
+    if not removed:
+        return "No spec draft to remove."
+    return f"Removed {', '.join(removed)}"
 
 
 @mcp.tool()

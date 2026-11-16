@@ -42,6 +42,11 @@ Then prepare it before the agent starts:
   drops the embeddings). The agent's server catches up on whatever changed since the base was last
   indexed. To confirm, run `code-graph-mcp health-check` in `<target-dir>` from your own shell (it isn't
   a herdr command), or have the agent run it.
+- **Session plan.** State lives in `<repo_root>/.agent-sessions/`, so a worktree starts without it. Seed
+  `<target-dir>/.agent-sessions/plan.md` with a slice, never the full plan: the goal, one `Context`
+  line on what earlier milestones changed (from their notes, terse), and the one milestone being
+  assigned. Leave `notes.md` empty. The agent can `/pickup` it, and the full plan stays with you.
+  Rewrite the slice for each milestone (step 6).
 - **Dev shell.** A fresh worktree has no active dev shell. If it has a flake dev shell, tell the agent in
   step 4's prompt to run its commands through `nix develop`.
 
@@ -116,6 +121,13 @@ Target every later command by `<pane_id>`, never `<agent-name>`. The prompt must
 control bytes or ANSI escapes. The spawned agent has zero context: brief it like a fresh subagent,
 including what "done" looks like.
 
+**Work from the session plan, one milestone per agent.** When the task is a plan milestone, the prompt
+is just: `/pickup -- Stop once the milestone's done-check passes. Do not commit. Finish by calling
+append_note with at most 10 bullets: what changed, done-check result, open issues.` The seeded slice
+carries the detail, so the prompt stays short and the agent can't see other milestones. In a shared
+directory there is no slice (the agent reads your plan), so add `do milestone <N> only` to the prompt.
+A task that isn't a plan milestone gets a self-contained brief ending in the same append_note instruction.
+
 The `prompt` call only confirms the agent picked the task up: `--wait --until working` returns once it
 starts working (`agent_prompt_stalled` means it never did). Waiting for the work itself is step 5, so
 this call does not hold your turn for the whole task.
@@ -135,7 +147,8 @@ task has run far longer than it should, read the pane (below) instead of waiting
 
 `blocked` means herdr detected an approval/question UI -- not that the request is safe to approve.
 
-1. `herdr agent read <pane_id> --source recent` before anything else.
+1. `herdr agent read <pane_id> --source recent --lines 30` before anything else. Keep pane reads
+   short; they land in your context.
 2. Approve only read-only/idempotent actions inside the task's stated scope. For anything
    destructive, irreversible, or out of scope: stop and show the user the exact prompt text.
 3. `herdr agent send-keys <pane_id> <key...>` -- only `enter`/`return`/`up`/`down`/`esc`/`escape`
@@ -147,13 +160,28 @@ task has run far longer than it should, read the pane (below) instead of waiting
    If it still denies, stop and show the user the prompt; don't retry or find another way to press
    the key.
 4. Treat `unknown` like `blocked`: read and decide, don't assume success.
+5. **Compact a bloated agent mid-milestone.** The status bar in every read shows its context use. When
+   it is past about 100k tokens (10% on a 1M window) and the milestone isn't done, send `herdr agent
+   prompt <pane_id> "/compact keep: <what it has ruled out, open hypotheses, files in flight, next
+   step>"` once the agent is idle, with no `--wait` (like `/clear`), then wait as above. This is Claude
+   Code's syntax; use the other agent's own compact command if it differs. Fill the
+   `keep:` text from what you read, not a template. Compact an agent once per milestone; the boundary
+   clear in step 6 handles the rest.
 
 Repeat until `done`, or escalate to the user.
 
 ## 6. Collect results and tear down
 
-- `herdr agent read <pane_id> --source recent-unwrapped --lines <n>` for the final output. If it's
-  incomplete or raises something to follow up on, send another `agent prompt` instead of tearing down.
+- Read the agent's result from its notes, not its pane: `tail -n 20 <target-dir>/.agent-sessions/notes.md`.
+  Fall back to `herdr agent read <pane_id> --source recent-unwrapped --lines 40` only if it wrote none.
+  If the result is incomplete or raises something to follow up on, send another `agent prompt` instead
+  of clearing it.
+- **Next milestone: clear the same agent, don't keep its context.** First run the `recap` skill on the
+  worktree and then the Review Flow yourself; the agent doesn't commit. Recap leaves the next
+  milestone detailed in your plan. Then send `herdr agent prompt <pane_id> "/clear"` with no `--wait`
+  (it never enters a working state, so waiting reports `agent_prompt_stalled`), reseed the slice
+  (step 2: rewrite `plan.md`, empty `notes.md`), and repeat step 4's prompt in the same pane. Mark the
+  finished milestone in your own plan.
 - Only once you're actually done, close what you opened: `herdr tab close <tab_id>` for a tab you
   created, or `herdr workspace close <workspace_id>` for a workspace. There is no `pane close`.
 - Closing herdr's workspace or tab does not remove a worktree you created in step 2. After closing it,
