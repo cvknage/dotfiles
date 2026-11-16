@@ -58,20 +58,20 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     claude-pace = {
-      url = "github:Astro-Han/claude-pace/v0.9.4";
+      url = "github:Astro-Han/claude-pace/v0.9.6";
       # url = "github:Astro-Han/claude-pace"; # main, untagged
       flake = false;
     };
     code-graph-mcp-linux-x86_64 = {
-      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-linux-x64";
+      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.193.0/code-graph-mcp-linux-x64";
       flake = false;
     };
     code-graph-mcp-macos-arm64 = {
-      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/code-graph-mcp-darwin-arm64";
+      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.193.0/code-graph-mcp-darwin-arm64";
       flake = false;
     };
     code-graph-mcp-models = {
-      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.145.0/models.tar.gz";
+      url = "https://github.com/sdsrss/code-graph-mcp/releases/download/v0.193.0/models.tar.gz";
       flake = false;
     };
   };

@@ -11,9 +11,9 @@
   easy-dotnet-server = let
     base = pkgs.buildDotnetGlobalTool {
       pname = "easy-dotnet-server";
-      version = "3.4.26";
+      version = "3.4.38";
       nugetName = "EasyDotnet";
-      nugetHash = "sha256-Sn4zzJ4nWkkp5o/aJ9HV8m+JW4DWx09/MsNEbWU1qYU=";
+      nugetHash = "sha256-kef7DvRo7RFdgvYpmUeQalGk1PCU81nm6JUzqeos45w=";
       executables = ["dotnet-easydotnet"];
       dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
     };
